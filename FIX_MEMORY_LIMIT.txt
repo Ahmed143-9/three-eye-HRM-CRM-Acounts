@@ -1,0 +1,52 @@
+=====================================================
+  FIX PHP MEMORY LIMIT - IMPORTANT!
+=====================================================
+
+PROBLEM:
+Your PHP memory limit is too low (128MB), causing 500 errors.
+
+SOLUTION - Choose ONE of these methods:
+
+-----------------------------------------------------
+METHOD 1: Edit php.ini (RECOMMENDED - Permanent Fix)
+-----------------------------------------------------
+
+1. Open this file in Notepad:
+   C:\laragon\bin\php\php-8.3.10-Win32-vs16-x64\php.ini
+
+2. Find this line (around line 443):
+   memory_limit = 128M
+
+3. Change it to:
+   memory_limit = 512M
+
+4. Save the file
+
+5. Restart Laragon or the PHP server
+
+-----------------------------------------------------
+METHOD 2: Use Laragon (Easiest)
+-----------------------------------------------------
+
+1. Click on Laragon icon in system tray
+2. Click "Stop All"
+3. Click "Start All"
+4. Laragon will use the updated php.ini
+
+-----------------------------------------------------
+METHOD 3: Quick Test (Temporary - until server stops)
+-----------------------------------------------------
+
+Run this command in PowerShell:
+$env:PHP_INI_SCAN_DIR=""; php -d memory_limit=512M artisan serve --host=127.0.0.1 --port=8000
+
+=====================================================
+AFTER FIXING:
+
+1. Open browser: http://127.0.0.1:8000/login
+2. Login with:
+   Email: superadmin@example.com
+   Password: 1234
+3. You should now access all dashboards without 500 errors!
+
+=====================================================
