@@ -261,6 +261,32 @@ class Employee extends Model
         return $this->hasOne('App\Models\BankAccount', 'id', 'account');
     }
 
+    /**
+     * Get all asset assignments for this employee
+     */
+    public function employeeAssets()
+    {
+        return $this->hasMany(EmployeeAsset::class, 'employee_id');
+    }
+
+    /**
+     * Get currently assigned assets
+     */
+    public function currentAssets()
+    {
+        return $this->hasMany(EmployeeAsset::class, 'employee_id')
+                    ->whereNull('return_date')
+                    ->where('status', 'Assigned');
+    }
+
+    /**
+     * Get asset requests made by this employee
+     */
+    public function assetRequests()
+    {
+        return $this->hasMany(AssetRequest::class, 'employee_id');
+    }
+
 
     public function present_status($employee_id, $data)
     {

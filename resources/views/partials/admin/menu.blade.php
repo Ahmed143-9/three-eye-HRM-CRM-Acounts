@@ -13,6 +13,12 @@
     // Safe plan retrieval with null check
     $planId = \Auth::user()->show_dashboard();
     $userPlan = $planId ? \App\Models\Plan::getPlan($planId) : null;
+
+    // PERFORMANCE: Cache all user permissions once instead of 227 DB queries
+    $userPermissions = Auth::user()->getAllPermissions()->pluck('name')->toArray();
+    $hasPermission = function($perm) use ($userPermissions) {
+        return in_array($perm, $userPermissions);
+    };
 @endphp
 
 @if (isset($setting['cust_theme_bg']) && $setting['cust_theme_bg'] == 'on')
@@ -38,11 +44,11 @@
         @if (\Auth::user()->type != 'client')
             <ul class="dash-navbar">
                 <!--------------------- Start Dashboard ----------------------------------->
-                @if (Gate::check('show hrm dashboard') ||
-                        Gate::check('show project dashboard') ||
-                        Gate::check('show account dashboard') ||
-                        Gate::check('show crm dashboard') ||
-                        Gate::check('show pos dashboard'))
+                @if ($hasPermission('show hrm dashboard') ||
+                        $hasPermission('show project dashboard') ||
+                        $hasPermission('show account dashboard') ||
+                        $hasPermission('show crm dashboard') ||
+                        $hasPermission('show pos dashboard'))
                     <li
                         class="dash-item dash-hasmenu
                                 {{ Request::segment(1) == null ||
@@ -87,13 +93,13 @@
                             <span class="dash-mtext">{{ __('Dashboard') }}</span>
                             <span class="dash-arrow"><i data-feather="chevron-right"></i></span></a>
                         <ul class="dash-submenu">
-                            @if (isset($userPlan) && $userPlan->account == 1 && Gate::check('show account dashboard'))
+                            @if (isset($userPlan) && $userPlan->account == 1 && $hasPermission('show account dashboard'))
                                 <li
                                     class="dash-item dash-hasmenu {{ Request::segment(1) == null || Request::segment(1) == 'account-dashboard' || Request::segment(1) == 'report' || Request::segment(1) == 'reports-monthly-cashflow' || Request::segment(1) == 'reports-quarterly-cashflow' ? ' active dash-trigger' : '' }}">
                                     <a class="dash-link" href="#">{{ __('Accounting ') }}<span
                                             class="dash-arrow"><i data-feather="chevron-right"></i></span></a>
                                     <ul class="dash-submenu">
-                                        @can('show account dashboard')
+                                        @if($hasPermission('show account dashboard'))
                                             <li
                                                 class="dash-item {{ Request::segment(1) == null || Request::segment(1) == 'account-dashboard' ? ' active' : '' }}">
                                                 <a class="dash-link"

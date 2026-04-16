@@ -9,6 +9,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Lab404\Impersonate\Models\Impersonate;
@@ -1139,79 +1140,81 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function show_dashboard()
     {
+        // OPTIMIZED: Cache plan value to avoid redundant queries
+        if (isset($this->cached_plan)) {
+            return $this->cached_plan;
+        }
+
         $user_type = \Auth::user()->type;
 
         if ($user_type == 'company' || $user_type == 'super admin') {
-            $user = Auth::user();
+            $this->cached_plan = $this->plan;
         } else {
-            $user = User::where('id', \Auth::user()->created_by)->first();
+            $owner = User::where('id', \Auth::user()->created_by)->first();
+            $this->cached_plan = $owner ? $owner->plan : null;
         }
 
-        return $user->plan;
-        // return !empty($user->plan)?Plan::find($user->plan)->crm:'';
+        return $this->cached_plan;
     }
 
     public static function show_crm()
     {
+        // OPTIMIZED: Single query with null safety
         $user_type = \Auth::user()->type;
+        $userId = ($user_type == 'company' || $user_type == 'super admin') 
+            ? \Auth::user()->id 
+            : \Auth::user()->created_by;
 
-        if ($user_type == 'company' || $user_type == 'super admin') {
-            $user = User::where('id', \Auth::user()->id)->first();
-
-        } else {
-            $user = User::where('id', \Auth::user()->created_by)->first();
-        }
-
-        return !empty($user->plan) ? Plan::find($user->plan)->crm : '';
+        $user = User::where('id', $userId)->first();
+        return $user && $user->plan ? Plan::find($user->plan)->crm : '';
     }
 
     public static function show_hrm()
     {
+        // OPTIMIZED: Single query with null safety
         $user_type = \Auth::user()->type;
-        if ($user_type == 'company' || $user_type == 'super admin') {
-            $user = User::where('id', \Auth::user()->id)->first();
-        } else {
-            $user = User::where('id', \Auth::user()->created_by)->first();
-        }
+        $userId = ($user_type == 'company' || $user_type == 'super admin') 
+            ? \Auth::user()->id 
+            : \Auth::user()->created_by;
 
-        return !empty($user->plan) ? Plan::find($user->plan)->hrm : '';
-
+        $user = User::where('id', $userId)->first();
+        return $user && $user->plan ? Plan::find($user->plan)->hrm : '';
     }
 
     public static function show_account()
     {
+        // OPTIMIZED: Single query with null safety
         $user_type = \Auth::user()->type;
-        if ($user_type == 'company' || $user_type == 'super admin') {
-            $user = User::where('id', \Auth::user()->id)->first();
-        } else {
-            $user = User::where('id', \Auth::user()->created_by)->first();
-        }
+        $userId = ($user_type == 'company' || $user_type == 'super admin') 
+            ? \Auth::user()->id 
+            : \Auth::user()->created_by;
 
-        return !empty($user->plan) ? Plan::find($user->plan)->account : '';
+        $user = User::where('id', $userId)->first();
+        return $user && $user->plan ? Plan::find($user->plan)->account : '';
     }
 
     public static function show_project()
     {
+        // OPTIMIZED: Single query with null safety
         $user_type = \Auth::user()->type;
-        if ($user_type == 'company' || $user_type == 'super admin') {
-            $user = User::where('id', \Auth::user()->id)->first();
-        } else {
-            $user = User::where('id', \Auth::user()->created_by)->first();
-        }
-        return !empty($user->plan) ? Plan::find($user->plan)->project : '';
+        $userId = ($user_type == 'company' || $user_type == 'super admin') 
+            ? \Auth::user()->id 
+            : \Auth::user()->created_by;
 
+        $user = User::where('id', $userId)->first();
+        return $user && $user->plan ? Plan::find($user->plan)->project : '';
     }
 
     public static function show_pos()
     {
+        // OPTIMIZED: Single query with null safety
         $user_type = \Auth::user()->type;
-        if ($user_type == 'company' || $user_type == 'super admin') {
-            $user = User::where('id', \Auth::user()->id)->first();
-        } else {
-            $user = User::where('id', \Auth::user()->created_by)->first();
-        }
-        return !empty($user->plan) ? Plan::find($user->plan)->pos : '';
+        $userId = ($user_type == 'company' || $user_type == 'super admin') 
+            ? \Auth::user()->id 
+            : \Auth::user()->created_by;
 
+        $user = User::where('id', $userId)->first();
+        return $user && $user->plan ? Plan::find($user->plan)->pos : '';
     }
 
     public function clientProjects()

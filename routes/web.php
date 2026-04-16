@@ -7,6 +7,7 @@ use App\Http\Controllers\AllowanceOptionController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AppraisalController;
 use App\Http\Controllers\AssetController;
+use App\Http\Controllers\AssetCategoryController;
 use App\Http\Controllers\AttendanceEmployeeController;
 use App\Http\Controllers\AuthorizeNetController;
 use App\Http\Controllers\AwardController;
@@ -718,6 +719,21 @@ Route::group(['middleware' => ['verified']], function () {
     Route::resource('budget', BudgetController::class)->middleware(['auth', 'XSS', 'revalidate']);
 
     Route::resource('account-assets', AssetController::class)->middleware(['auth', 'XSS', 'revalidate']);
+    
+    // Asset Categories Management
+    Route::resource('asset-categories', AssetCategoryController::class)->middleware(['auth', 'XSS', 'revalidate']);
+    Route::post('asset-categories/setup-defaults', [AssetCategoryController::class, 'setupDefaults'])->name('asset-categories.setup-defaults')->middleware(['auth', 'XSS', 'revalidate']);
+    
+    // Asset Management Additional Routes
+    Route::get('account-assets/{id}/assign', [AssetController::class, 'showAssignForm'])->name('account-assets.assign-form')->middleware(['auth', 'XSS', 'revalidate']);
+    Route::post('account-assets/{id}/assign', [AssetController::class, 'assignAsset'])->name('account-assets.assign')->middleware(['auth', 'XSS', 'revalidate']);
+    Route::get('account-assets/{id}/return', [AssetController::class, 'showReturnForm'])->name('account-assets.return-form')->middleware(['auth', 'XSS', 'revalidate']);
+    Route::post('account-assets/{id}/return', [AssetController::class, 'returnAsset'])->name('account-assets.return')->middleware(['auth', 'XSS', 'revalidate']);
+    Route::get('account-assets/{id}/history', [AssetController::class, 'history'])->name('account-assets.history')->middleware(['auth', 'XSS', 'revalidate']);
+    Route::get('account-assets/employee/{employeeId}', [AssetController::class, 'employeeAssets'])->name('account-assets.employee-assets')->middleware(['auth', 'XSS', 'revalidate']);
+    Route::get('account-assets/requests', [AssetController::class, 'requests'])->name('account-assets.requests')->middleware(['auth', 'XSS', 'revalidate']);
+    Route::post('account-assets/requests/{id}/approve', [AssetController::class, 'approveRequest'])->name('account-assets.approve-request')->middleware(['auth', 'XSS', 'revalidate']);
+    Route::post('account-assets/requests/{id}/reject', [AssetController::class, 'rejectRequest'])->name('account-assets.reject-request')->middleware(['auth', 'XSS', 'revalidate']);
 
     Route::resource('custom-field', CustomFieldController::class)->middleware(['auth', 'XSS', 'revalidate']);
 
