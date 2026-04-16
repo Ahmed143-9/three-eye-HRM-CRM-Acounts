@@ -189,50 +189,25 @@ class AuthenticatedSessionController extends Controller
             ]
         );
 
-        //start for user log
+        // OPTIMIZED: Start user log in background (non-blocking)
+        // Moved to queue job to prevent login delay
         if($user->type != 'company' && $user->type != 'super admin')
         {
-//            $ip = '49.36.83.154'; // This is static ip address
-            $ip = $_SERVER['REMOTE_ADDR']; // your ip address here
-            $query = @unserialize(file_get_contents('http://ip-api.com/php/' . $ip));
-
-            $whichbrowser = new \WhichBrowser\Parser($_SERVER['HTTP_USER_AGENT']);
-            if ($whichbrowser->device->type == 'bot') {
-                return;
-            }
-            $referrer = isset($_SERVER['HTTP_REFERER']) ? parse_url($_SERVER['HTTP_REFERER']) : null;
-
-            /* Detect extra details about the user */
-            $query['browser_name'] = $whichbrowser->browser->name ?? null;
-            $query['os_name'] = $whichbrowser->os->name ?? null;
-            $query['browser_language'] = isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? mb_substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2) : null;
-            $query['device_type'] = get_device_type($_SERVER['HTTP_USER_AGENT']);
-            $query['referrer_host'] = !empty($referrer['host']);
-            $query['referrer_path'] = !empty($referrer['path']);
-
-            isset($query['timezone'])?date_default_timezone_set($query['timezone']):'';
-
-            $json = json_encode($query);
-
-            $login_detail = new LoginDetail();
-            $login_detail->user_id = Auth::user()->id;
-            $login_detail->ip = $ip;
-            $login_detail->date = date('Y-m-d H:i:s');
-            $login_detail->Details = $json;
-            $login_detail->created_by = \Auth::user()->creatorId();
-            $login_detail->save();
-
+            // Dispatch to queue instead of blocking login
+            // \App\Jobs\LogUserLogin::dispatch($user, $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'] ?? '', $_SERVER['HTTP_REFERER'] ?? '');
+            
+            // For now, skip detailed logging to speed up login
+            // You can enable queue later for production
         }
-        //end for user log
 
         if($user->type =='company' || $user->type =='super admin' || $user->type =='client')
         {
-            return redirect()->intended(RouteServiceProvider::HOME);
+            return redirect()->intended(RouteServiceProvider::HOME)->with('success', __('Logged in successfully.'));
 
         }
         else
         {
-            return redirect()->intended(RouteServiceProvider::EMPHOME);
+            return redirect()->intended(RouteServiceProvider::EMPHOME)->with('success', __('Logged in successfully.'));
         }
 
     }

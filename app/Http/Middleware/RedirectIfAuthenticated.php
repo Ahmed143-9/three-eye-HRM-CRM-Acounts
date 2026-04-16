@@ -23,7 +23,14 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                return redirect(RouteServiceProvider::HOME);
+                // OPTIMIZED: Redirect based on user type, not always HOME
+                $user = Auth::guard($guard)->user();
+                
+                if (in_array($user->type, ['company', 'super admin', 'client'])) {
+                    return redirect(RouteServiceProvider::HOME);
+                } else {
+                    return redirect(RouteServiceProvider::EMPHOME);
+                }
             }
         }
 
