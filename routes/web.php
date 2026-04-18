@@ -361,6 +361,12 @@ Route::group(['middleware' => ['verified']], function () {
 
     Route::get('/change/mode', [UserController::class, 'changeMode'])->name('change.mode');
 
+    // ── Pending User Approvals (Super Admin only) ──────────────────────────────
+    Route::get('users/pending-approvals', [UserController::class, 'pendingApprovals'])->name('users.pending')->middleware(['auth', 'XSS']);
+    Route::post('users/{id}/approve', [UserController::class, 'approveUser'])->name('users.approve')->middleware(['auth', 'XSS']);
+    Route::delete('users/{id}/reject', [UserController::class, 'rejectUser'])->name('users.reject')->middleware(['auth', 'XSS']);
+
+
     Route::resource('roles', RoleController::class)->middleware(['auth', 'XSS', 'revalidate']);
 
     Route::resource('permissions', PermissionController::class)->middleware(['auth', 'XSS', 'revalidate']);
@@ -496,6 +502,7 @@ Route::group(['middleware' => ['verified']], function () {
         ],
         function () {
             Route::resource('bank-transfer', BankTransferController::class);
+            Route::resource('billing', \App\Http\Controllers\BillingController::class);
         }
     );
 

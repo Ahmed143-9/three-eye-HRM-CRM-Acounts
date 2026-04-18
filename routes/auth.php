@@ -10,12 +10,15 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/register/{ref_id?}/{lang?}', [RegisteredUserController::class, 'showRegistrationForm'])
-                ->middleware('guest')
-                ->name('register');
+// Public registration is DISABLED. Only Admins can create users from the system.
+Route::get('/register/{ref_id?}/{lang?}', function() {
+    return redirect()->route('login')->with('status', __('Public registration is disabled. Please contact your administrator.'));
+})->middleware('guest')->name('register');
 
-Route::post('/register/store', [RegisteredUserController::class, 'store'])
-                ->middleware('guest')->name('register.store');
+Route::post('/register/store', function() {
+    return redirect()->route('login')->with('status', __('Public registration is disabled. Please contact your administrator.'));
+})->middleware('guest')->name('register.store');
+
 
 Route::get('/login/{lang?}', [AuthenticatedSessionController::class, 'showLoginForm'])
                 ->middleware('guest')

@@ -128,43 +128,11 @@
 <body class="{{ $themeColor }}">
     <div class="custom-login">
         <div class="login-bg-img">
-            <img src="{{ isset($setting['color_flag']) && $setting['color_flag'] == 'false' ? asset('assets/images/auth/'.$color.'.svg') : asset('assets/images/auth/theme-3.svg') }}" class="login-bg-1">
-            <img src="{{ asset('assets/images/auth/common.svg') }}" class="login-bg-2">
+            <img src="{{ asset('assets/images/login3.jpg') }}" class="login-bg-1" style="object-fit: cover; width: 100%; height: 100%;">
         </div>
         <div class="bg-login bg-primary"></div>
         <div class="custom-login-inner">
-            <header class="dash-header">
-                <nav class="navbar navbar-expand-md default">
-                    <div class="container">
-                        <div class="navbar-brand">
 
-                        <a class="navbar-brand" href="#">
-                            @if ($setting['cust_darklayout'] == 'on')
-                                <img class="logo"
-                                    src="{{ $logo . (isset($company_logo) && !empty($company_logo) ? $company_logo : 'logo-light.png') . '?' . time() }}"
-                                    alt="" loading="lazy"/>
-                            @else
-                                <img class="logo"
-                                    src="{{ $logo . (isset($company_logo) && !empty($company_logo) ? $company_logo : 'logo-dark.png') . '?' . time() }}"
-                                    alt="" loading="lazy"/>
-                            @endif
-                        </a>
-
-
-                        </div>
-                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#navbarlogin">
-                            <span class="navbar-toggler-icon"></span>
-                        </button>
-                        <div class="collapse navbar-collapse" id="navbarlogin">
-                            <ul class="navbar-nav align-items-center ms-auto mb-2 mb-lg-0">
-                                {{-- @include('landingpage::layouts.buttons') --}}
-                                @yield('language-bar')
-                            </ul>
-                        </div>
-                    </div>
-                </nav>
-            </header>
             <main class="custom-wrapper">
                 <div class="custom-row">
                     <div class="card">

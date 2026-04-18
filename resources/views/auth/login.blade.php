@@ -47,10 +47,7 @@
 @endsection
 
 @section('content')
-    <div class="card-body">
-        <div>
-            <h2 class="mb-3 f-w-600">{{ __('Login') }}</h2>
-        </div>
+
         {{ Form::open(['route' => 'login', 'method' => 'post', 'id' => 'loginForm', 'class' => 'login-form', 'class'=>'needs-validation', 'novalidate']) }}
         @if (session('status'))
             <div class="mb-4 font-medium text-lg text-green-600 text-danger">
@@ -111,11 +108,7 @@
             <div class="d-grid">
                 {{ Form::submit(__('Login'), ['class' => 'btn btn-primary mt-2', 'id' => 'saveBtn']) }}
             </div>
-            @if ($settings['enable_signup'] == 'on')
-                <p class="my-4 text-center">{{ __("Don't have an account?") }}
-                    <a href="{{ route('register', ['0',$lang]) }}" class="text-primary">{{ __('Register') }}</a>
-                </p>
-            @endif
+
         </div>
         {{ Form::close() }}
     </div>

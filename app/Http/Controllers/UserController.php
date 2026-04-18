@@ -52,7 +52,17 @@ class UserController extends Controller
 
         $customFields = CustomField::where('created_by', '=', \Auth::user()->creatorId())->where('module', '=', 'user')->get();
         $user = \Auth::user();
-        $roles = Role::where('created_by', '=', $user->creatorId())->where('name', '!=', 'client')->get()->pluck('name', 'id');
+
+        // Super Admin sees all roles; Admins cannot assign 'super admin' role
+        if ($user->type == 'super admin') {
+            $roles = Role::where('created_by', '=', $user->creatorId())->where('name', '!=', 'client')->get()->pluck('name', 'id');
+        } else {
+            $roles = Role::where('created_by', '=', $user->creatorId())
+                        ->where('name', '!=', 'client')
+                        ->where('name', '!=', 'super admin')
+                        ->get()->pluck('name', 'id');
+        }
+
         if (\Auth::user()->can('create user')) {
             return view('user.create', compact('roles', 'customFields'));
         } else {
@@ -153,6 +163,12 @@ class UserController extends Controller
                     return redirect()->back()->with('error', $messages->first());
                 }
 
+                // RBAC: Admins cannot assign 'super admin' role
+                $requestedRole = Role::findById($request->role);
+                if ($requestedRole && $requestedRole->name == 'super admin') {
+                    return redirect()->back()->with('error', __('You are not authorized to assign the Super Admin role.'));
+                }
+
                 $enableLogin = 0;
                 if (!empty($request->password_switch) && $request->password_switch == 'on') {
                     $enableLogin = 1;
@@ -166,30 +182,44 @@ class UserController extends Controller
                 }
 
                 $objUser = User::find($objUser);
-                $user = User::find(\Auth::user()->created_by);
-                $total_user = $objUser->countUsers();
-                $plan = Plan::find($objUser->plan);
                 $userpassword = $request->input('password');
-                if ($total_user < $plan->max_users || $plan->max_users == -1) {
-                    $role_r = Role::findById($request->role);
-                    $psw = $request->password;
-                    $request['password'] = !empty($userpassword)?\Hash::make($userpassword) : null;
-                    $request['type'] = $role_r->name;
-                    $request['lang'] = !empty($default_language) ? $default_language->value : 'en';
-                    $request['created_by'] = \Auth::user()->creatorId();
-                    $request['email_verified_at'] = date('Y-m-d H:i:s');
-                    $request['is_enable_login'] = $enableLogin;
 
-                    $user = User::create($request->all());
-                    $user->assignRole($role_r);
-                    if ($request['type'] != 'client') {
-                        \App\Models\Utility::employeeDetails($user->id, \Auth::user()->creatorId());
-                    }
+                // ── UNLIMITED: Plan user limit is bypassed ──────────────────
+                $role_r = Role::findById($request->role);
+                $psw = $request->password;
+                $request['password']         = !empty($userpassword) ? \Hash::make($userpassword) : null;
+                $request['type']             = $role_r->name;
+                $request['lang']             = !empty($default_language) ? $default_language->value : 'en';
+                $request['created_by']       = \Auth::user()->creatorId();
+                $request['email_verified_at'] = date('Y-m-d H:i:s');
+                // New users are INACTIVE by default — must be approved by Super Admin
+                $request['is_enable_login']  = 0;
+                $request['is_active']        = 0;
 
-                } else {
-                    return redirect()->back()->with('error', __('Your user limit is over, Please upgrade plan.'));
+                $user = User::create($request->all());
+                $user->assignRole($role_r);
+                if ($request['type'] != 'client') {
+                    \App\Models\Utility::employeeDetails($user->id, \Auth::user()->creatorId());
+                }
+
+                // ── Notify Super Admin about pending approval ────────────────
+                $superAdmin = User::where('type', 'super admin')->first();
+                if ($superAdmin) {
+                    \DB::table('user_notifications')->insert([
+                        'to_user_id'   => $superAdmin->id,
+                        'from_user_id' => \Auth::user()->id,
+                        'user_id'      => $user->id,
+                        'user_name'    => $user->name,
+                        'user_email'   => $user->email,
+                        'user_role'    => $role_r->name,
+                        'created_by'   => \Auth::user()->name,
+                        'is_read'      => 0,
+                        'created_at'   => now(),
+                        'updated_at'   => now(),
+                    ]);
                 }
             }
+
             // Send Email
             $setings = Utility::settings();
             if ($setings['new_user'] == 1) {
@@ -214,8 +244,7 @@ class UserController extends Controller
             if (\Auth::user()->type == 'super admin') {
                 return redirect()->route('users.index')->with('success', __('Company successfully created.'));
             } else {
-                return redirect()->route('users.index')->with('success', __('User successfully created.'));
-
+                return redirect()->route('users.index')->with('success', __('User successfully created. The user account is inactive and requires Super Admin approval before they can log in.'));
             }
 
         } else {
@@ -715,4 +744,59 @@ class UserController extends Controller
             }
         }
     }
+
+    // ─── Pending Approval Methods (Super Admin only) ──────────────────────────
+
+    /**
+     * Show all users pending Super Admin approval (is_active = 0, non-company).
+     */
+    public function pendingApprovals()
+    {
+        if (\Auth::user()->type !== 'super admin') {
+            return redirect()->back()->with('error', __('Access denied. Super Admin only.'));
+        }
+
+        $pendingUsers = User::where('is_active', 0)
+            ->where('type', '!=', 'super admin')
+            ->where('type', '!=', 'company')
+            ->with('creator')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('user.pending_approvals', compact('pendingUsers'));
+    }
+
+    /**
+     * Approve a pending user — activate their account and enable login.
+     */
+    public function approveUser($id)
+    {
+        if (\Auth::user()->type !== 'super admin') {
+            return redirect()->back()->with('error', __('Access denied. Super Admin only.'));
+        }
+
+        $user = User::findOrFail($id);
+        $user->is_active       = 1;
+        $user->is_enable_login = 1;
+        $user->save();
+
+        return redirect()->route('users.pending')->with('success', __('User "') . $user->name . __('" has been approved and can now log in.'));
+    }
+
+    /**
+     * Reject and delete a pending user account.
+     */
+    public function rejectUser($id)
+    {
+        if (\Auth::user()->type !== 'super admin') {
+            return redirect()->back()->with('error', __('Access denied. Super Admin only.'));
+        }
+
+        $user = User::findOrFail($id);
+        $userName = $user->name;
+        $user->delete();
+
+        return redirect()->route('users.pending')->with('success', __('User "') . $userName . __('" has been rejected and removed.'));
+    }
 }
+

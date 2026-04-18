@@ -63,8 +63,8 @@ class DatabaseSeeder extends Seeder
             // Step 15: AI Templates
             $this->call(AiTemplateSeeder::class);
             
-            // Step 16: Asset Management (if exists)
-            $this->call(AssetManagementSeeder::class);
+            // Step 16: Asset Management (DISABLED - Optional)
+            // $this->call(AssetManagementSeeder::class);
 
         }else{
             Utility::languagecreate();

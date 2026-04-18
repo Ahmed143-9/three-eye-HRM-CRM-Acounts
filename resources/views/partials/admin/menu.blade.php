@@ -847,7 +847,7 @@
                                         Request::segment(1) == 'chart-of-account' || Request::segment(1) == 'journal-entry' ||
                                         Request::segment(2) == 'ledger' || Request::segment(2) == 'balance-sheet' ||
                                         Request::segment(2) == 'trial-balance' || Request::segment(2) == 'profit-loss' ||
-                                        Request::segment(1) == 'bill' || Request::segment(1) == 'expense' ||
+                                        Request::segment(1) == 'bill' || Request::segment(1) == 'expense' || Request::segment(1) == 'billing' ||
                                         Request::segment(1) == 'payment' || Request::segment(1) == 'debit-note' || (Request::route()->getName() == 'report.balance.sheet') || (Request::route()->getName() == 'trial-balance-report') ? ' active dash-trigger'
                                             : '' }}">
                             <a href="#!" class="dash-link"><span class="dash-micon"><i
@@ -859,19 +859,14 @@
 
                                 @if (Gate::check('manage bank account') || Gate::check('manage bank transfer'))
                                     <li
-                                        class="dash-item dash-hasmenu {{ Request::segment(1) == 'bank-account' || Request::segment(1) == 'bank-transfer' ? 'active dash-trigger' : '' }}">
+                                        class="dash-item dash-hasmenu {{ Request::segment(1) == 'bank-account' || Request::segment(1) == 'bank-transfer' || Request::segment(1) == 'billing' ? 'active dash-trigger' : '' }}">
                                         <a class="dash-link" href="#">{{ __('Banking') }}<span
                                                 class="dash-arrow"><i data-feather="chevron-right"></i></span></a>
                                         <ul class="dash-submenu">
                                             <li
-                                                class="dash-item {{ Request::route()->getName() == 'bank-account.index' || Request::route()->getName() == 'bank-account.create' || Request::route()->getName() == 'bank-account.edit' ? ' active' : '' }}">
+                                                class="dash-item {{ Request::route()->getName() == 'billing.index' || Request::route()->getName() == 'billing.create' || Request::route()->getName() == 'billing.edit' ? ' active' : '' }}">
                                                 <a class="dash-link"
-                                                    href="{{ route('bank-account.index') }}">{{ __('Account') }}</a>
-                                            </li>
-                                            <li
-                                                class="dash-item {{ Request::route()->getName() == 'bank-transfer.index' || Request::route()->getName() == 'bank-transfer.create' || Request::route()->getName() == 'bank-transfer.edit' ? ' active' : '' }}">
-                                                <a class="dash-link"
-                                                    href="{{ route('bank-transfer.index') }}">{{ __('Transfer') }}</a>
+                                                    href="{{ route('billing.index') }}">{{ __('Billing') }}</a>
                                             </li>
                                         </ul>
                                     </li>
@@ -1136,8 +1131,8 @@
 
                 <!--------------------- End CRM ----------------------------------->
 
-                <!--------------------- Start Project ----------------------------------->
-
+                <!--------------------- Start Project [DISABLED] ----------------------------------->
+                {{-- Project System Disabled
                 @if (!empty($userPlan) && $userPlan->project == 1)
                     @if (Gate::check('manage project') || Gate::check('manage project task') ||
                         Gate::check('manage timesheet') || Gate::check('manage bug report') ||
@@ -1230,8 +1225,8 @@
                         </li>
                     @endif
                 @endif
-
-                <!--------------------- End Project ----------------------------------->
+                --}}
+                <!--------------------- End Project [DISABLED] ----------------------------------->
 
 
 
@@ -1302,10 +1297,34 @@
                     </li>
                 @endif
 
-                <!--------------------- End Products System ----------------------------------->
-
-
-                <!--------------------- Start POs System ----------------------------------->
+                <!--------------------- End Products System [DISABLED] ----------------------------------->
+                {{-- Products System Disabled
+                @if (Gate::check('manage product & service'))
+                    <li class="dash-item dash-hasmenu">
+                        <a href="#!" class="dash-link ">
+                            <span class="dash-micon"><i class="ti ti-shopping-cart"></i></span><span
+                                class="dash-mtext">{{ __('Products System') }}</span><span class="dash-arrow">
+                                <i data-feather="chevron-right"></i></span>
+                        </a>
+                        <ul class="dash-submenu">
+                            @if (Gate::check('manage product & service'))
+                                <li class="dash-item {{ Request::segment(1) == 'productservice' ? 'active' : '' }}">
+                                    <a href="{{ route('productservice.index') }}"
+                                        class="dash-link">{{ __('Product & Services') }}
+                                    </a>
+                                </li>
+                                <li class="dash-item {{ Request::segment(1) == 'productstock' ? 'active' : '' }}">
+                                    <a href="{{ route('productstock.index') }}"
+                                        class="dash-link">{{ __('Product Stock') }}
+                                    </a>
+                                </li>
+                            @endif
+                        </ul>
+                    </li>
+                @endif
+                --}}
+                <!--------------------- Start POS System [DISABLED] ----------------------------------->
+                {{-- POS System Disabled
                 @if (!empty($userPlan) && $userPlan->pos == 1)
                     @if (Gate::check('manage warehouse') ||
                             Gate::check('manage purchase') ||
@@ -1378,7 +1397,8 @@
                         </li>
                     @endif
                 @endif
-                <!--------------------- End POs System ----------------------------------->
+                --}}
+                <!--------------------- End POS System [DISABLED] ----------------------------------->
 
                 @if (\Auth::user()->type != 'super admin')
                     <li class="dash-item dash-hasmenu {{ Request::segment(1) == 'support' ? 'active' : '' }}">
@@ -1402,6 +1422,7 @@
                     </li> --}}
                 @endif
 
+                {{-- Notification Template Disabled
                 @if (\Auth::user()->type == 'company')
                     <li class="dash-item dash-hasmenu {{ Request::segment(1) == 'notification_templates' ? 'active' : '' }}">
                         <a href="{{ route('notification-templates.index') }}" class="dash-link">
@@ -1410,6 +1431,7 @@
                         </a>
                     </li>
                 @endif
+                --}}
 
                 <!--------------------- Start System Setup ----------------------------------->
 
