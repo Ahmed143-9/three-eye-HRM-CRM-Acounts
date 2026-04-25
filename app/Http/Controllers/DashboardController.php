@@ -36,6 +36,10 @@ use App\Models\Timesheet;
 use App\Models\TimeTracker;
 use App\Models\Trainer;
 use App\Models\Training;
+use App\Models\InvoicePayment;
+use App\Models\BillPayment;
+use App\Models\Termination;
+use App\Models\Resignation;
 use App\Models\User;
 use App\Models\Utility;
 use Illuminate\Http\Request;
@@ -81,103 +85,69 @@ class DashboardController extends Controller
      */
     public function account_dashboard_index()
     {
-
         if (Auth::check()) {
-
-            if (Auth::user()->type == 'super admin') {
+            if (Auth::user()->type == 'super admin' || Auth::user()->type == 'client') {
                 return redirect()->route('client.dashboard.view');
-            } elseif (Auth::user()->type == 'client') {
-                return redirect()->route('client.dashboard.view');
-            } else {
-                if (\Auth::user()->can('show account dashboard')) {
-                    $data['latestIncome'] = Revenue::with(['customer'])->where('created_by', '=', \Auth::user()->creatorId())->orderBy('id', 'desc')->limit(5)->get();
-                    $data['latestExpense'] = Payment::with(['vender'])->where('created_by', '=', \Auth::user()->creatorId())->orderBy('id', 'desc')->limit(5)->get();
-                    $currentYer = date('Y');
-
-                    $incomeCategory = ProductServiceCategory::where('created_by', '=', \Auth::user()->creatorId())
-                        ->where('type', '=', 'income')->get();
-
-                    $inColor = array();
-                    $inCategory = array();
-                    $inAmount = array();
-                    for ($i = 0; $i < count($incomeCategory); $i++) {
-                        $inColor[] = '#' . $incomeCategory[$i]->color;
-                        $inCategory[] = $incomeCategory[$i]->name;
-                        $inAmount[] = $incomeCategory[$i]->incomeCategoryRevenueAmount();
-                    }
-
-                    $data['incomeCategoryColor'] = $inColor;
-                    $data['incomeCategory'] = $inCategory;
-                    $data['incomeCatAmount'] = $inAmount;
-
-                    $expenseCategory = ProductServiceCategory::where('created_by', '=', \Auth::user()->creatorId())
-                        ->where('type', '=', 'expense')->get();
-                    $exColor = array();
-                    $exCategory = array();
-                    $exAmount = array();
-                    for ($i = 0; $i < count($expenseCategory); $i++) {
-                        $exColor[] = '#' . $expenseCategory[$i]->color;
-                        $exCategory[] = $expenseCategory[$i]->name;
-                        $exAmount[] = $expenseCategory[$i]->expenseCategoryAmount();
-                    }
-
-                    $data['expenseCategoryColor'] = $exColor;
-                    $data['expenseCategory'] = $exCategory;
-                    $data['expenseCatAmount'] = $exAmount;
-
-                    $data['incExpBarChartData'] = \Auth::user()->getincExpBarChartData();
-                    $data['incExpLineChartData'] = \Auth::user()->getIncExpLineChartDate();
-
-                    $data['currentYear'] = date('Y');
-                    $data['currentMonth'] = date('M');
-
-                    $constant['taxes'] = Tax::where('created_by', \Auth::user()->creatorId())->count();
-                    $constant['category'] = ProductServiceCategory::where('created_by', \Auth::user()->creatorId())->count();
-                    $constant['units'] = ProductServiceUnit::where('created_by', \Auth::user()->creatorId())->count();
-                    $constant['bankAccount'] = BankAccount::where('created_by', \Auth::user()->creatorId())->count();
-                    $data['constant'] = $constant;
-                    $data['bankAccountDetail'] = BankAccount::where('created_by', '=', \Auth::user()->creatorId())->limit(5)->get();
-                    $data['recentInvoice'] = Invoice::join('customers', 'invoices.customer_id', '=', 'customers.id')
-                        ->where('invoices.created_by', '=', \Auth::user()->creatorId())
-                        ->orderBy('invoices.id', 'desc')
-                        ->limit(5)
-                        ->select('invoices.*', 'customers.name as customer_name')
-                        ->get();
-
-                    $data['weeklyInvoice'] = \Auth::user()->weeklyInvoice();
-                    $data['monthlyInvoice'] = \Auth::user()->monthlyInvoice();
-                    $data['recentBill'] = Bill::join('venders', 'bills.vender_id', '=', 'venders.id')
-                    ->where('bills.created_by', '=', \Auth::user()->creatorId())
-                    ->orderBy('bills.id', 'desc')
-                    ->limit(5)
-                    ->select('bills.*', 'venders.name as vender_name')
-                    ->get();
-
-                    $data['weeklyBill'] = \Auth::user()->weeklyBill();
-                    $data['monthlyBill'] = \Auth::user()->monthlyBill();
-                    $data['goals'] = Goal::where('created_by', '=', \Auth::user()->creatorId())->where('is_display', 1)->get();
-
-                    //Storage limit
-                    $data['users'] = User::find(\Auth::user()->creatorId());
-                    $data['plan'] = Plan::getPlan(\Auth::user()->show_dashboard());
-                    if ($data['plan']->storage_limit > 0) {
-                        $data['storage_limit'] = ($data['users']->storage_limit / $data['plan']->storage_limit) * 100;
-                    } else {
-                        $data['storage_limit'] = 0;
-                    }
-
-                    return view('dashboard.account-dashboard', $data);
-                } else {
-
-                    return $this->project_dashboard_index();
-                }
-
             }
-        } else {
-                return redirect('login');
 
+            $user_id = \Auth::user()->creatorId();
+            $user = \Auth::user();
+
+            // Financial Insights
+            $totalIncome = Revenue::where('created_by', $user_id)->sum('amount');
+            $invoicePaid = InvoicePayment::whereHas('invoice', function($q) use($user_id) {
+                $q->where('created_by', $user_id);
+            })->sum('amount');
+            $income = $totalIncome + $invoicePaid;
+
+            $totalExpense = Payment::where('created_by', $user_id)->sum('amount');
+            $billPaid = BillPayment::whereHas('bill', function($q) use($user_id) {
+                $q->where('created_by', $user_id);
+            })->sum('amount');
+            $expense = $totalExpense + $billPaid;
+
+            $profit = $income - $expense;
+
+            // Pending Payments (Due Amounts)
+            $invoiceDue = 0;
+            $invoices = Invoice::where('created_by', $user_id)->get();
+            foreach($invoices as $invoice) {
+                $invoiceDue += $invoice->getDue();
             }
+            
+            $billDue = 0;
+            $bills = Bill::where('created_by', $user_id)->get();
+            foreach($bills as $bill) {
+                $billDue += $bill->getDue();
+            }
+            $pendingPayments = $invoiceDue + $billDue;
+
+            // HRM Insights
+            $totalEmployees = Employee::where('created_by', $user_id)->count();
+            $activeEmployees = Employee::where('created_by', $user_id)->where('is_active', 1)->count();
+            $inactiveEmployees = $totalEmployees - $activeEmployees;
+
+            // Chart Data
+            $incExpBarChartData = $user->getincExpBarChartData();
+
+            // Status Indicator
+            $status = 'Good Going';
+            $statusColor = 'success';
+            if ($profit < 0) {
+                $status = 'Critical';
+                $statusColor = 'danger';
+            } elseif ($expense > ($income * 0.8) && $income > 0) {
+                $status = 'Warning';
+                $statusColor = 'warning';
+            }
+
+            return view('dashboard.owner-dashboard', compact(
+                'income', 'expense', 'profit', 'pendingPayments', 
+                'totalEmployees', 'activeEmployees', 'inactiveEmployees', 
+                'incExpBarChartData', 'status', 'statusColor'
+            ));
         }
+    }
 
 
     public function project_dashboard_index()

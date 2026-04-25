@@ -88,6 +88,7 @@ use App\Http\Controllers\OvertimeController;
 use App\Http\Controllers\PayFastController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentWallPaymentController;
+use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\PaypalController;
 use App\Http\Controllers\PaySlipController;
 use App\Http\Controllers\PayslipTypeController;
@@ -1871,6 +1872,14 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
     Route::get('transport-bills/{id}/pay', [App\Http\Controllers\TransportBillController::class, 'pay'])->name('transport.bill.pay');
     Route::get('transport-bills-check', [App\Http\Controllers\TransportController::class, 'newBillCheck'])->name('transport.bill.check');
     Route::post('transport-bills/{id}/seen', [App\Http\Controllers\TransportController::class, 'markSeen'])->name('transport.bill.seen');
+
+    Route::resource('sales-orders', SalesOrderController::class);
+    Route::post('sales-orders/{id}/po', [SalesOrderController::class, 'poStore'])->name('sales-orders.po.store');
+    Route::post('sales-orders/{id}/pi', [SalesOrderController::class, 'piStore'])->name('sales-orders.pi.store');
+    Route::post('sales-orders/{id}/lc', [SalesOrderController::class, 'lcStore'])->name('sales-orders.lc.store');
+    Route::post('sales-orders/{id}/ci', [SalesOrderController::class, 'ciStore'])->name('sales-orders.ci.store');
+    Route::post('sales-orders/{id}/pl', [SalesOrderController::class, 'plStore'])->name('sales-orders.pl.store');
+    Route::post('sales-orders/{id}/cn', [SalesOrderController::class, 'cnStore'])->name('sales-orders.cn.store');
 });
 
 Route::any('/cookie-consent', [SystemController::class, 'CookieConsent'])->name('cookie-consent');
