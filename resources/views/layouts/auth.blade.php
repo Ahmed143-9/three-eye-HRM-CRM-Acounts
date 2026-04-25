@@ -126,9 +126,112 @@
 </head>
 
 <body class="{{ $themeColor }}">
+    <style>
+        .custom-login-inner {
+            position: relative;
+            width: 100% !important;
+            max-width: none !important;
+            min-height: 100vh;
+            display: block !important;
+        }
+        @media (max-width: 768px) {
+            .custom-wrapper {
+                position: relative !important;
+                top: 80px !important;
+                right: auto !important;
+                left: auto !important;
+                width: 90% !important;
+                max-width: 380px !important;
+                margin: 0 auto !important;
+            }
+            .horizontal-login-form {
+                flex-direction: column !important;
+                gap: 15px !important;
+                width: 100% !important;
+            }
+            .horizontal-login-form .form-control, 
+            .horizontal-login-form .form-group,
+            .horizontal-login-form .btn {
+                width: 100% !important;
+            }
+            .card-body {
+                padding: 2rem 1.5rem !important;
+            }
+        }
+        .custom-wrapper {
+            position: absolute !important;
+            bottom: -30px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            top: auto !important;
+            right: auto !important;
+            width: auto !important;
+            margin: 0 !important;
+            animation: fadeIn 1s ease-in-out;
+            z-index: 1000;
+        }
+        .card {
+            border-radius: 10px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            background: rgba(0, 0, 0, 0.2) !important;
+            backdrop-filter: blur(6px) !important;
+        }
+        .card-body {
+            padding: 6px 10px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .form-control {
+            padding: 6px 10px !important;
+            font-size: 0.85rem !important;
+        }
+        .horizontal-login-form .form-control {
+            width: 160px !important;
+        }
+        .btn-lg {
+            padding: 10px !important;
+            font-size: 0.95rem !important;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        .animated-text-container {
+            position: fixed;
+            bottom: 30px;
+            right: 0;
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .animated-text {
+            display: inline-block;
+            font-size: 5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            animation: moveLeft 20s linear infinite, colorCycle 6s infinite;
+            padding-left: 100%;
+            opacity: 0.8;
+        }
+        @keyframes moveLeft {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+        @keyframes colorCycle {
+            0%, 100% { color: #fd7e14; } /* Orange */
+            33% { color: #007bff; }    /* Blue */
+            66% { color: #28a745; }    /* Green */
+        }
+    </style>
+
     <div class="custom-login">
         <div class="login-bg-img">
-            <img src="{{ asset('assets/images/login3.jpg') }}" class="login-bg-1" style="object-fit: cover; width: 100%; height: 100%;">
+            <img src="{{ asset('assets/images/freight_login.jpg') }}" class="login-bg-1" style="object-fit: cover; width: 100%; height: 100%;">
         </div>
         <div class="bg-login bg-primary"></div>
         <div class="custom-login-inner">
@@ -140,14 +243,19 @@
                     </div>
                 </div>
             </main>
+
+            <!-- <div class="animated-text-container">
+                <div class="animated-text">Delivering Success</div>
+            </div> -->
+
             <footer>
                 <div class="auth-footer">
                     <div class="container">
                         <div class="row">
                             <div class="col-12">
-                                <span>&copy; {{ date('Y') }}
+                                <!-- <span>&copy; {{ date('Y') }}
                                     {{ App\Models\Utility::getValByName('footer_text') ? App\Models\Utility::getValByName('footer_text') : config('app.name', 'Storego Saas') }}
-                                </span>
+                                </span> -->
                             </div>
                         </div>
                     </div>

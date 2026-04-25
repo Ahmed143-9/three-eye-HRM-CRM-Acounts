@@ -33,11 +33,13 @@ class UserController extends Controller
         User::defaultEmail();
 
         $user = \Auth::user();
-        if (\Auth::user()->can('manage user')) {
-            if (\Auth::user()->type == 'super admin') {
+        if ($user->can('manage user')) {
+            if ($user->type == 'super admin') {
                 $users = User::where('created_by', '=', $user->creatorId())->where('type', '=', 'company')->with(['currentPlan'])->get();
-            } else {
+            } else if ($user->type == 'company') {
                 $users = User::where('created_by', '=', $user->creatorId())->where('type', '!=', 'client')->with(['currentPlan'])->get();
+            } else {
+                return redirect()->back()->with('error', __('Only Administrators can manage users.'));
             }
 
             return view('user.index')->with('users', $users);
@@ -63,17 +65,18 @@ class UserController extends Controller
                         ->get()->pluck('name', 'id');
         }
 
-        if (\Auth::user()->can('create user')) {
+        if ($user->can('create user') && ($user->type == 'company' || $user->type == 'super admin')) {
             return view('user.create', compact('roles', 'customFields'));
         } else {
-            return redirect()->back();
+            return redirect()->back()->with('error', __('Only Administrators can create users.'));
         }
     }
 
     public function store(Request $request)
     {
 
-        if (\Auth::user()->can('create user')) {
+        $user = \Auth::user();
+        if ($user->can('create user') && ($user->type == 'company' || $user->type == 'super admin')) {
             $default_language = DB::table('settings')->select('value')->where('name', 'default_language')->where('created_by', '=', \Auth::user()->creatorId())->first();
             $objUser = \Auth::user()->creatorId();
 
@@ -192,9 +195,9 @@ class UserController extends Controller
                 $request['lang']             = !empty($default_language) ? $default_language->value : 'en';
                 $request['created_by']       = \Auth::user()->creatorId();
                 $request['email_verified_at'] = date('Y-m-d H:i:s');
-                // New users are INACTIVE by default — must be approved by Super Admin
-                $request['is_enable_login']  = 0;
-                $request['is_active']        = 0;
+                // ── AUTO-ACTIVATE: New users are active and login-enabled immediately ──
+                $request['is_enable_login']  = 1;
+                $request['is_active']        = 1;
 
                 $user = User::create($request->all());
                 $user->assignRole($role_r);
@@ -202,22 +205,6 @@ class UserController extends Controller
                     \App\Models\Utility::employeeDetails($user->id, \Auth::user()->creatorId());
                 }
 
-                // ── Notify Super Admin about pending approval ────────────────
-                $superAdmin = User::where('type', 'super admin')->first();
-                if ($superAdmin) {
-                    \DB::table('user_notifications')->insert([
-                        'to_user_id'   => $superAdmin->id,
-                        'from_user_id' => \Auth::user()->id,
-                        'user_id'      => $user->id,
-                        'user_name'    => $user->name,
-                        'user_email'   => $user->email,
-                        'user_role'    => $role_r->name,
-                        'created_by'   => \Auth::user()->name,
-                        'is_read'      => 0,
-                        'created_at'   => now(),
-                        'updated_at'   => now(),
-                    ]);
-                }
             }
 
             // Send Email
@@ -241,11 +228,11 @@ class UserController extends Controller
 
                 }
             }
-            if (\Auth::user()->type == 'super admin') {
-                return redirect()->route('users.index')->with('success', __('Company successfully created.'));
-            } else {
-                return redirect()->route('users.index')->with('success', __('User successfully created. The user account is inactive and requires Super Admin approval before they can log in.'));
-            }
+                if (\Auth::user()->type == 'super admin') {
+                    return redirect()->route('users.index')->with('success', __('Company successfully created.'));
+                } else {
+                    return redirect()->route('users.index')->with('success', __('User successfully created and activated.'));
+                }
 
         } else {
             return redirect()->back();
@@ -745,58 +732,5 @@ class UserController extends Controller
         }
     }
 
-    // ─── Pending Approval Methods (Super Admin only) ──────────────────────────
-
-    /**
-     * Show all users pending Super Admin approval (is_active = 0, non-company).
-     */
-    public function pendingApprovals()
-    {
-        if (\Auth::user()->type !== 'super admin') {
-            return redirect()->back()->with('error', __('Access denied. Super Admin only.'));
-        }
-
-        $pendingUsers = User::where('is_active', 0)
-            ->where('type', '!=', 'super admin')
-            ->where('type', '!=', 'company')
-            ->with('creator')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return view('user.pending_approvals', compact('pendingUsers'));
-    }
-
-    /**
-     * Approve a pending user — activate their account and enable login.
-     */
-    public function approveUser($id)
-    {
-        if (\Auth::user()->type !== 'super admin') {
-            return redirect()->back()->with('error', __('Access denied. Super Admin only.'));
-        }
-
-        $user = User::findOrFail($id);
-        $user->is_active       = 1;
-        $user->is_enable_login = 1;
-        $user->save();
-
-        return redirect()->route('users.pending')->with('success', __('User "') . $user->name . __('" has been approved and can now log in.'));
-    }
-
-    /**
-     * Reject and delete a pending user account.
-     */
-    public function rejectUser($id)
-    {
-        if (\Auth::user()->type !== 'super admin') {
-            return redirect()->back()->with('error', __('Access denied. Super Admin only.'));
-        }
-
-        $user = User::findOrFail($id);
-        $userName = $user->name;
-        $user->delete();
-
-        return redirect()->route('users.pending')->with('success', __('User "') . $userName . __('" has been rejected and removed.'));
-    }
 }
 

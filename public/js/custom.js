@@ -551,8 +551,16 @@ $(document).on('click', '.local_calender .fc-daygrid-event, .fc-timegrid-event',
 // });
 
 function addCommas(num) {
-    var number = parseFloat(num).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
-    return ((site_currency_symbol_position == "pre") ? site_currency_symbol : '') + number + ((site_currency_symbol_position == "post") ? site_currency_symbol : '');
+    var val = parseFloat(num);
+    if (isNaN(val)) return num;
+
+    // Detect if it's a whole number
+    var is_whole = (val % 1 === 0);
+    
+    // No decimals for whole numbers, otherwise use 2
+    var number = is_whole ? val.toString() : val.toFixed(2);
+    
+    return ((typeof site_currency_symbol_position !== 'undefined' && site_currency_symbol_position == "pre") ? site_currency_symbol : '') + number + ((typeof site_currency_symbol_position !== 'undefined' && site_currency_symbol_position == "post") ? site_currency_symbol : '');
 }
 
 
@@ -660,5 +668,18 @@ $(document).ready(function() {
 
 //end input serach box
 
+// Auto-clear zero on focus for number inputs
+$(document).on('focus', 'input[type="number"], .quantity, .price, .discount, .amount', function () {
+    var val = $(this).val();
+    if (val == '0' || val == '0.00' || parseFloat(val) === 0) {
+        $(this).data('old-val', val); // Store old value just in case
+        $(this).val('');
+    }
+});
 
-
+$(document).on('blur', 'input[type="number"], .quantity, .price, .discount, .amount', function () {
+    if ($(this).val() === '') {
+        var oldVal = $(this).data('old-val');
+        $(this).val(oldVal ? oldVal : '0');
+    }
+});

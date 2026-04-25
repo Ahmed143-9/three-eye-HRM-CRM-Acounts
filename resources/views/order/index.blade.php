@@ -45,8 +45,7 @@
                                         <td>{{ $order->order_id }}</td>
                                         <td>{{ $order->user_name }}</td>
                                         <td>{{ $order->plan_name }}</td>
-                                        <td>{{ isset($admin_payment_setting['currency_symbol']) ? $admin_payment_setting['currency_symbol'] : '$' }}{{ number_format($order->price) }}
-                                        </td>
+                                        <td>{{ \Auth::user()->priceFormat($order->price) }}</td>
 
                                         <td>
                                             @if ($order->payment_status == 'success' || $order->payment_status == 'Approved')

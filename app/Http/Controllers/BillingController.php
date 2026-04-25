@@ -3,25 +3,105 @@
 namespace App\Http\Controllers;
 
 use App\Models\Billing;
+use App\Models\Payable;
+use App\Models\Receivable;
+use App\Models\BillingPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class BillingController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         if (Auth::user()->can('manage bank account') || Auth::user()->type == 'company') {
-            $billings = Billing::where('created_by', Auth::user()->creatorId())->get();
+            $creatorId = Auth::user()->creatorId();
             
-            // Unpaid calculation
-            $dueToClientTotal = $billings->where('type', 'due_to_client')->where('status', 'unpaid')->sum('amount');
-            $dueToMeTotal = $billings->where('type', 'due_to_me')->where('status', 'unpaid')->sum('amount');
-            
-            // Paid calculation
-            $myPaidTotal = $billings->where('type', 'due_to_client')->where('status', 'paid')->sum('amount');
-            $clientPaidTotal = $billings->where('type', 'due_to_me')->where('status', 'paid')->sum('amount');
+            $payablesQuery = Payable::where('created_by', $creatorId);
+            $receivablesQuery = Receivable::where('created_by', $creatorId);
 
-            return view('billing.index', compact('billings', 'dueToClientTotal', 'dueToMeTotal', 'myPaidTotal', 'clientPaidTotal'));
+            // Fetch totals before filtering for summary boxes
+            // These should be REMAINING dues (Total - Paid)
+            $allPayables = (clone $payablesQuery)->get();
+            $allReceivables = (clone $receivablesQuery)->get();
+
+            $totalMyDue = 0;
+            foreach($allPayables as $p) {
+                $totalMyDue += $p->getDueAmount();
+            }
+
+            $totalOthersDue = 0;
+            foreach($allReceivables as $r) {
+                $totalOthersDue += $r->getDueAmount();
+            }
+
+            // Apply Filters (Note: these filters might need to be adjusted for dynamic values)
+            if ($request->has('type') && !empty($request->type)) {
+                if ($request->type == 'payable') {
+                    $receivablesQuery->whereRaw('1=0');
+                } elseif ($request->type == 'receivable') {
+                    $payablesQuery->whereRaw('1=0');
+                }
+            }
+
+            $payables = $payablesQuery->get();
+            $receivables = $receivablesQuery->get();
+
+            // Merge for table
+            $billings = collect();
+            
+            foreach ($payables as $payable) {
+                $payable->billing_type = 'Payable';
+                $payable->source = 'Payable Module';
+                $payable->paid_amount = $payable->getTotalPaid();
+                $payable->adjustment_amount = $payable->getTotalAdjustment();
+                $payable->due_amount = $payable->getDueAmount();
+                $payable->current_status = $payable->getCalculatedStatus();
+                
+                // Reminder Logic
+                $payable->reminder_status = null;
+                if ($payable->due_amount > 0 && $payable->next_due_date) {
+                    $dueDate = \Carbon\Carbon::parse($payable->next_due_date);
+                    if ($dueDate->isPast() && !$dueDate->isToday()) {
+                        $payable->reminder_status = 'overdue';
+                    } elseif ($dueDate->isToday() || $dueDate->isTomorrow()) {
+                        $payable->reminder_status = 'due_soon';
+                    }
+                }
+                $billings->push($payable);
+            }
+
+            foreach ($receivables as $receivable) {
+                $receivable->billing_type = 'Receivable';
+                $receivable->source = 'Receivable Module';
+                $receivable->paid_amount = $receivable->getTotalPaid();
+                $receivable->adjustment_amount = $receivable->getTotalAdjustment();
+                $receivable->due_amount = $receivable->getDueAmount();
+                $receivable->current_status = $receivable->getCalculatedStatus();
+
+                // Reminder Logic
+                $receivable->reminder_status = null;
+                if ($receivable->due_amount > 0 && $receivable->next_due_date) {
+                    $dueDate = \Carbon\Carbon::parse($receivable->next_due_date);
+                    if ($dueDate->isPast() && !$dueDate->isToday()) {
+                        $receivable->reminder_status = 'overdue';
+                    } elseif ($dueDate->isToday() || $dueDate->isTomorrow()) {
+                        $receivable->reminder_status = 'due_soon';
+                    }
+                }
+                $billings->push($receivable);
+            }
+
+            // Filter by status if requested
+            if ($request->has('status') && !empty($request->status)) {
+                $billings = $billings->filter(function($item) use ($request) {
+                    return $item->current_status == $request->status;
+                });
+            }
+
+            // Sort by date descending
+            $billings = $billings->sortByDesc('date');
+
+            return view('billing.index', compact('billings', 'totalMyDue', 'totalOthersDue'));
         } else {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
@@ -166,21 +246,159 @@ class BillingController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function addPayment($type, $id)
     {
         if (Auth::user()->can('manage bank account') || Auth::user()->type == 'company') {
-            $billing = Billing::find($id);
-            if ($billing->created_by == Auth::user()->creatorId()) {
-                if ($billing->attachment) {
-                    \Storage::delete($billing->attachment);
-                }
-                $billing->delete();
-                return redirect()->route('billing.index')->with('success', __('Billing successfully deleted.'));
+            $billable = ($type == 'Payable') ? Payable::find($id) : Receivable::find($id);
+            
+            if ($billable) {
+                return view('billing.add_payment', compact('billable', 'type'));
             } else {
-                return redirect()->back()->with('error', __('Permission denied.'));
+                return response()->json(['error' => __('Bill not found.')], 404);
+            }
+        } else {
+            return response()->json(['error' => __('Permission denied.')], 401);
+        }
+    }
+
+    public function storePayment(Request $request, $type, $id)
+    {
+        if (Auth::user()->can('manage bank account') || Auth::user()->type == 'company') {
+            $billable = ($type == 'Payable') ? Payable::find($id) : Receivable::find($id);
+            
+            if ($billable) {
+                $validator = \Validator::make(
+                    $request->all(), [
+                        'amount' => 'required|numeric|min:0',
+                        'adjustment_amount' => 'nullable|numeric|min:0',
+                        'date' => 'required|date',
+                        'next_due_date' => 'nullable|date|after_or_equal:date',
+                    ]
+                );
+
+                if ($validator->fails()) {
+                    return redirect()->back()->with('error', $validator->errors()->first());
+                }
+
+                // Total allocated in this entry
+                $allocated = (float)$request->amount + (float)$request->adjustment_amount;
+                if ($allocated <= 0) {
+                    return redirect()->back()->with('error', __('Either Payment Amount or Adjustment Amount must be greater than 0.'));
+                }
+
+                // Create payment entry
+                $payment = new BillingPayment();
+                $payment->billable_type = ($type == 'Payable') ? Payable::class : Receivable::class;
+                $payment->billable_id = $id;
+                $payment->amount = $request->amount;
+                $payment->adjustment_amount = $request->adjustment_amount ?? 0;
+                $payment->adjustment_reason = $request->adjustment_reason;
+                $payment->date = $request->date;
+                $payment->payment_method = $request->payment_method;
+                $payment->note = $request->note;
+                $payment->next_due_date = $request->next_due_date;
+                $payment->created_by = Auth::user()->creatorId();
+                $payment->save();
+
+                // Update billable's next due date
+                if ($request->next_due_date) {
+                    $billable->next_due_date = $request->next_due_date;
+                }
+                
+                $billable->save();
+
+                return redirect()->route('billing.index')->with('success', __('Payment/Adjustment successfully added.'));
+            } else {
+                return redirect()->back()->with('error', __('Bill not found.'));
             }
         } else {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
+    }
+
+    public function showPayment($type, $id)
+    {
+        if (Auth::user()->can('manage bank account') || Auth::user()->type == 'company') {
+            $billable = ($type == 'Payable') ? Payable::find($id) : Receivable::find($id);
+            
+            if ($billable) {
+                $payments = $billable->payments()->orderBy('date', 'asc')->get();
+                return view('billing.view_payments', compact('billable', 'type', 'payments'));
+            } else {
+                return response()->json(['error' => __('Bill not found.')], 404);
+            }
+        } else {
+            return response()->json(['error' => __('Permission denied.')], 401);
+        }
+    }
+
+    public function editPayment($paymentId)
+    {
+        if (Auth::user()->can('manage bank account') || Auth::user()->type == 'company') {
+            $payment = BillingPayment::find($paymentId);
+            if ($payment) {
+                return view('billing.edit_payment', compact('payment'));
+            }
+            return response()->json(['error' => __('Payment not found.')], 404);
+        }
+        return response()->json(['error' => __('Permission denied.')], 401);
+    }
+
+    public function updatePayment(Request $request, $paymentId)
+    {
+        if (Auth::user()->can('manage bank account') || Auth::user()->type == 'company') {
+            $payment = BillingPayment::find($paymentId);
+            if (!$payment) {
+                return redirect()->back()->with('error', __('Payment not found.'));
+            }
+
+            $validator = \Validator::make($request->all(), [
+                'amount'            => 'required|numeric|min:0',
+                'adjustment_amount' => 'nullable|numeric|min:0',
+                'date'              => 'required|date',
+                'next_due_date'     => 'nullable|date',
+            ]);
+
+            if ($validator->fails()) {
+                return redirect()->back()->with('error', $validator->errors()->first());
+            }
+
+            $allocated = (float)$request->amount + (float)$request->adjustment_amount;
+            if ($allocated <= 0) {
+                return redirect()->back()->with('error', __('Payment Amount or Adjustment must be greater than 0.'));
+            }
+
+            $payment->amount            = $request->amount;
+            $payment->adjustment_amount = $request->adjustment_amount ?? 0;
+            $payment->adjustment_reason = $request->adjustment_reason;
+            $payment->date              = $request->date;
+            $payment->payment_method    = $request->payment_method;
+            $payment->note              = $request->note;
+            $payment->next_due_date     = $request->next_due_date;
+            $payment->save();
+
+            // Sync next_due_date on the parent billable
+            $billable = $payment->billable;
+            if ($request->next_due_date && $billable) {
+                $billable->next_due_date = $request->next_due_date;
+                $billable->save();
+            }
+
+            return redirect()->route('billing.index')->with('success', __('Payment entry updated successfully.'));
+        }
+        return redirect()->back()->with('error', __('Permission denied.'));
+    }
+
+    public function destroyPayment($paymentId)
+    {
+        if (Auth::user()->can('manage bank account') || Auth::user()->type == 'company') {
+            $payment = BillingPayment::find($paymentId);
+            if ($payment) {
+                $payment->delete();
+                return redirect()->route('billing.index')->with('success', __('Payment entry deleted.'));
+            }
+            return redirect()->back()->with('error', __('Payment not found.'));
+        }
+        return redirect()->back()->with('error', __('Permission denied.'));
     }
 }

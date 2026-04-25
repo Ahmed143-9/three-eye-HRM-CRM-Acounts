@@ -85,11 +85,6 @@ class AuthenticatedSessionController extends Controller
             return redirect()->back()->with('status', __('Your Account is disable,please contact your Administrator.'));
         }
 
-        // RBAC: Block users pending Super Admin approval (is_active = 0)
-        if($user != null && $user->is_active == 0 && $user->type != 'super admin' && $user->type != 'company')
-        {
-            return redirect()->back()->with('status', __('Your account is pending approval by a Super Admin. Please contact your administrator.'));
-        }
 
         if(($user != null && $user->is_enable_login == 0 || (isset($companyUser) && $companyUser != null) && $companyUser->is_enable_login == 0)  && $user->type != 'super admin')
         {
@@ -141,11 +136,6 @@ class AuthenticatedSessionController extends Controller
             return redirect()->back()->with('status', __('Your Account is deleted by admin,please contact your Administrator.'));
         }
 
-        if($user->is_active == 0)
-        {
-            auth()->logout();
-            return redirect()->back()->with('status', __('Your Account is deactive by admin,please contact your Administrator.'));
-        }
 
         $user = \Auth::user();
         if(isset($user->type) && $user->type == 'company')

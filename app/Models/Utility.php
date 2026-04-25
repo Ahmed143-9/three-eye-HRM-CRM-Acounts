@@ -80,8 +80,8 @@ class Utility extends Model
         }
 
         $settings = [
-            "site_currency" => "USD",
-            "site_currency_symbol" => "$",
+            "site_currency" => "BDT",
+            "site_currency_symbol" => "৳",
             "site_currency_symbol_position" => "pre",
             "site_date_format" => "M j, Y",
             "site_time_format" => "g:i A",
@@ -276,7 +276,10 @@ class Utility extends Model
             'zkteco_api_url' => '',
             'username' => '',
             'user_password' => '',
-            'auth_token' => ''
+            'auth_token' => '',
+            'accounting_client_prefix' => '#CLT',
+            'supplier_prefix' => '#SUP',
+            'consultant_prefix' => '#CONS'
         ];
 
         foreach ($data as $row) {
@@ -301,8 +304,8 @@ class Utility extends Model
         $data = Utility::getSettingById($user_id);
 
         $settings = [
-            "site_currency" => "USD",
-            "site_currency_symbol" => "$",
+            "site_currency" => "BDT",
+            "site_currency_symbol" => "৳",
             "site_currency_symbol_position" => "pre",
             "site_date_format" => "M j, Y",
             "site_time_format" => "g:i A",
@@ -482,6 +485,9 @@ class Utility extends Model
             'decimal_separator'=>'dot',
             'thousand_separator'=>'dot',
             'currency_symbol' => 'withcurrencysymbol',
+            'accounting_client_prefix' => '#CLT',
+            'supplier_prefix' => '#SUP',
+            'consultant_prefix' => '#CONS'
         ];
 
         foreach ($data as $row) {
@@ -630,32 +636,28 @@ class Utility extends Model
 
     public static function priceFormat($settings, $price)
     {
-        $number = explode('.', $price);
-        $length = strlen(trim($number[0]));
-        $float_number = isset($settings['float_number']) && $settings['float_number'] == 'dot' ? '.' : ',';
-        if($length > 3)
-        {
-            $decimal_separator = $settings['decimal_separator'] == 'dot' ? ',' : ',';
-            $thousand_separator = $settings['thousand_separator'] == 'dot' ? '.' : ',';
-        }
-        else
-        {
-            $decimal_separator = $settings['decimal_separator'] == 'dot' ? '.' : ',';
-            $thousand_separator = $settings['thousand_separator'] == 'dot' ? '.' : ',';
-        }
-        $currency = $settings['currency_symbol'] == 'withcurrencysymbol' ? $settings['site_currency_symbol']: $settings['site_currency'];
-        $decimal_number = $settings['decimal_number'] ? $settings['decimal_number'] : 0;
-        $currency_space = $settings['currency_space'];
-        $price = number_format($price, $decimal_number, $decimal_separator, $thousand_separator);
+        $price = (float)$price;
+        
+        // Detect if it's a whole number
+        $is_whole = (floor($price) == $price);
+        
+        // Use 0 decimals for whole numbers, otherwise use settings (default 2)
+        $decimal_number = $is_whole ? 0 : (isset($settings['decimal_number']) ? (int)$settings['decimal_number'] : 2);
+        
+        // Use dot for decimal separator, no thousand separator as per '6000' example
+        $decimal_separator = '.';
+        $thousand_separator = ''; 
+        
+        $price_str = number_format($price, $decimal_number, $decimal_separator, $thousand_separator);
 
-        if ($float_number == 'dot') {
-            $price = preg_replace('/' . preg_quote($thousand_separator, '/') . '([^' . preg_quote($thousand_separator, '/') . ']*)$/', $float_number . '$1', $price);
+        $currency = (isset($settings['currency_symbol']) && $settings['currency_symbol'] == 'withcurrencysymbol') ? $settings['site_currency_symbol'] : $settings['site_currency'];
+        $currency_space = (isset($settings['currency_space']) && $settings['currency_space'] == 'withspace') ? ' ' : '';
+        
+        if (isset($settings['site_currency_symbol_position']) && $settings['site_currency_symbol_position'] == "post") {
+            return $price_str . $currency_space . $currency;
         } else {
-            $price = preg_replace('/' . preg_quote($decimal_separator, '/') . '([^' . preg_quote($decimal_separator, '/') . ']*)$/', $float_number . '$1', $price);
+            return $currency . $currency_space . $price_str;
         }
-
-        return (($settings['site_currency_symbol_position'] == "pre") ? $currency : '') . ($currency_space == 'withspace' ? ' ' : '') . $price . ($currency_space == 'withspace' ? ' ' : '') . (($settings['site_currency_symbol_position'] == "post") ? $currency : '');
-
     }
 
     public static function currencySymbol($settings)
@@ -741,6 +743,27 @@ class Utility extends Model
         $settings = Utility::settings();
 
         return $settings["bill_prefix"] . sprintf("%05d", $number);
+    }
+
+    public static function clientNumberFormat($number)
+    {
+        $settings = Utility::settings();
+
+        return $settings["accounting_client_prefix"] . sprintf("%05d", $number);
+    }
+
+    public static function supplierNumberFormat($number)
+    {
+        $settings = Utility::settings();
+
+        return $settings["supplier_prefix"] . sprintf("%05d", $number);
+    }
+
+    public static function consultantNumberFormat($number)
+    {
+        $settings = Utility::settings();
+
+        return $settings["consultant_prefix"] . sprintf("%05d", $number);
     }
 
     public static function getTax($tax)
@@ -3245,16 +3268,10 @@ class Utility extends Model
         return $status;
     }
 
-    // get project wise currency formatted amount
     public static function projectCurrencyFormat($project_id, $amount, $decimal = false)
     {
-        $project = Project::find($project_id);
-        if (empty($project)) {
-            $settings = Utility::settings();
-
-            return (($settings['site_currency_symbol_position'] == "pre") ? $settings['site_currency_symbol'] : '') . number_format($amount, Utility::getValByName('decimal_number')) . (($settings['site_currency_symbol_position'] == "post") ? $settings['site_currency_symbol'] : '');
-        }
-
+        $settings = Utility::settings();
+        return self::priceFormat($settings, $amount);
     }
 
     // Return Week first day and last day

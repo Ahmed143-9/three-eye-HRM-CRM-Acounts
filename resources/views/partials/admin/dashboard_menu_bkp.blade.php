@@ -938,74 +938,8 @@
                                     </ul>
                                 </li>
                             @endif
-                            @if (Gate::check('manage chart of account') ||
-                                    Gate::check('manage journal entry') ||
-                                    Gate::check('balance sheet report') ||
-                                    Gate::check('ledger report') ||
-                                    Gate::check('trial balance report'))
-                                <li
-                                    class="dash-item dash-hasmenu {{ Request::segment(1) == 'chart-of-account' ||
-                                    Request::segment(1) == 'journal-entry' ||
-                                    Request::segment(2) == 'profit-loss' ||
-                                    Request::segment(2) == 'ledger' ||
-                                    Request::segment(2) == 'balance-sheet' ||
-                                    Request::segment(2) == 'trial-balance'
-                                        ? 'active dash-trigger'
-                                        : '' }}">
-                                    <a class="dash-link" href="#">{{ __('Double Entry') }}<span
-                                            class="dash-arrow"><i data-feather="chevron-right"></i></span></a>
-                                    <ul class="dash-submenu">
-                                        <li
-                                            class="dash-item {{ Request::route()->getName() == 'chart-of-account.index' || Request::route()->getName() == 'chart-of-account.show' ? ' active' : '' }}">
-                                            <a class="dash-link"
-                                                href="{{ route('chart-of-account.index') }}">{{ __('Chart of Accounts') }}</a>
-                                        </li>
-                                        <li
-                                            class="dash-item {{ Request::route()->getName() == 'journal-entry.edit' ||
-                                            Request::route()->getName() == 'journal-entry.create' ||
-                                            Request::route()->getName() == 'journal-entry.index' ||
-                                            Request::route()->getName() == 'journal-entry.show'
-                                                ? ' active'
-                                                : '' }}">
-                                            <a class="dash-link"
-                                                href="{{ route('journal-entry.index') }}">{{ __('Journal Account') }}</a>
-                                        </li>
-                                        <li
-                                            class="dash-item {{ Request::route()->getName() == 'report.ledger' ? ' active' : '' }}">
-                                            <a class="dash-link"
-                                                href="{{ route('report.ledger', 0) }}">{{ __('Ledger Summary') }}</a>
-                                        </li>
-                                        <li
-                                            class="dash-item {{ Request::route()->getName() == 'report.balance.sheet' ? ' active' : '' }}">
-                                            <a class="dash-link"
-                                                href="{{ route('report.balance.sheet') }}">{{ __('Balance Sheet') }}</a>
-                                        </li>
-                                        <li
-                                            class="dash-item {{ Request::route()->getName() == 'report.profit.loss' ? ' active' : '' }}">
-                                            <a class="dash-link"
-                                                href="{{ route('report.profit.loss') }}">{{ __('Profit & Loss') }}</a>
-                                        </li>
 
-                                        <li
-                                            class="dash-item {{ Request::route()->getName() == 'trial.balance' ? ' active' : '' }}">
-                                            <a class="dash-link"
-                                                href="{{ route('trial.balance') }}">{{ __('Trial Balance') }}</a>
-                                        </li>
-                                    </ul>
-                                </li>
-                            @endif
-                            @if (\Auth::user()->type == 'company')
-                                <li class="dash-item {{ Request::segment(1) == 'budget' ? 'active' : '' }}">
-                                    <a class="dash-link"
-                                        href="{{ route('budget.index') }}">{{ __('Budget Planner') }}</a>
-                                </li>
-                            @endif
-                            @if (Gate::check('manage goal'))
-                                <li class="dash-item {{ Request::segment(1) == 'goal' ? 'active' : '' }}">
-                                    <a class="dash-link"
-                                        href="{{ route('goal.index') }}">{{ __('Financial Goal') }}</a>
-                                </li>
-                            @endif
+
                             @if (Gate::check('manage constant tax') ||
                                     Gate::check('manage constant category') ||
                                     Gate::check('manage constant unit') ||

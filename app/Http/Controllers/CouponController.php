@@ -186,7 +186,7 @@ class CouponController extends Controller
                         [
                             'is_success' => false,
                             'final_price' => $original_price,
-                            'price' => number_format($plan->price, Utility::getValByName('decimal_number')),
+                            'price' => Utility::priceFormat(Utility::settings(), $plan->price),
                             'message' => __('This coupon code has expired.'),
                         ]
                     );
@@ -203,7 +203,7 @@ class CouponController extends Controller
                             'is_success' => true,
                             'discount_price' => $discount_value,
                             'final_price' => $price,
-                            'price' => number_format($plan_price, Utility::getValByName('decimal_number')),
+                            'price' => Utility::priceFormat(Utility::settings(), $plan_price),
                             'message' => __('Coupon code has applied successfully.'),
                         ]
                     );
@@ -215,7 +215,7 @@ class CouponController extends Controller
                     [
                         'is_success' => false,
                         'final_price' => $original_price,
-                        'price' => number_format($plan->price, Utility::getValByName('decimal_number')),
+                        'price' => Utility::priceFormat(Utility::settings(), $plan->price),
                         'message' => __('This coupon code is invalid or has expired.'),
                     ]
                 );
@@ -225,9 +225,6 @@ class CouponController extends Controller
 
     public function formatPrice($price)
     {
-        $admin_payment_setting = Utility::getAdminPaymentSetting();
-        $currency = !empty($admin_payment_setting['currency']) ? $admin_payment_setting['currency'] : '$';
-
-        return $currency . number_format($price, Utility::getValByName('decimal_number'));
+        return Utility::priceFormat(Utility::settings(), $price);
     }
 }

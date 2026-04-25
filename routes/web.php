@@ -98,6 +98,8 @@ use App\Http\Controllers\PaytrController;
 use App\Http\Controllers\YooKassaController;
 use App\Http\Controllers\PerformanceTypeController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\PayableController;
+use App\Http\Controllers\ReceivableController;
 use App\Http\Controllers\PipelineController;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\PlanRequestController;
@@ -156,6 +158,9 @@ use App\Http\Controllers\PayHereController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\ReferralProgramController;
 use App\Http\Controllers\TapController;
+use App\Http\Controllers\AccountingClientController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\ConsultantController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 
@@ -361,10 +366,6 @@ Route::group(['middleware' => ['verified']], function () {
 
     Route::get('/change/mode', [UserController::class, 'changeMode'])->name('change.mode');
 
-    // ── Pending User Approvals (Super Admin only) ──────────────────────────────
-    Route::get('users/pending-approvals', [UserController::class, 'pendingApprovals'])->name('users.pending')->middleware(['auth', 'XSS']);
-    Route::post('users/{id}/approve', [UserController::class, 'approveUser'])->name('users.approve')->middleware(['auth', 'XSS']);
-    Route::delete('users/{id}/reject', [UserController::class, 'rejectUser'])->name('users.reject')->middleware(['auth', 'XSS']);
 
 
     Route::resource('roles', RoleController::class)->middleware(['auth', 'XSS', 'revalidate']);
@@ -503,6 +504,12 @@ Route::group(['middleware' => ['verified']], function () {
         function () {
             Route::resource('bank-transfer', BankTransferController::class);
             Route::resource('billing', \App\Http\Controllers\BillingController::class);
+            Route::get('billing/add-payment/{type}/{id}', [\App\Http\Controllers\BillingController::class, 'addPayment'])->name('billing.add-payment');
+            Route::post('billing/store-payment/{type}/{id}', [\App\Http\Controllers\BillingController::class, 'storePayment'])->name('billing.store-payment');
+            Route::get('billing/view-payments/{type}/{id}', [\App\Http\Controllers\BillingController::class, 'showPayment'])->name('billing.view-payments');
+            Route::get('billing/payment/{paymentId}/edit', [\App\Http\Controllers\BillingController::class, 'editPayment'])->name('billing.payment.edit');
+            Route::post('billing/payment/{paymentId}/update', [\App\Http\Controllers\BillingController::class, 'updatePayment'])->name('billing.payment.update');
+            Route::delete('billing/payment/{paymentId}/delete', [\App\Http\Controllers\BillingController::class, 'destroyPayment'])->name('billing.payment.delete');
         }
     );
 
@@ -779,6 +786,22 @@ Route::group(['middleware' => ['verified']], function () {
     // Client Module
 
     Route::resource('clients', ClientController::class)->middleware(['auth', 'XSS']);
+
+    Route::group(
+        [
+            'middleware' => [
+                'auth',
+                'XSS',
+                'revalidate',
+            ],
+            'prefix' => 'accounting-setup'
+        ],
+        function () {
+            Route::resource('accounting-clients', \App\Http\Controllers\AccountingClientController::class);
+            Route::resource('suppliers', \App\Http\Controllers\SupplierController::class);
+            Route::resource('consultants', \App\Http\Controllers\ConsultantController::class);
+        }
+    );
 
     Route::any('client-reset-password/{id}', [ClientController::class, 'clientPassword'])->name('clients.reset');
     Route::post('client-reset-password/{id}', [ClientController::class, 'clientPasswordReset'])->name('client.password.update');
@@ -1828,8 +1851,27 @@ Route::group(['middleware' => ['verified']], function () {
     Route::get('request-amount-cancel/{id}', [ReferralProgramController::class, 'requestCancel'])->name('request.amount.cancel');
     Route::post('request-amount-store/{id}', [ReferralProgramController::class, 'requestedAmountStore'])->name('request.amount.store');
     Route::get('request-amount/{id}/{status}', [ReferralProgramController::class, 'requestedAmount'])->name('amount.request');
+
+    Route::resource('payables', PayableController::class)->middleware(['auth', 'XSS']);
+    Route::resource('receivables', ReceivableController::class)->middleware(['auth', 'XSS']);
+
+    // Accounting Entities moved to web.php for session-based access
+    Route::prefix('api')->group(function () {
+        Route::get('suppliers', [SupplierController::class, 'getSuppliers'])->name('api.suppliers');
+        Route::get('clients', [AccountingClientController::class, 'getClients'])->name('api.clients');
+        Route::get('consultants', [ConsultantController::class, 'getConsultants'])->name('api.consultants');
+    });
 });
 
+Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
+    Route::resource('transports', App\Http\Controllers\TransportController::class);
+    Route::get('transport-bills', [App\Http\Controllers\TransportBillController::class, 'index'])->name('transport.bill.index');
+    Route::get('transport-bills/{id}/edit', [App\Http\Controllers\TransportBillController::class, 'edit'])->name('transport.bill.edit');
+    Route::post('transport-bills/{id}/update', [App\Http\Controllers\TransportBillController::class, 'update'])->name('transport.bill.update');
+    Route::get('transport-bills/{id}/pay', [App\Http\Controllers\TransportBillController::class, 'pay'])->name('transport.bill.pay');
+    Route::get('transport-bills-check', [App\Http\Controllers\TransportController::class, 'newBillCheck'])->name('transport.bill.check');
+    Route::post('transport-bills/{id}/seen', [App\Http\Controllers\TransportController::class, 'markSeen'])->name('transport.bill.seen');
+});
 
 Route::any('/cookie-consent', [SystemController::class, 'CookieConsent'])->name('cookie-consent');
 Route::get('payslip/payslipPdf/{id}/{month}', [PaySlipController::class, 'payslipPdf'])->name('payslip.payslipPdf')->middleware(['XSS']);

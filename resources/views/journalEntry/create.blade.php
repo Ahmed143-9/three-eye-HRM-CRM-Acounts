@@ -5,7 +5,7 @@
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{ __('Dashboard') }}</a></li>
-    <li class="breadcrumb-item">{{ __('Double Entry') }}</li>
+
     <li class="breadcrumb-item">{{ __('Journal Entry') }}</li>
 @endsection
 

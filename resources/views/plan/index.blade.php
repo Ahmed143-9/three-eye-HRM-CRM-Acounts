@@ -97,7 +97,7 @@
                         </div>
                     @endif
                         <h1 class="mb-4 f-w-600 ">
-                            {{ isset($admin_payment_setting['currency_symbol']) ? $admin_payment_setting['currency_symbol'] : '$' }}{{ number_format($plan->price) }}
+                            {{ \Auth::user()->priceFormat($plan->price) }}
                             <small class="text-sm">/{{ __(\App\Models\Plan::$arrDuration[$plan->duration]) }}</small>
                         </h1>
                         <p class="mb-0">

@@ -3,6 +3,9 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\AccountingClientController;
+use App\Http\Controllers\ConsultantController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -22,4 +25,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('add-tracker', [ApiController::class, 'addTracker']);
     Route::post('stop-tracker', [ApiController::class, 'stopTracker']);
     Route::post('upload-photos', [ApiController::class, 'uploadImage']);
+
+    // Accounting Entities moved to web.php for session-based access
 });

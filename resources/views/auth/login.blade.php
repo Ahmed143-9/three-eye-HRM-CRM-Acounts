@@ -48,70 +48,21 @@
 
 @section('content')
 
-        {{ Form::open(['route' => 'login', 'method' => 'post', 'id' => 'loginForm', 'class' => 'login-form', 'class'=>'needs-validation', 'novalidate']) }}
-        @if (session('status'))
-            <div class="mb-4 font-medium text-lg text-green-600 text-danger">
-                {{ session('status') }}
-            </div>
-        @endif
-        <div class="custom-login-form">
-            <div class="form-group mb-3">
-                <label class="form-label">{{ __('Email') }}</label>
-                {{ Form::text('email', null, ['class' => 'form-control', 'placeholder' => __('Enter Your Email'), 'required' => 'required']) }}
-                @error('email')
-                    <span class="error invalid-email text-danger" role="alert">
-                        <strong>{{ $message }}</strong>
-                    </span>
-                @enderror
-            </div>
-            <div class="form-group mb-3">
-                <label class="form-label">{{ __('Password') }}</label>
-                {{ Form::password('password', ['class' => 'form-control', 'placeholder' => __('Enter Your Password'), 'id' => 'input-password', 'required' => 'required']) }}
-                @error('password')
-                    <span class="error invalid-password text-danger" role="alert">
-                        <strong>{{ $message }}</strong>
-                    </span>
-                @enderror
-            </div>
-            <div class="form-group mb-4">
-                <div class="d-flex flex-wrap align-items-center justify-content-between">
-
-                    @if (Route::has('password.request'))
-                        <span><a href="{{ route('password.request', $lang) }}"
-                                tabindex="0">{{ __('Forgot your password?') }}</a></span>
-                    @endif
+        <div class="card-body">
+            {{ Form::open(['route' => 'login', 'method' => 'post', 'id' => 'loginForm', 'class' => 'm-0']) }}
+            <div class="horizontal-login-form d-flex align-items-center" style="gap: 8px;">
+                <div class="form-group mb-0">
+                    {{ Form::text('email', null, ['class' => 'form-control form-control-sm', 'placeholder' => __('Email'), 'required' => 'required', 'style' => 'background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.4); color: white; width: 160px;']) }}
+                </div>
+                <div class="form-group mb-0">
+                    {{ Form::password('password', ['class' => 'form-control form-control-sm', 'placeholder' => __('Password'), 'id' => 'input-password', 'required' => 'required', 'style' => 'background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.4); color: white; width: 160px;']) }}
+                </div>
+                <div class="form-group mb-0">
+                    {{ Form::submit(__('LOGIN'), ['class' => 'btn btn-success btn-sm px-3 fw-bold', 'id' => 'saveBtn', 'style' => 'height: 31px; line-height: 1;']) }}
                 </div>
             </div>
-
-            @if ($settings['recaptcha_module'] == 'on')
-                @if (isset($settings['google_recaptcha_version']) && $settings['google_recaptcha_version'] == 'v2-checkbox')
-                    <div class="form-group col-lg-12 col-md-12 mt-3">
-                        {!! NoCaptcha::display() !!}
-                        @error('g-recaptcha-response')
-                            <span class="small text-danger" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                        @enderror
-                    </div>
-                @else
-                    <div class="form-group col-lg-12 col-md-12 mt-3">
-                        <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response" class="form-control">
-                        @error('g-recaptcha-response')
-                            <span class="error small text-danger" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                        @enderror
-                    </div>
-                @endif
-            @endif
-
-            <div class="d-grid">
-                {{ Form::submit(__('Login'), ['class' => 'btn btn-primary mt-2', 'id' => 'saveBtn']) }}
-            </div>
-
+            {{ Form::close() }}
         </div>
-        {{ Form::close() }}
-    </div>
 @endsection
 
 <script src="{{ asset('js/jquery.min.js') }}"></script>
