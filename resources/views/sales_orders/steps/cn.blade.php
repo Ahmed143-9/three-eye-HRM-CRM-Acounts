@@ -28,7 +28,6 @@
         <thead>
             <tr>
                 <th>{{ __('Tanker Number') }}</th>
-                <th>{{ __('IN/OUT Number') }}</th>
                 <th>{{ __('Gross Weight') }}</th>
                 <th>{{ __('Tare Weight') }}</th>
                 <th>{{ __('Net Weight') }}</th>
@@ -45,7 +44,6 @@
                             <input type="hidden" name="weight_slips[{{$index}}][tanker_id]" value="{{$tanker->id}}">
                             <strong>{{ $tanker->tanker_number }}</strong> ({{ $tanker->quantity_mt }} MT)
                         </td>
-                        <td><input type="text" name="weight_slips[{{$index}}][in_out_number]" class="form-control" value="{{$slip->in_out_number ?? ''}}" required></td>
                         <td><input type="number" step="0.001" name="weight_slips[{{$index}}][gross]" class="form-control w-gross" value="{{$slip->gross_weight ?? ''}}" required></td>
                         <td><input type="number" step="0.001" name="weight_slips[{{$index}}][tare]" class="form-control w-tare" value="{{$slip->tare_weight ?? ''}}" required></td>
                         <td><input type="number" step="0.001" name="weight_slips[{{$index}}][net]" class="form-control w-net" value="{{$slip->net_weight ?? ''}}" readonly></td>
@@ -56,7 +54,27 @@
     </table>
 </div>
 
-<div class="text-end mt-3">
-    <button type="submit" class="btn btn-primary">{{ __('Save & Proceed to TR') }}</button>
+@push('script-page')
+<script>
+    $(document).ready(function() {
+        $(document).on('keyup change', '.w-gross, .w-tare', function() {
+            var row = $(this).closest('tr');
+            var gross = parseFloat(row.find('.w-gross').val()) || 0;
+            var tare = parseFloat(row.find('.w-tare').val()) || 0;
+            var net = gross - tare;
+            row.find('.w-net').val(net.toFixed(3));
+        });
+    });
+</script>
+@endpush
+
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <div>
+        @if($order->consignmentNote)
+            <a href="{{ route('sales-orders.cn.print', $order->id) }}" target="_blank" class="btn btn-secondary"><i class="ti ti-printer me-1"></i>{{ __('Print') }}</a>
+            <a href="{{ route('sales-orders.cn.download', $order->id) }}" class="btn btn-info"><i class="ti ti-download me-1"></i>{{ __('Download PDF') }}</a>
+        @endif
+    </div>
+    <button type="submit" class="btn btn-primary">{{ __('Save & Complete Workflow') }}</button>
 </div>
 {{ Form::close() }}

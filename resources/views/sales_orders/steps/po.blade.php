@@ -32,9 +32,15 @@
             {{ Form::textarea('client_address', $order->po->client_address ?? $order->customer->billing_address, ['class' => 'form-control', 'rows' => 2]) }}
         </div>
     </div>
+    <div class="col-md-6">
+        <div class="form-group">
+            {{ Form::label('hs_code', __('HS Code'), ['class' => 'form-label']) }}
+            {{ Form::text('hs_code', $order->po->hs_code ?? '', ['class' => 'form-control']) }}
+        </div>
+    </div>
 </div>
 
-<h6 class="mt-4">{{ __('Items Section') }}</h6>
+<h6 class="mt-4">{{ __('Items Section (Supplier)') }}</h6>
 <div class="table-responsive">
     <table class="table" id="po-items-table">
         <thead>
@@ -86,7 +92,13 @@
     </table>
 </div>
 
-<div class="text-end mt-3">
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <div>
+        @if($order->po)
+            <a href="{{ route('sales-orders.po.print', $order->id) }}" target="_blank" class="btn btn-secondary"><i class="ti ti-printer me-1"></i>{{ __('Print') }}</a>
+            <a href="{{ route('sales-orders.po.download', $order->id) }}" class="btn btn-info"><i class="ti ti-download me-1"></i>{{ __('Download PDF') }}</a>
+        @endif
+    </div>
     <button type="submit" class="btn btn-primary">{{ __('Save & Proceed to PI') }}</button>
 </div>
 {{ Form::close() }}

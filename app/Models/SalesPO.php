@@ -16,6 +16,7 @@ class SalesPO extends Model
         'client_phone',
         'grand_total',
         'signature',
+        'hs_code',
         'created_by',
     ];
 

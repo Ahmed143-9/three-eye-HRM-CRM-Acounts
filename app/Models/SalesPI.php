@@ -11,6 +11,7 @@ class SalesPI extends Model
     protected $fillable = [
         'order_id',
         'pi_number',
+        'client_pi_number',
         'pi_date',
         'validity',
         'lifting_time',
@@ -21,6 +22,14 @@ class SalesPI extends Model
         'port_of_loading',
         'port_of_discharge',
         'amount',
+        'seller_name',
+        'seller_address',
+        'seller_mobile',
+        'seller_email',
+        'buyer_name',
+        'buyer_address',
+        'buyer_mobile',
+        'buyer_email',
         'created_by',
     ];
 

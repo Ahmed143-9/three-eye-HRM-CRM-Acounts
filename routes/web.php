@@ -1875,11 +1875,28 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
 
     Route::resource('sales-orders', SalesOrderController::class);
     Route::post('sales-orders/{id}/po', [SalesOrderController::class, 'poStore'])->name('sales-orders.po.store');
+    Route::get('sales-orders/{id}/po/print', [SalesOrderController::class, 'poPrint'])->name('sales-orders.po.print');
+    Route::get('sales-orders/{id}/po/download', [SalesOrderController::class, 'poDownload'])->name('sales-orders.po.download');
+
     Route::post('sales-orders/{id}/pi', [SalesOrderController::class, 'piStore'])->name('sales-orders.pi.store');
+    Route::get('sales-orders/{id}/pi/print', [SalesOrderController::class, 'piPrint'])->name('sales-orders.pi.print');
+    Route::get('sales-orders/{id}/pi/download', [SalesOrderController::class, 'piDownload'])->name('sales-orders.pi.download');
+
     Route::post('sales-orders/{id}/lc', [SalesOrderController::class, 'lcStore'])->name('sales-orders.lc.store');
+    Route::get('sales-orders/{id}/lc/print', [SalesOrderController::class, 'lcPrint'])->name('sales-orders.lc.print');
+    Route::get('sales-orders/{id}/lc/download', [SalesOrderController::class, 'lcDownload'])->name('sales-orders.lc.download');
+
     Route::post('sales-orders/{id}/ci', [SalesOrderController::class, 'ciStore'])->name('sales-orders.ci.store');
+    Route::get('sales-orders/{id}/ci/print', [SalesOrderController::class, 'ciPrint'])->name('sales-orders.ci.print');
+    Route::get('sales-orders/{id}/ci/download', [SalesOrderController::class, 'ciDownload'])->name('sales-orders.ci.download');
+
     Route::post('sales-orders/{id}/pl', [SalesOrderController::class, 'plStore'])->name('sales-orders.pl.store');
+    Route::get('sales-orders/{id}/pl/print', [SalesOrderController::class, 'plPrint'])->name('sales-orders.pl.print');
+    Route::get('sales-orders/{id}/pl/download', [SalesOrderController::class, 'plDownload'])->name('sales-orders.pl.download');
+
     Route::post('sales-orders/{id}/cn', [SalesOrderController::class, 'cnStore'])->name('sales-orders.cn.store');
+    Route::get('sales-orders/{id}/cn/print', [SalesOrderController::class, 'cnPrint'])->name('sales-orders.cn.print');
+    Route::get('sales-orders/{id}/cn/download', [SalesOrderController::class, 'cnDownload'])->name('sales-orders.cn.download');
 });
 
 Route::any('/cookie-consent', [SystemController::class, 'CookieConsent'])->name('cookie-consent');

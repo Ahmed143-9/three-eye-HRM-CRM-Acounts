@@ -63,6 +63,7 @@ class SalesOrderController extends Controller
                     'client_address' => $request->client_address,
                     'client_email' => $request->client_email,
                     'client_phone' => $request->client_phone,
+                    'hs_code' => $request->hs_code,
                     'grand_total' => $request->grand_total,
                     'signature' => $request->signature,
                     'created_by' => Auth::user()->creatorId(),
@@ -96,6 +97,7 @@ class SalesOrderController extends Controller
             ['order_id' => $order->id],
             [
                 'pi_number' => $request->pi_number,
+                'client_pi_number' => $request->client_pi_number,
                 'pi_date' => $request->pi_date,
                 'validity' => $request->validity,
                 'lifting_time' => $request->lifting_time,
@@ -106,6 +108,14 @@ class SalesOrderController extends Controller
                 'port_of_loading' => $request->port_of_loading,
                 'port_of_discharge' => $request->port_of_discharge,
                 'amount' => $request->amount,
+                'seller_name' => $request->seller_name,
+                'seller_address' => $request->seller_address,
+                'seller_mobile' => $request->seller_mobile,
+                'seller_email' => $request->seller_email,
+                'buyer_name' => $request->buyer_name,
+                'buyer_address' => $request->buyer_address,
+                'buyer_mobile' => $request->buyer_mobile,
+                'buyer_email' => $request->buyer_email,
                 'created_by' => Auth::user()->creatorId(),
             ]
         );
@@ -124,10 +134,19 @@ class SalesOrderController extends Controller
             [
                 'pi_id' => $order->pi->id,
                 'lc_no' => $request->lc_no,
+                'client_lc_number' => $request->client_lc_number,
                 'amount' => $request->amount,
                 'lc_date' => $request->lc_date,
                 'latest_shipment_date' => $request->latest_shipment_date,
                 'lc_validity_date' => $request->lc_validity_date,
+                'seller_name' => $request->seller_name,
+                'seller_address' => $request->seller_address,
+                'seller_mobile' => $request->seller_mobile,
+                'seller_email' => $request->seller_email,
+                'buyer_name' => $request->buyer_name,
+                'buyer_address' => $request->buyer_address,
+                'buyer_mobile' => $request->buyer_mobile,
+                'buyer_email' => $request->buyer_email,
                 'created_by' => Auth::user()->creatorId(),
             ]
         );
@@ -216,7 +235,7 @@ class SalesOrderController extends Controller
                 SalesWeightSlip::create([
                     'consignment_note_id' => $cn->id,
                     'tanker_id' => $slip['tanker_id'],
-                    'in_out_number' => $slip['in_out_number'],
+                    'in_out_number' => null, // Removed as per request
                     'gross_weight' => $slip['gross'],
                     'tare_weight' => $slip['tare'],
                     'net_weight' => $slip['net'],
@@ -228,5 +247,60 @@ class SalesOrderController extends Controller
         });
 
         return redirect()->back()->with('success', __('Consignment Note saved successfully.'));
+    }
+
+    // Print & Download Methods
+    public function poPrint($id) {
+        $order = SalesOrder::with(['po.items'])->find($id);
+        return view('sales_orders.print.po', compact('order'));
+    }
+    public function poDownload($id) {
+        $order = SalesOrder::with(['po.items'])->find($id);
+        return view('sales_orders.print.po', compact('order')); // Browser can print to PDF
+    }
+
+    public function piPrint($id) {
+        $order = SalesOrder::with(['pi'])->find($id);
+        return view('sales_orders.print.pi', compact('order'));
+    }
+    public function piDownload($id) {
+        $order = SalesOrder::with(['pi'])->find($id);
+        return view('sales_orders.print.pi', compact('order'));
+    }
+
+    public function lcPrint($id) {
+        $order = SalesOrder::with(['lc'])->find($id);
+        return view('sales_orders.print.lc', compact('order'));
+    }
+    public function lcDownload($id) {
+        $order = SalesOrder::with(['lc'])->find($id);
+        return view('sales_orders.print.lc', compact('order'));
+    }
+
+    public function ciPrint($id) {
+        $order = SalesOrder::with(['ci.tankers'])->find($id);
+        return view('sales_orders.print.ci', compact('order'));
+    }
+    public function ciDownload($id) {
+        $order = SalesOrder::with(['ci.tankers'])->find($id);
+        return view('sales_orders.print.ci', compact('order'));
+    }
+
+    public function plPrint($id) {
+        $order = SalesOrder::with(['packingList'])->find($id);
+        return view('sales_orders.print.pl', compact('order'));
+    }
+    public function plDownload($id) {
+        $order = SalesOrder::with(['packingList'])->find($id);
+        return view('sales_orders.print.pl', compact('order'));
+    }
+
+    public function cnPrint($id) {
+        $order = SalesOrder::with(['consignmentNote.weightSlips.tanker'])->find($id);
+        return view('sales_orders.print.cn', compact('order'));
+    }
+    public function cnDownload($id) {
+        $order = SalesOrder::with(['consignmentNote.weightSlips.tanker'])->find($id);
+        return view('sales_orders.print.cn', compact('order'));
     }
 }

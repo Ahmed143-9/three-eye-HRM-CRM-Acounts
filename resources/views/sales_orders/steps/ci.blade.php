@@ -74,15 +74,56 @@
             @endif
         </tbody>
         <tfoot>
-            <tr>
-                <td colspan="4"></td>
-                <td><button type="button" class="btn btn-primary btn-sm add-tanker"><i class="ti ti-plus"></i></button></td>
+            <tr class="table-active">
+                <td class="fw-bold">{{ __('TOTALS') }}</td>
+                <td class="fw-bold"><span id="ci_total_qty">0.000</span> MT</td>
+                <td></td>
+                <td class="fw-bold"><span id="ci_total_amount">0.00</span> USD</td>
+                <td>
+                    <button type="button" class="btn btn-primary btn-sm add-tanker"><i class="ti ti-plus"></i></button>
+                </td>
             </tr>
         </tfoot>
     </table>
 </div>
 
-<div class="text-end mt-3">
+@push('script-page')
+<script>
+    $(document).ready(function() {
+        function calculateCITotals() {
+            var totalQty = 0;
+            var totalAmount = 0;
+            $('.t-qty').each(function() {
+                totalQty += parseFloat($(this).val()) || 0;
+            });
+            $('.t-total').each(function() {
+                totalAmount += parseFloat($(this).val()) || 0;
+            });
+            $('#ci_total_qty').text(totalQty.toFixed(3));
+            $('#ci_total_amount').text(totalAmount.toFixed(2));
+        }
+
+        $(document).on('keyup change', '.t-qty, .t-cpt', function() {
+            var row = $(this).closest('tr');
+            var qty = parseFloat(row.find('.t-qty').val()) || 0;
+            var cpt = parseFloat(row.find('.t-cpt').val()) || 0;
+            var total = qty * cpt;
+            row.find('.t-total').val(total.toFixed(2));
+            calculateCITotals();
+        });
+
+        calculateCITotals();
+    });
+</script>
+@endpush
+
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <div>
+        @if($order->ci)
+            <a href="{{ route('sales-orders.ci.print', $order->id) }}" target="_blank" class="btn btn-secondary"><i class="ti ti-printer me-1"></i>{{ __('Print') }}</a>
+            <a href="{{ route('sales-orders.ci.download', $order->id) }}" class="btn btn-info"><i class="ti ti-download me-1"></i>{{ __('Download PDF') }}</a>
+        @endif
+    </div>
     <button type="submit" class="btn btn-primary">{{ __('Save & Proceed to Packing List') }}</button>
 </div>
 {{ Form::close() }}
