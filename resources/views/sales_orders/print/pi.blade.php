@@ -54,6 +54,14 @@
     </tr>
 </table>
 
+@php
+    $controller = new \App\Http\Controllers\SalesOrderController();
+    $amountInWords = $controller->numberToWords($order->pi->amount);
+@endphp
+<div class="mt-3">
+    <p><strong>Amount in Words:</strong> {{ strtoupper($amountInWords) }} ONLY</p>
+</div>
+
 <div class="footer">
     <div class="signature-box">
         Authorized Signature

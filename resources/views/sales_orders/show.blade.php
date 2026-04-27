@@ -45,8 +45,13 @@
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ $order->current_step == 'TR' ? 'active' : '' }} {{ !$order->consignmentNote ? 'disabled' : ($order->status == 'completed' ? 'text-success' : '') }}" id="pills-tr-tab" data-bs-toggle="pill" data-bs-target="#pills-tr" type="button" role="tab">
-                                @if($order->status == 'completed') <i class="ti ti-circle-check me-1"></i> @endif {{ __('7. TR') }}
+                            <button class="nav-link {{ $order->current_step == 'Received Details' ? 'active' : '' }} {{ !$order->consignmentNote ? 'disabled' : ($order->status == 'completed' ? 'text-success' : '') }}" id="pills-rd-tab" data-bs-toggle="pill" data-bs-target="#pills-rd" type="button" role="tab">
+                                @if($order->status == 'completed') <i class="ti ti-circle-check me-1"></i> @endif {{ __('7. Received Details') }}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link {{ $order->status != 'completed' ? 'disabled' : '' }}" id="pills-delivery-tab" data-bs-toggle="pill" data-bs-target="#pills-delivery" type="button" role="tab">
+                                {{ __('8. Delivery') }}
                             </button>
                         </li>
                     </ul>
@@ -70,12 +75,15 @@
                         <div class="tab-pane fade {{ $order->current_step == 'Consignment Note' ? 'show active' : '' }}" id="pills-cn" role="tabpanel">
                             @include('sales_orders.steps.cn')
                         </div>
-                        <div class="tab-pane fade {{ $order->current_step == 'TR' ? 'show active' : '' }}" id="pills-tr" role="tabpanel">
+                        <div class="tab-pane fade {{ $order->current_step == 'Received Details' ? 'show active' : '' }}" id="pills-rd" role="tabpanel">
+                            @include('sales_orders.steps.received_details')
+                        </div>
+                        <div class="tab-pane fade" id="pills-delivery" role="tabpanel">
                             <div class="text-center p-5">
                                 <h4 class="text-success"><i class="ti ti-circle-check fs-1"></i></h4>
-                                <h3>{{ __('Ready for Transport') }}</h3>
-                                <p>{{ __('All sales documents are completed. You can now proceed to transport.') }}</p>
-                                <a href="{{ route('transports.create') }}?sales_order_id={{ $order->id }}" class="btn btn-primary">{{ __('Create Transport Entry') }}</a>
+                                <h3>{{ __('Ready for Delivery') }}</h3>
+                                <p>{{ __('All sales documents are completed. You can now proceed to delivery.') }}</p>
+                                <a href="{{ route('transports.create') }}?sales_order_id={{ $order->id }}" class="btn btn-primary">{{ __('Delivery') }}</a>
                             </div>
                         </div>
                     </div>

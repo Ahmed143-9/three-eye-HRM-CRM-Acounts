@@ -40,7 +40,7 @@
     </div>
 </div>
 
-<h6 class="mt-4">{{ __('Items Section (Supplier)') }}</h6>
+<h6 class="mt-4">{{ __('Order Details') }}</h6>
 <div class="table-responsive">
     <table class="table" id="po-items-table">
         <thead>

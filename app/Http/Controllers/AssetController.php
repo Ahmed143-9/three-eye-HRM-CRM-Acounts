@@ -73,11 +73,8 @@ class AssetController extends Controller
             $validator = Validator::make(
                 $request->all(), [
                     'name' => 'required|string|max:255',
-                    'category' => 'required|in:IT,Furniture,Electronics,Vehicles,Machinery,Other',
-                    'condition' => 'required|in:New,Used,Damaged,Under Maintenance',
-                    'purchase_date' => 'required|date',
-                    'amount' => 'required|numeric|min:0',
-                    'status' => 'required|in:Available,Assigned,Lost,Maintenance',
+                    'quantity' => 'required|integer|min:0',
+                    'status' => 'required|in:Available,In Use,Out of Stock,Damaged',
                     'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 ]
             );
@@ -90,18 +87,9 @@ class AssetController extends Controller
 
             $asset = new Asset();
             $asset->name = $request->name;
-            $asset->category = $request->category;
-            $asset->condition = $request->condition;
+            $asset->quantity = $request->quantity;
             $asset->status = $request->status;
-            $asset->purchase_date = $request->purchase_date;
-            $asset->supported_date = $request->supported_date;
-            $asset->amount = $request->amount;
             $asset->description = $request->description;
-            $asset->manufacturer = $request->manufacturer;
-            $asset->model_number = $request->model_number;
-            $asset->serial_number = $request->serial_number;
-            $asset->location = $request->location;
-            $asset->warranty_until = $request->warranty_until;
             $asset->created_by = \Auth::user()->creatorId();
 
             // Handle image upload
@@ -113,7 +101,7 @@ class AssetController extends Controller
 
             $asset->save();
 
-            return redirect()->route('account-assets.index')->with('success', __('Asset successfully created.'));
+            return redirect()->route('company-assets.index')->with('success', __('Asset successfully created.'));
         }
         else
         {
@@ -171,11 +159,8 @@ class AssetController extends Controller
             $validator = Validator::make(
                 $request->all(), [
                     'name' => 'required|string|max:255',
-                    'category' => 'required|in:IT,Furniture,Electronics,Vehicles,Machinery,Other',
-                    'condition' => 'required|in:New,Used,Damaged,Under Maintenance',
-                    'purchase_date' => 'required|date',
-                    'amount' => 'required|numeric|min:0',
-                    'status' => 'required|in:Available,Assigned,Lost,Maintenance',
+                    'quantity' => 'required|integer|min:0',
+                    'status' => 'required|in:Available,In Use,Out of Stock,Damaged',
                     'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 ]
             );
@@ -187,18 +172,9 @@ class AssetController extends Controller
             }
 
             $asset->name = $request->name;
-            $asset->category = $request->category;
-            $asset->condition = $request->condition;
+            $asset->quantity = $request->quantity;
             $asset->status = $request->status;
-            $asset->purchase_date = $request->purchase_date;
-            $asset->supported_date = $request->supported_date;
-            $asset->amount = $request->amount;
             $asset->description = $request->description;
-            $asset->manufacturer = $request->manufacturer;
-            $asset->model_number = $request->model_number;
-            $asset->serial_number = $request->serial_number;
-            $asset->location = $request->location;
-            $asset->warranty_until = $request->warranty_until;
 
             // Handle image upload
             if ($request->hasFile('image')) {
@@ -217,7 +193,7 @@ class AssetController extends Controller
 
             $asset->save();
 
-            return redirect()->route('account-assets.index')->with('success', __('Asset successfully updated.'));
+            return redirect()->route('company-assets.index')->with('success', __('Asset successfully updated.'));
         }
         else
         {
@@ -254,7 +230,7 @@ class AssetController extends Controller
             
             $asset->delete();
 
-            return redirect()->route('account-assets.index')->with('success', __('Asset successfully deleted.'));
+            return redirect()->route('company-assets.index')->with('success', __('Asset successfully deleted.'));
         }
         else
         {

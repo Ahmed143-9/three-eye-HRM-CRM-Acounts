@@ -46,19 +46,39 @@
         <thead>
             <tr>
                 <th>{{ __('Tanker Number') }}</th>
-                <th>{{ __('QTY (MT)') }}</th>
-                <th>{{ __('CPT (USD)') }}</th>
-                <th>{{ __('Total Amount (USD)') }}</th>
+                <th>{{ __('QTY') }}</th>
+                <th>{{ __('Unit') }}</th>
+                <th>{{ __('Price') }}</th>
+                <th>{{ __('Currency') }}</th>
+                <th>{{ __('Total Amount') }}</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
+            @php
+                $units = ['MT' => 'MT', 'KG' => 'KG', 'Ltr' => 'Ltr', 'Pcs' => 'Pcs'];
+                $currencies = ['USD' => 'USD', 'BDT' => 'BDT', 'EUR' => 'EUR', 'GBP' => 'GBP'];
+            @endphp
             @if($order->ci && $order->ci->tankers->count() > 0)
                 @foreach($order->ci->tankers as $index => $tanker)
                     <tr>
                         <td><input type="text" name="tankers[{{$index}}][tanker_number]" class="form-control" value="{{$tanker->tanker_number}}" required></td>
                         <td><input type="number" step="0.001" name="tankers[{{$index}}][qty_mt]" class="form-control t-qty" value="{{$tanker->quantity_mt}}" required></td>
+                        <td>
+                            <select name="tankers[{{$index}}][quantity_unit]" class="form-control" required>
+                                @foreach($units as $val => $label)
+                                    <option value="{{$val}}" {{ ($tanker->quantity_unit ?? 'MT') == $val ? 'selected' : '' }}>{{$label}}</option>
+                                @endforeach
+                            </select>
+                        </td>
                         <td><input type="number" step="0.01" name="tankers[{{$index}}][cpt_usd]" class="form-control t-cpt" value="{{$tanker->cpt_usd}}" required></td>
+                        <td>
+                            <select name="tankers[{{$index}}][currency]" class="form-control" required>
+                                @foreach($currencies as $val => $label)
+                                    <option value="{{$val}}" {{ ($tanker->currency ?? 'USD') == $val ? 'selected' : '' }}>{{$label}}</option>
+                                @endforeach
+                            </select>
+                        </td>
                         <td><input type="number" step="0.01" name="tankers[{{$index}}][total_amount]" class="form-control t-total" value="{{$tanker->total_amount_usd}}" readonly></td>
                         <td><button type="button" class="btn btn-danger btn-sm remove-tanker"><i class="ti ti-trash"></i></button></td>
                     </tr>
@@ -67,7 +87,21 @@
                 <tr>
                     <td><input type="text" name="tankers[0][tanker_number]" class="form-control" required></td>
                     <td><input type="number" step="0.001" name="tankers[0][qty_mt]" class="form-control t-qty" required></td>
+                    <td>
+                        <select name="tankers[0][quantity_unit]" class="form-control" required>
+                            @foreach($units as $val => $label)
+                                <option value="{{$val}}">{{$label}}</option>
+                            @endforeach
+                        </select>
+                    </td>
                     <td><input type="number" step="0.01" name="tankers[0][cpt_usd]" class="form-control t-cpt" required></td>
+                    <td>
+                        <select name="tankers[0][currency]" class="form-control" required>
+                            @foreach($currencies as $val => $label)
+                                <option value="{{$val}}">{{$label}}</option>
+                            @endforeach
+                        </select>
+                    </td>
                     <td><input type="number" step="0.01" name="tankers[0][total_amount]" class="form-control t-total" readonly></td>
                     <td></td>
                 </tr>
@@ -76,9 +110,11 @@
         <tfoot>
             <tr class="table-active">
                 <td class="fw-bold">{{ __('TOTALS') }}</td>
-                <td class="fw-bold"><span id="ci_total_qty">0.000</span> MT</td>
+                <td class="fw-bold"><span id="ci_total_qty">0.000</span></td>
                 <td></td>
-                <td class="fw-bold"><span id="ci_total_amount">0.00</span> USD</td>
+                <td></td>
+                <td></td>
+                <td class="fw-bold"><span id="ci_total_amount">0.00</span></td>
                 <td>
                     <button type="button" class="btn btn-primary btn-sm add-tanker"><i class="ti ti-plus"></i></button>
                 </td>
@@ -90,6 +126,43 @@
 @push('script-page')
 <script>
     $(document).ready(function() {
+        var tankerIndex = {{ ($order->ci && $order->ci->tankers->count() > 0) ? $order->ci->tankers->count() : 1 }};
+
+        $('.add-tanker').on('click', function() {
+            var newRow = `
+                <tr>
+                    <td><input type="text" name="tankers[${tankerIndex}][tanker_number]" class="form-control" required></td>
+                    <td><input type="number" step="0.001" name="tankers[${tankerIndex}][qty_mt]" class="form-control t-qty" required></td>
+                    <td>
+                        <select name="tankers[${tankerIndex}][quantity_unit]" class="form-control" required>
+                            <option value="MT">MT</option>
+                            <option value="KG">KG</option>
+                            <option value="Ltr">Ltr</option>
+                            <option value="Pcs">Pcs</option>
+                        </select>
+                    </td>
+                    <td><input type="number" step="0.01" name="tankers[${tankerIndex}][cpt_usd]" class="form-control t-cpt" required></td>
+                    <td>
+                        <select name="tankers[${tankerIndex}][currency]" class="form-control" required>
+                            <option value="USD">USD</option>
+                            <option value="BDT">BDT</option>
+                            <option value="EUR">EUR</option>
+                            <option value="GBP">GBP</option>
+                        </select>
+                    </td>
+                    <td><input type="number" step="0.01" name="tankers[${tankerIndex}][total_amount]" class="form-control t-total" readonly></td>
+                    <td><button type="button" class="btn btn-danger btn-sm remove-tanker"><i class="ti ti-trash"></i></button></td>
+                </tr>
+            `;
+            $('#ci-tankers-table tbody').append(newRow);
+            tankerIndex++;
+        });
+
+        $(document).on('click', '.remove-tanker', function() {
+            $(this).closest('tr').remove();
+            calculateCITotals();
+        });
+
         function calculateCITotals() {
             var totalQty = 0;
             var totalAmount = 0;

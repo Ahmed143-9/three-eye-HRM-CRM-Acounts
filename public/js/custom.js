@@ -175,6 +175,7 @@ function select2() {
             var multipleCancelButton = new Choices(
                 '#' + id, {
                     removeItemButton: true,
+                    position: 'bottom'
                 }
             );
         });
