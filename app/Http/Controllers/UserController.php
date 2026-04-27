@@ -30,214 +30,82 @@ class UserController extends Controller
 
     public function index()
     {
-        User::defaultEmail();
-
         $user = \Auth::user();
         if ($user->can('manage user')) {
-            if ($user->type == 'super admin') {
-                $users = User::where('created_by', '=', $user->creatorId())->where('type', '=', 'company')->with(['currentPlan'])->get();
-            } else if ($user->type == 'company') {
-                $users = User::where('created_by', '=', $user->creatorId())->where('type', '!=', 'client')->with(['currentPlan'])->get();
-            } else {
-                return redirect()->back()->with('error', __('Only Administrators can manage users.'));
-            }
-
+            $users = User::where('created_by', '=', $user->creatorId())->where('type', '!=', 'client')->get();
             return view('user.index')->with('users', $users);
         } else {
-            return redirect()->back();
+            return redirect()->back()->with('error', __('Permission denied.'));
         }
-
     }
 
     public function create()
     {
-
-        $customFields = CustomField::where('created_by', '=', \Auth::user()->creatorId())->where('module', '=', 'user')->get();
         $user = \Auth::user();
-
-        // Super Admin sees all roles; Admins cannot assign 'super admin' role
-        if ($user->type == 'super admin') {
+        if ($user->can('create user')) {
             $roles = Role::where('created_by', '=', $user->creatorId())->where('name', '!=', 'client')->get()->pluck('name', 'id');
-        } else {
-            $roles = Role::where('created_by', '=', $user->creatorId())
-                        ->where('name', '!=', 'client')
-                        ->where('name', '!=', 'super admin')
-                        ->get()->pluck('name', 'id');
-        }
+            $customFields = CustomField::where('created_by', '=', $user->creatorId())->where('module', '=', 'user')->get();
 
-        if ($user->can('create user') && ($user->type == 'company' || $user->type == 'super admin')) {
             return view('user.create', compact('roles', 'customFields'));
         } else {
-            return redirect()->back()->with('error', __('Only Administrators can create users.'));
+            return redirect()->back()->with('error', __('Permission denied.'));
         }
     }
 
     public function store(Request $request)
     {
-
         $user = \Auth::user();
-        if ($user->can('create user') && ($user->type == 'company' || $user->type == 'super admin')) {
+        if ($user->can('create user')) {
             $default_language = DB::table('settings')->select('value')->where('name', 'default_language')->where('created_by', '=', \Auth::user()->creatorId())->first();
-            $objUser = \Auth::user()->creatorId();
 
-            if (\Auth::user()->type == 'super admin') {
-                $validator = \Validator::make(
-                    $request->all(), [
-                        'name' => 'required|max:120',
-                        'email' => 'required|email|unique:users',
-                    ]
-                );
-                if ($validator->fails()) {
-                    $messages = $validator->getMessageBag();
+            $validator = \Validator::make(
+                $request->all(), [
+                    'name' => 'required|max:120',
+                    'email' => 'required|email|unique:users',
+                    'role' => 'required',
+                ]
+            );
+            if ($validator->fails()) {
+                $messages = $validator->getMessageBag();
+                return redirect()->back()->with('error', $messages->first());
+            }
 
-                    return redirect()->back()->with('error', $messages->first());
-                }
+            $requestedRole = Role::findById($request->role);
+            if ($requestedRole && $requestedRole->name == 'super admin') {
+                return redirect()->back()->with('error', __('You are not authorized to assign the Super Admin role.'));
+            }
 
-                $enableLogin = 0;
-                if (!empty($request->password_switch) && $request->password_switch == 'on') {
-                    $enableLogin = 1;
-                    $validator = \Validator::make(
-                        $request->all(), ['password' => 'required|min:6']
-                    );
+            $userpassword = $request->input('password');
+            $psw = $userpassword;
+            $request['password']         = !empty($userpassword) ? \Hash::make($userpassword) : null;
+            $request['type']             = $requestedRole->name;
+            $request['lang']             = !empty($default_language) ? $default_language->value : 'en';
+            $request['created_by']       = \Auth::user()->creatorId();
+            $request['email_verified_at'] = date('Y-m-d H:i:s');
+            $request['is_enable_login']  = 1;
+            $request['is_active']        = 1;
 
-                    if ($validator->fails()) {
-                        return redirect()->back()->with('error', $validator->errors()->first());
-                    }
-                }
-                $userpassword = $request->input('password');
-                $settings = Utility::settings();
+            $user = User::create($request->all());
+            $user->assignRole($requestedRole);
 
-                do {
-                    $code = rand(100000, 999999);
-                } while (User::where('referral_code', $code)->exists());
-
-                $user = new User();
-                $user['name'] = $request->name;
-                $user['email'] = $request->email;
-                $psw = $request->password;
-                $user['password'] = !empty($userpassword)?\Hash::make($userpassword) : null;
-                $user['type'] = 'company';
-                $user['default_pipeline'] = 1;
-                $user['plan'] = 1;
-                $user['lang'] = !empty($default_language) ? $default_language->value : 'en';
-                $user['referral_code'] = $code;
-                $user['created_by'] = \Auth::user()->creatorId();
-                $user['plan'] = Plan::first()->id;
-                if ($settings['email_verification'] == 'on') {
-
-                    $user['email_verified_at'] = null;
-                } else {
-                    $user['email_verified_at'] = date('Y-m-d H:i:s');
-                }
-                $user['is_enable_login'] = $enableLogin;
-
-                $user->save();
-                $role_r = Role::findByName('company');
-                $user->assignRole($role_r);
-                $user->userDefaultDataRegister($user->id);
-                $user->userWarehouseRegister($user->id);
-
-                //default bank account for new company
-                $user->userDefaultBankAccount($user->id);
-
-                Utility::chartOfAccountTypeData($user->id);
-                // default chart of account for new company
-                Utility::chartOfAccountData1($user->id);
-
-                Utility::pipeline_lead_deal_Stage($user->id);
-                Utility::project_task_stages($user->id);
-                Utility::labels($user->id);
-                Utility::sources($user->id);
-                Utility::jobStage($user->id);
-                GenerateOfferLetter::defaultOfferLetterRegister($user->id);
-                ExperienceCertificate::defaultExpCertificatRegister($user->id);
-                JoiningLetter::defaultJoiningLetterRegister($user->id);
-                NOC::defaultNocCertificateRegister($user->id);
-            } else {
-                $validator = \Validator::make(
-                    $request->all(), [
-                        'name' => 'required|max:120',
-                        'email' => 'required|email|unique:users',
-                        'role' => 'required',
-                    ]
-                );
-                if ($validator->fails()) {
-                    $messages = $validator->getMessageBag();
-                    return redirect()->back()->with('error', $messages->first());
-                }
-
-                // RBAC: Admins cannot assign 'super admin' role
-                $requestedRole = Role::findById($request->role);
-                if ($requestedRole && $requestedRole->name == 'super admin') {
-                    return redirect()->back()->with('error', __('You are not authorized to assign the Super Admin role.'));
-                }
-
-                $enableLogin = 0;
-                if (!empty($request->password_switch) && $request->password_switch == 'on') {
-                    $enableLogin = 1;
-                    $validator = \Validator::make(
-                        $request->all(), ['password' => 'required|min:6']
-                    );
-
-                    if ($validator->fails()) {
-                        return redirect()->back()->with('error', $validator->errors()->first());
-                    }
-                }
-
-                $objUser = User::find($objUser);
-                $userpassword = $request->input('password');
-
-                // ── UNLIMITED: Plan user limit is bypassed ──────────────────
-                $role_r = Role::findById($request->role);
-                $psw = $request->password;
-                $request['password']         = !empty($userpassword) ? \Hash::make($userpassword) : null;
-                $request['type']             = $role_r->name;
-                $request['lang']             = !empty($default_language) ? $default_language->value : 'en';
-                $request['created_by']       = \Auth::user()->creatorId();
-                $request['email_verified_at'] = date('Y-m-d H:i:s');
-                // ── AUTO-ACTIVATE: New users are active and login-enabled immediately ──
-                $request['is_enable_login']  = 1;
-                $request['is_active']        = 1;
-
-                $user = User::create($request->all());
-                $user->assignRole($role_r);
-                if ($request['type'] != 'client') {
-                    \App\Models\Utility::employeeDetails($user->id, \Auth::user()->creatorId());
-                }
-
+            if ($request['type'] != 'client') {
+                \App\Models\Utility::employeeDetails($user->id, \Auth::user()->creatorId());
             }
 
             // Send Email
-            $setings = Utility::settings();
-            if ($setings['new_user'] == 1) {
-
-                $user->password = $psw;
-                $user->type = $role_r->name;
-                $user->userDefaultDataRegister($user->id);
-
+            $settings = Utility::settings();
+            if (isset($settings['new_user']) && $settings['new_user'] == 1) {
                 $userArr = [
                     'email' => $user->email,
-                    'password' => $user->password,
+                    'password' => $psw,
                 ];
-                $resp = Utility::sendEmailTemplate('new_user', [$user->id => $user->email], $userArr);
-
-                if (\Auth::user()->type == 'super admin') {
-                    return redirect()->route('users.index')->with('success', __('Company successfully created.') . ((!empty($resp) && $resp['is_success'] == false && !empty($resp['error'])) ? '<br> <span class="text-danger">' . $resp['error'] . '</span>' : ''));
-                } else {
-                    return redirect()->route('users.index')->with('success', __('User successfully created.') . ((!empty($resp) && $resp['is_success'] == false && !empty($resp['error'])) ? '<br> <span class="text-danger">' . $resp['error'] . '</span>' : ''));
-
-                }
+                Utility::sendEmailTemplate('new_user', [$user->id => $user->email], $userArr);
             }
-                if (\Auth::user()->type == 'super admin') {
-                    return redirect()->route('users.index')->with('success', __('Company successfully created.'));
-                } else {
-                    return redirect()->route('users.index')->with('success', __('User successfully created and activated.'));
-                }
 
+            return redirect()->route('users.index')->with('success', __('User successfully created.'));
         } else {
-            return redirect()->back();
+            return redirect()->back()->with('error', __('Permission denied.'));
         }
-
     }
     public function show()
     {

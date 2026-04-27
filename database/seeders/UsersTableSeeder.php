@@ -3174,63 +3174,33 @@ class UsersTableSeeder extends Seeder
 
         // Super admin
 
-        $superAdminRole        = Role::create(
-            [
-                'name' => 'super admin',
-                'created_by' => 0,
-            ]
-        );
-        $superAdminPermissions = [
-            'manage super admin dashboard',
-            'manage user',
-            'create user',
-            'edit user',
-            'delete user',
-            'create language',
-            'manage system settings',
-            'manage stripe settings',
-            'manage role',
-            'create role',
-            'edit role',
-            'delete role',
-            'manage permission',
-            'create permission',
-            'edit permission',
-            'delete permission',
-            'manage plan',
-            'create plan',
-            'edit plan',
-            'manage order',
-            'manage coupon',
-            'create coupon',
-            'edit coupon',
-            'delete coupon',
-        ];
-
-        $superAdminRole->givePermissionTo($superAdminPermissions);
-
-        $superAdmin = User::create(
-            [
-                'name' => 'Super Admin',
-                'email' => 'superadmin@example.com',
-                'password' => Hash::make('1234'),
-                'type' => 'super admin',
-                'lang' => 'en',
-                'avatar' => '',
-                'created_by' => 0,
-                'email_verified_at' => now(),
-            ]
-        );
-        $superAdmin->assignRole($superAdminRole);
-
-        // company
-
         $companyRole = Role::create(
             [
                 'name' => 'company',
                 'created_by' => 0,
             ]
         );
+
+        $admin = User::create(
+            [
+                'name' => 'Admin',
+                'email' => 'admin@example.com',
+                'password' => Hash::make('1234'),
+                'type' => 'company',
+                'plan' => 1,
+                'lang' => 'en',
+                'avatar' => '',
+                'created_by' => 0,
+                'is_active' => 1,
+                'is_enable_login' => 1,
+                'email_verified_at' => now(),
+                'referral_code' => rand(100000, 999999),
+            ]
+        );
+        $admin->assignRole($companyRole);
+        $company = $admin; // Point $company to $admin for backward compatibility with the rest of the seeder
+
+        // company
 
         $companyPermissions = [
             'show pos dashboard',
@@ -3746,22 +3716,7 @@ class UsersTableSeeder extends Seeder
 
         $companyRole->givePermissionTo($companyPermissions);
 
-        $company = User::create(
-            [
-                'name' => 'company',
-                'email' => 'company@example.com',
-                'password' => Hash::make('1234'),
-                'type' => 'company',
-                'default_pipeline' => 1,
-                'plan' => 1,
-                'lang' => 'en',
-                'avatar' => '',
-                'created_by' => 1,
-                'email_verified_at' => now(),
-                'referral_code' => rand(100000 , 999999),
-            ]
-        );
-        $company->assignRole($companyRole);
+        // The master admin is already created above and assigned the company role.
 
         // accountant
         $accountantRole       = Role::create(
