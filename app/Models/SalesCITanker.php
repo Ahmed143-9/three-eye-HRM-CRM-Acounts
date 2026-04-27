@@ -12,7 +12,9 @@ class SalesCITanker extends Model
         'ci_id',
         'tanker_number',
         'quantity_mt',
+        'quantity_unit',
         'cpt_usd',
+        'currency',
         'total_amount_usd',
     ];
 

@@ -22,49 +22,63 @@
     </div>
 </div>
 
-<h6 class="mt-4">{{ __('Weight Slip Section') }}</h6>
+<h6 class="mt-4">{{ __('Tanker Details (Weight Slips)') }}</h6>
 <div class="table-responsive">
     <table class="table" id="cn-weight-slips-table">
         <thead>
             <tr>
                 <th>{{ __('Tanker Number') }}</th>
-                <th>{{ __('Gross Weight') }}</th>
-                <th>{{ __('Tare Weight') }}</th>
-                <th>{{ __('Net Weight') }}</th>
+                <th>{{ __('Seller Gross') }}</th>
+                <th>{{ __('Seller Tare') }}</th>
+                <th>{{ __('Seller Net') }}</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
-            @if(optional($order->ci)->tankers)
-                @foreach($order->ci->tankers as $index => $tanker)
-                    @php
-                        $slip = $order->consignmentNote ? $order->consignmentNote->weightSlips->where('tanker_id', $tanker->id)->first() : null;
-                    @endphp
+            @if($order->consignmentNote && $order->consignmentNote->weightSlips->count() > 0)
+                @foreach($order->consignmentNote->weightSlips as $index => $slip)
                     <tr>
-                        <td>
-                            <input type="hidden" name="weight_slips[{{$index}}][tanker_id]" value="{{$tanker->id}}">
-                            <strong>{{ $tanker->tanker_number }}</strong> ({{ $tanker->quantity_mt }} MT)
-                        </td>
-                        <td><input type="number" step="0.001" name="weight_slips[{{$index}}][gross]" class="form-control w-gross" value="{{$slip->gross_weight ?? ''}}" required></td>
-                        <td><input type="number" step="0.001" name="weight_slips[{{$index}}][tare]" class="form-control w-tare" value="{{$slip->tare_weight ?? ''}}" required></td>
-                        <td><input type="number" step="0.001" name="weight_slips[{{$index}}][net]" class="form-control w-net" value="{{$slip->net_weight ?? ''}}" readonly></td>
+                        <td><input type="text" name="weight_slips[{{$index}}][tanker_id]" class="form-control" value="{{$slip->tanker_id}}" required></td>
+                        <td><input type="number" step="0.001" name="weight_slips[{{$index}}][gross]" class="form-control w-gross" value="{{$slip->gross_weight}}" required></td>
+                        <td><input type="number" step="0.001" name="weight_slips[{{$index}}][tare]" class="form-control w-tare" value="{{$slip->tare_weight}}" required></td>
+                        <td><input type="number" step="0.001" name="weight_slips[{{$index}}][net]" class="form-control w-net" value="{{$slip->net_weight}}" readonly></td>
+                        <td><button type="button" class="btn btn-danger btn-sm remove-cn-item"><i class="ti ti-trash"></i></button></td>
                     </tr>
                 @endforeach
+            @else
+                <tr>
+                    <td><input type="text" name="weight_slips[0][tanker_id]" class="form-control" required></td>
+                    <td><input type="number" step="0.001" name="weight_slips[0][gross]" class="form-control w-gross" required></td>
+                    <td><input type="number" step="0.001" name="weight_slips[0][tare]" class="form-control w-tare" required></td>
+                    <td><input type="number" step="0.001" name="weight_slips[0][net]" class="form-control w-net" readonly></td>
+                    <td></td>
+                </tr>
             @endif
         </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4"></td>
+                <td><button type="button" class="btn btn-primary btn-sm add-cn-item"><i class="ti ti-plus"></i></button></td>
+            </tr>
+        </tfoot>
     </table>
 </div>
 
 @push('script-page')
 <script>
-    $(document).ready(function() {
-        $(document).on('keyup change', '.w-gross, .w-tare', function() {
-            var row = $(this).closest('tr');
-            var gross = parseFloat(row.find('.w-gross').val()) || 0;
-            var tare = parseFloat(row.find('.w-tare').val()) || 0;
-            var net = gross - tare;
-            row.find('.w-net').val(net.toFixed(3));
-        });
+    $(document).on('click', '.add-cn-item', function() {
+        var index = $('#cn-weight-slips-table tbody tr').length;
+        var html = `<tr>
+            <td><input type="text" name="weight_slips[${index}][tanker_id]" class="form-control" required></td>
+            <td><input type="number" step="0.001" name="weight_slips[${index}][gross]" class="form-control w-gross" required></td>
+            <td><input type="number" step="0.001" name="weight_slips[${index}][tare]" class="form-control w-tare" required></td>
+            <td><input type="number" step="0.001" name="weight_slips[${index}][net]" class="form-control w-net" readonly></td>
+            <td><button type="button" class="btn btn-danger btn-sm remove-cn-item"><i class="ti ti-trash"></i></button></td>
+        </tr>`;
+        $('#cn-weight-slips-table tbody').append(html);
     });
+
+    $(document).on('click', '.remove-cn-item', function() { $(this).closest('tr').remove(); });
 </script>
 @endpush
 
@@ -75,6 +89,6 @@
             <a href="{{ route('sales-orders.cn.download', $order->id) }}" class="btn btn-info"><i class="ti ti-download me-1"></i>{{ __('Download PDF') }}</a>
         @endif
     </div>
-    <button type="submit" class="btn btn-primary">{{ __('Save & Complete Workflow') }}</button>
+    <button type="submit" class="btn btn-primary">{{ __('Save & Proceed to Received Details') }}</button>
 </div>
 {{ Form::close() }}

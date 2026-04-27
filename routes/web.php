@@ -51,6 +51,7 @@ use App\Http\Controllers\DucumentUploadController;
 use App\Http\Controllers\EasebuzzController;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\EmployeeAssetController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FedapayController;
@@ -733,22 +734,14 @@ Route::group(['middleware' => ['verified']], function () {
     //Budget Planner //
     Route::resource('budget', BudgetController::class)->middleware(['auth', 'XSS', 'revalidate']);
 
-    Route::resource('account-assets', AssetController::class)->middleware(['auth', 'XSS', 'revalidate']);
-    
+
     // Asset Categories Management
     Route::resource('asset-categories', AssetCategoryController::class)->middleware(['auth', 'XSS', 'revalidate']);
     Route::post('asset-categories/setup-defaults', [AssetCategoryController::class, 'setupDefaults'])->name('asset-categories.setup-defaults')->middleware(['auth', 'XSS', 'revalidate']);
     
     // Asset Management Additional Routes
-    Route::get('account-assets/{id}/assign', [AssetController::class, 'showAssignForm'])->name('account-assets.assign-form')->middleware(['auth', 'XSS', 'revalidate']);
-    Route::post('account-assets/{id}/assign', [AssetController::class, 'assignAsset'])->name('account-assets.assign')->middleware(['auth', 'XSS', 'revalidate']);
-    Route::get('account-assets/{id}/return', [AssetController::class, 'showReturnForm'])->name('account-assets.return-form')->middleware(['auth', 'XSS', 'revalidate']);
-    Route::post('account-assets/{id}/return', [AssetController::class, 'returnAsset'])->name('account-assets.return')->middleware(['auth', 'XSS', 'revalidate']);
-    Route::get('account-assets/{id}/history', [AssetController::class, 'history'])->name('account-assets.history')->middleware(['auth', 'XSS', 'revalidate']);
-    Route::get('account-assets/employee/{employeeId}', [AssetController::class, 'employeeAssets'])->name('account-assets.employee-assets')->middleware(['auth', 'XSS', 'revalidate']);
-    Route::get('account-assets/requests', [AssetController::class, 'requests'])->name('account-assets.requests')->middleware(['auth', 'XSS', 'revalidate']);
-    Route::post('account-assets/requests/{id}/approve', [AssetController::class, 'approveRequest'])->name('account-assets.approve-request')->middleware(['auth', 'XSS', 'revalidate']);
-    Route::post('account-assets/requests/{id}/reject', [AssetController::class, 'rejectRequest'])->name('account-assets.reject-request')->middleware(['auth', 'XSS', 'revalidate']);
+    Route::resource('company-assets', AssetController::class)->middleware(['auth', 'XSS', 'revalidate']);
+    Route::resource('employee-assets', EmployeeAssetController::class)->middleware(['auth', 'XSS', 'revalidate']);
 
     Route::resource('custom-field', CustomFieldController::class)->middleware(['auth', 'XSS', 'revalidate']);
 
@@ -1012,7 +1005,7 @@ Route::group(['middleware' => ['verified']], function () {
 
     Route::resource('goaltype', GoalTypeController::class)->middleware(['auth', 'XSS']);
     Route::resource('goaltracking', GoalTrackingController::class)->middleware(['auth', 'XSS']);
-    Route::resource('account-assets', AssetController::class)->middleware(['auth', 'XSS']);
+
 
     Route::post('event/getdepartment', [EventController::class, 'getdepartment'])->name('event.getdepartment')->middleware(['auth', 'XSS']);
     Route::post('event/getemployee', [EventController::class, 'getemployee'])->name('event.getemployee')->middleware(['auth', 'XSS']);
@@ -1085,7 +1078,7 @@ Route::group(['middleware' => ['verified']], function () {
     Route::get('taskboard/{view?}', [ProjectTaskController::class, 'taskBoard'])->name('taskBoard.view')->middleware(['auth', 'XSS']);
     Route::get('taskboard-view', [ProjectTaskController::class, 'taskboardView'])->name('project.taskboard.view')->middleware(['auth', 'XSS']);
 
-    Route::resource('document-upload', DucumentUploadController::class)->middleware(['auth', 'XSS']);
+
     Route::resource('transfer', TransferController::class)->middleware(['auth', 'XSS']);
     Route::get('attendanceemployee/bulkattendance', [AttendanceEmployeeController::class, 'bulkAttendance'])->name('attendanceemployee.bulkattendance')->middleware(['auth', 'XSS']);
     Route::post('attendanceemployee/bulkattendances', [AttendanceEmployeeController::class, 'bulkAttendanceData'])->name('attendanceemployee.bulkattendances')->middleware(['auth', 'XSS']);
@@ -1897,6 +1890,8 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
     Route::post('sales-orders/{id}/cn', [SalesOrderController::class, 'cnStore'])->name('sales-orders.cn.store');
     Route::get('sales-orders/{id}/cn/print', [SalesOrderController::class, 'cnPrint'])->name('sales-orders.cn.print');
     Route::get('sales-orders/{id}/cn/download', [SalesOrderController::class, 'cnDownload'])->name('sales-orders.cn.download');
+    Route::post('sales-orders/{id}/rd-store', [SalesOrderController::class, 'receivedDetailsStore'])->name('sales-orders.rd.store');
+
 });
 
 Route::any('/cookie-consent', [SystemController::class, 'CookieConsent'])->name('cookie-consent');

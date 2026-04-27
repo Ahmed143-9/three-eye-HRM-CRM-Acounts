@@ -11,7 +11,14 @@ class SalesOrder extends Model
         'customer_id',
         'current_step',
         'status',
+        'workflow_data',
+        'tankers_data',
         'created_by',
+    ];
+
+    protected $casts = [
+        'workflow_data' => 'array',
+        'tankers_data' => 'array',
     ];
 
     public function customer()

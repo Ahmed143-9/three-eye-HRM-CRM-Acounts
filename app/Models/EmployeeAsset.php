@@ -19,6 +19,9 @@ class EmployeeAsset extends Model
         'status',
         'remarks',
         'document',
+        'asset_name',
+        'description',
+        'image',
         'assigned_by',
         'created_by',
     ];

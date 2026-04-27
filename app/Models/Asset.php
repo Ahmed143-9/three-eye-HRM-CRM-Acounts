@@ -26,6 +26,7 @@ class Asset extends Model
         'warranty_until',
         'image',
         'employee_id',
+        'quantity',
         'created_by',
     ];
 
