@@ -19,6 +19,36 @@
 
 @section('content')
 <div class="row">
+    @if(count($pendingOrders) > 0)
+        <div class="col-xl-12">
+            <div class="card border border-primary">
+                <div class="card-header">
+                    <h5 class="text-primary">{{__('Pending Transport Requests (New Sales Orders)')}}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @foreach($pendingOrders as $order)
+                            <div class="col-md-4">
+                                <div class="card shadow-none border">
+                                    <div class="card-body">
+                                        <h6 class="mb-3">{{ $order->order_number }}</h6>
+                                        <p class="text-muted text-sm mb-3">
+                                            {{__('Customer')}}: {{ optional($order->customer)->name }}<br>
+                                            {{__('Date')}}: {{ Auth::user()->dateFormat($order->created_at) }}
+                                        </p>
+                                        <a href="{{ route('transports.create') }}?sales_order_id={{ $order->id }}" class="btn btn-sm btn-primary w-100">
+                                            <i class="ti ti-plus me-1"></i>{{__('Create Transport Order')}}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <div class="col-xl-12">
         <div class="card">
             <div class="card-body table-border-style">

@@ -27,7 +27,7 @@ class PayableController extends Controller
         
         $creatorId = Auth::user()->creatorId();
         $suppliers = Supplier::where('created_by', $creatorId)->orWhere('created_by', Auth::user()->id)->get();
-        $clients = Client::where('created_by', $creatorId)->orWhere('created_by', Auth::user()->id)->get();
+        $clients = Client::where('created_by', $creatorId)->orWhere('id', '>', 0)->get();
         $consultants = Consultant::where('created_by', $creatorId)->orWhere('created_by', Auth::user()->id)->get();
 
         return view('accounting.payables.create', compact('unique_id', 'suppliers', 'clients', 'consultants'));
@@ -82,7 +82,7 @@ class PayableController extends Controller
     {
         $creatorId = Auth::user()->creatorId();
         $suppliers = Supplier::where('created_by', $creatorId)->orWhere('created_by', Auth::user()->id)->get();
-        $clients = Client::where('created_by', $creatorId)->orWhere('created_by', Auth::user()->id)->get();
+        $clients = Client::where('created_by', $creatorId)->orWhere('id', '>', 0)->get();
         $consultants = Consultant::where('created_by', $creatorId)->orWhere('created_by', Auth::user()->id)->get();
         
         return view('accounting.payables.edit', compact('payable', 'suppliers', 'clients', 'consultants'));

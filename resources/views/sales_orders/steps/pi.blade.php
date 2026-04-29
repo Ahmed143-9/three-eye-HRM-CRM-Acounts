@@ -17,7 +17,7 @@
                     @foreach($order->po->items as $item)
                         <tr>
                             <td>{{ $item->item_name }}</td>
-                            <td>{{ $item->quantity }} {{ $item->unit }}</td>
+                            <td>{{ $item->quantity }}</td>
                             <td>{{ number_format($item->price, 2) }}</td>
                             <td class="text-end">{{ number_format($item->total, 2) }}</td>
                         </tr>

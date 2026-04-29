@@ -1,14 +1,21 @@
 "use strict";
 var flg = "0";
+window.addEventListener("load", function () {
+  setTimeout(function () {
+    var loader = document.querySelector(".loader-bg");
+    if (loader) {
+      loader.style.opacity = '0';
+      setTimeout(function() {
+        loader.remove();
+      }, 300);
+    }
+  }, 200);
+});
+
 document.addEventListener("DOMContentLoaded", function () {
   // feather icon start
   feather.replace();
   // feather icon end
-  // remove pre-loader start
-  setTimeout(function () {
-    document.querySelector(".loader-bg").remove();
-  }, 400);
-  // remove pre-loader end
   if (!document.querySelector("body").classList.contains("dash-horizontal")) {
     addscroller();
   }

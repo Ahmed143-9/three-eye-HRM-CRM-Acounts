@@ -8,8 +8,10 @@ use App\Models\Client;
 use App\Models\Utility;
 use App\Models\Payable;
 use App\Models\PayableItem;
+use App\Models\SalesOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class TransportController extends Controller
 {
@@ -17,78 +19,89 @@ class TransportController extends Controller
     {
         if (Auth::user()->can('manage employee')) {
             $transports = Transport::where('created_by', '=', Auth::user()->creatorId())->get();
-            return view('transport.index', compact('transports'));
+            
+            // Fetch finalized sales orders that haven't been linked to a transport yet
+            $pendingOrders = SalesOrder::where('status', 'finalized')
+                ->whereNotExists(function ($query) {
+                    $query->select(DB::raw(1))
+                        ->from('transports')
+                        ->whereRaw('transports.sales_order_id = sales_orders.id');
+                })
+                ->where('created_by', Auth::user()->creatorId())
+                ->get();
+
+            return view('transport.index', compact('transports', 'pendingOrders'));
         } else {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        $clients = Client::where('created_by', '=', Auth::user()->creatorId())->get()->pluck('name', 'id')->toArray();
+        $creatorId = Auth::user()->creatorId();
+        $clients = Client::where('created_by', $creatorId)
+            ->orWhere('id', '>', 0) 
+            ->get()->pluck('name', 'id')->toArray();
         $clients = ['others' => __('Others')] + $clients;
-        return view('transport.create', compact('clients'));
+        
+        $salesOrder = null;
+        if ($request->has('sales_order_id')) {
+            $salesOrder = SalesOrder::with(['customer', 'lc', 'ci', 'po.items'])->find($request->sales_order_id);
+        }
+
+        return view('transport.create', compact('clients', 'salesOrder'));
     }
 
     public function store(Request $request)
     {
-        $validator = \Validator::make(
-            $request->all(),
-            [
-                'driver_name' => 'required',
-                'contact_number' => 'required',
-                'truck_number' => 'required',
-                'starting_date' => 'required',
-                'item_description' => 'required',
-                'lc' => 'nullable|string',
-                'ci' => 'nullable|string',
-            ]
-        );
-
-        if ($validator->fails()) {
-            $messages = $validator->getMessageBag();
-            return redirect()->back()->with('error', $messages->first());
-        }
-
         $transport = new Transport();
         $transport->unique_id = 'TR-' . time();
+        $transport->sales_order_id = $request->sales_order_id;
         $transport->client_id = $request->client_id == 'others' ? 0 : ($request->client_id ?? 0);
         $transport->manual_client_name = $request->manual_client_name;
         $transport->location_address = $request->location_address;
-        $transport->location_lat = $request->location_lat;
-        $transport->location_lng = $request->location_lng;
-        
-        $transport->driver_name = $request->driver_name;
-        $transport->contact_number = $request->contact_number;
-        $transport->truck_number = $request->truck_number;
-        $transport->starting_date = $request->starting_date;
+        $transport->location_lat     = $request->location_lat;
+        $transport->location_lng     = $request->location_lng;
+        $transport->driver_name      = $request->driver_name;
+        $transport->contact_number   = $request->contact_number;
+        $transport->truck_number     = $request->truck_number;
+        $transport->starting_date    = $request->starting_date;
         $transport->item_description = $request->item_description;
-        $transport->delivery_date = $request->delivery_date;
-        $transport->lc = $request->lc;
-        $transport->ci = $request->ci;
+        $transport->delivery_date    = $request->delivery_date;
         
-        $transport->status = 'pending';
-        $transport->created_by = Auth::user()->creatorId();
-        $transport->workspace = Auth::user()->workspace_id ?? 0;
+        // Auto-fill from Sales Order if present and not manually overridden
+        if ($request->sales_order_id) {
+            $order = SalesOrder::with(['lc', 'ci'])->find($request->sales_order_id);
+            $transport->lc = $request->lc ?? (optional($order->lc)->lc_no);
+            $transport->ci = $request->ci ?? (optional($order->ci)->ci_number);
+        } else {
+            $transport->lc = $request->lc;
+            $transport->ci = $request->ci;
+        }
+
+        $transport->status           = 'pending';
+        $transport->is_seen          = false;
+        $transport->created_by       = Auth::user()->creatorId();
+        $transport->workspace        = 0; // Fixed null error
         $transport->save();
 
-        // Create a Payable record
-        $payable = new Payable();
-        $payable->unique_id = 'BILL-' . time();
-        $payable->invoice_number = $transport->unique_id;
-        $payable->date = date('Y-m-d');
-        $payable->billing_direction = 'client'; // Assuming transport is usually for clients
-        $payable->entity_id = $transport->client_id;
-        $payable->billing_address = $transport->location_address;
-        $payable->total_amount = 0; // Will be updated by Accounting
-        $payable->status = 'due';
-        $payable->created_by = Auth::user()->creatorId();
-        $payable->save();
+        // 🚀 AUTO-CREATE PAYABLE FOR ACCOUNTANT
+        $payable = Payable::create([
+            'unique_id'         => 'BILL-' . time(),
+            'invoice_number'    => 'TR-' . $transport->id,
+            'date'              => $transport->starting_date ?? date('Y-m-d'),
+            'billing_direction' => 'client',
+            'entity_id'         => $transport->client_id > 0 ? $transport->client_id : 0,
+            'billing_address'   => $transport->location_address,
+            'total_amount'      => 0, // Accountant will fill this
+            'status'            => 'due',
+            'created_by'        => Auth::user()->creatorId(),
+        ]);
 
         $transport->payable_id = $payable->id;
         $transport->save();
 
-        return redirect()->route('transports.index')->with('success', __('Transport record created successfully and bill sent to Accounting.'));
+        return redirect()->route('transports.index')->with('success', __('Transport record created successfully.'));
     }
 
     public function show(Transport $transport)
@@ -98,31 +111,17 @@ class TransportController extends Controller
 
     public function edit(Transport $transport)
     {
-        $clients = Client::where('created_by', '=', Auth::user()->creatorId())->get()->pluck('name', 'id')->toArray();
+        $creatorId = Auth::user()->creatorId();
+        $clients = Client::where('created_by', $creatorId)
+            ->orWhere('id', '>', 0)
+            ->get()->pluck('name', 'id')->toArray();
         $clients = ['others' => __('Others')] + $clients;
         return view('transport.edit', compact('transport', 'clients'));
     }
 
     public function update(Request $request, Transport $transport)
     {
-        $validator = \Validator::make(
-            $request->all(),
-            [
-                'driver_name'      => 'required',
-                'contact_number'   => 'required',
-                'truck_number'     => 'required',
-                'starting_date'    => 'required',
-                'item_description' => 'required',
-                'lc'               => 'nullable|string',
-                'ci'               => 'nullable|string',
-            ]
-        );
-
-        if ($validator->fails()) {
-            return redirect()->back()->with('error', $validator->getMessageBag()->first());
-        }
-
-        $transport->client_id        = $request->client_id == 'others' ? 0 : ($request->client_id ?? 0);
+        $transport->client_id = $request->client_id == 'others' ? 0 : ($request->client_id ?? 0);
         $transport->manual_client_name = $request->manual_client_name;
         $transport->location_address = $request->location_address;
         $transport->location_lat     = $request->location_lat;
@@ -153,18 +152,24 @@ class TransportController extends Controller
     // Called every 30 seconds by Accounting dashboard via AJAX
     public function newBillCheck()
     {
+        // No popups for admin/company
+        if (Auth::user()->type == 'admin' || Auth::user()->type == 'company') {
+            return response()->json(['count' => 0, 'bills' => []]);
+        }
+
         // Find any transport bills that are pending AND not yet seen
-        $unseen = Transport::where('created_by', Auth::user()->creatorId())
+        $unseen = Transport::with('salesOrder')->where('created_by', Auth::user()->creatorId())
             ->where('payable_id', '>', 0)
             ->where('status', 'pending')
             ->where('is_seen', false)
-            ->get(['id', 'unique_id', 'driver_name', 'truck_number', 'manual_client_name', 'client_id']);
+            ->get(['id', 'unique_id', 'driver_name', 'truck_number', 'manual_client_name', 'client_id', 'sales_order_id']);
 
         $bills = $unseen->map(function ($t) {
             $client = $t->client_id > 0 ? optional($t->client)->name : $t->manual_client_name;
             return [
                 'id'         => $t->id,
                 'transport'  => $t->unique_id,
+                'order'      => $t->salesOrder ? $t->salesOrder->order_number : '—',
                 'client'     => $client ?: '—',
                 'truck'      => $t->truck_number,
             ];
@@ -176,7 +181,57 @@ class TransportController extends Controller
         ]);
     }
 
-    // Mark a transport bill as seen when Pay Bill is clicked
+    // Called by HRM dashboard via AJAX to check for new finalized sales orders
+    public function transportRequestCheck()
+    {
+        // No popups for admin/company
+        if (Auth::user()->type == 'admin' || Auth::user()->type == 'company') {
+            return response()->json(['count' => 0, 'orders' => []]);
+        }
+
+        $pendingOrders = SalesOrder::where('status', 'finalized')
+            ->where('is_transport_notified', false)
+            ->whereNotExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('transports')
+                    ->whereRaw('transports.sales_order_id = sales_orders.id');
+            })
+            ->where('created_by', Auth::user()->creatorId())
+            ->get(['id', 'order_number', 'customer_id']);
+
+        $orders = $pendingOrders->map(function ($o) {
+            return [
+                'id' => $o->id,
+                'order_number' => $o->order_number,
+                'customer' => optional($o->customer)->name ?? '—',
+            ];
+        });
+
+        return response()->json([
+            'count' => $pendingOrders->count(),
+            'orders' => $orders,
+        ]);
+    }
+
+    // Mark transport bills as seen
+    public function markBillSeen(Request $request)
+    {
+        if ($request->has('ids')) {
+            Transport::whereIn('id', $request->ids)->update(['is_seen' => true]);
+        }
+        return response()->json(['success' => true]);
+    }
+
+    // Mark sales orders as notified for transport
+    public function markRequestSeen(Request $request)
+    {
+        if ($request->has('ids')) {
+            SalesOrder::whereIn('id', $request->ids)->update(['is_transport_notified' => true]);
+        }
+        return response()->json(['success' => true]);
+    }
+
+    // Legacy markSeen for single ID if needed
     public function markSeen($id)
     {
         $transport = Transport::where('id', $id)

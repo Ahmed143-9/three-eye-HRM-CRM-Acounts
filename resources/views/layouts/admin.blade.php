@@ -32,9 +32,8 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ $SITE_RTL == 'on' ? 'rtl' : '' }}">
 
-<meta name="csrf-token" id="csrf-token" content="{{ csrf_token() }}">
-
 <head>
+    <meta name="csrf-token" id="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $setting['title_text'] ? $setting['title_text'] : config('app.name', 'ERPGo SaaS') }} - @yield('page-title')
     </title>
 
@@ -111,7 +110,29 @@
         :root {
             --color-customColor: <?= $color ?>;
         }
+
+        .loader-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
+
+    <script>
+        window.addEventListener('load', function() {
+            var loader = document.querySelector(".loader-bg");
+            if (loader) {
+                loader.style.display = 'none';
+            }
+        });
+    </script>
 
     <link rel="stylesheet" href="{{ asset('css/custom-color.css') }}">
     @stack('css-page')
@@ -130,10 +151,16 @@
         </div>
     </div>
 
+    <!-- DEBUG: BEFORE MENU -->
     @include('partials.admin.menu')
+    <!-- DEBUG: AFTER MENU -->
+
     <!-- [ navigation menu ] end -->
     <!-- [ Header ] start -->
+
+    <!-- DEBUG: BEFORE HEADER -->
     @include('partials.admin.header')
+    <!-- DEBUG: AFTER HEADER -->
 
     <!-- Modal -->
     <div class="modal notification-modal fade" id="notification-modal" tabindex="-1" role="dialog" aria-hidden="true">

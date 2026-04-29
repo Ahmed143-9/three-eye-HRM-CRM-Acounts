@@ -12,6 +12,7 @@
 <div class="row">
     <div class="col-md-12">
         {{ Form::open(['url' => 'transports', 'method' => 'post', 'id' => 'transport-form']) }}
+        {{ Form::hidden('sales_order_id', $salesOrder ? $salesOrder->id : null) }}
         
         <!-- Step 1: Basic Entry -->
         <div id="step-1" class="card">
@@ -22,7 +23,7 @@
                 <div class="row">
                     <div class="form-group col-md-6">
                         {{ Form::label('client_id', __('Client Name'), ['class' => 'form-label']) }}
-                        {{ Form::select('client_id', $clients, null, ['class' => 'form-control select2', 'id' => 'client_id']) }}
+                        {{ Form::select('client_id', $clients, $salesOrder ? $salesOrder->customer_id : null, ['class' => 'form-control select2', 'id' => 'client_id']) }}
                     </div>
                     <div class="form-group col-md-6 d-none" id="manual_client_div">
                         {{ Form::label('manual_client_name', __('Manual Client Name'), ['class' => 'form-label']) }}
@@ -69,7 +70,15 @@
                     </div>
                     <div class="form-group col-md-12">
                         {{ Form::label('item_description', __('Item (Goods/Description)'), ['class' => 'form-label']) }}
-                        {{ Form::textarea('item_description', null, ['class' => 'form-control', 'rows' => 3, 'required' => 'required']) }}
+                        @php
+                            $desc = null;
+                            if($salesOrder && $salesOrder->po && $salesOrder->po->items) {
+                                $desc = $salesOrder->po->items->map(function($i){
+                                    return $i->item_name . " (" . number_format($i->quantity, 2) . " " . $i->unit . ")";
+                                })->implode(", ");
+                            }
+                        @endphp
+                        {{ Form::textarea('item_description', $desc, ['class' => 'form-control', 'rows' => 3, 'required' => 'required']) }}
                     </div>
                     <div class="form-group col-md-6">
                         {{ Form::label('delivery_date', __('Delivery Date (Optional)'), ['class' => 'form-label']) }}
@@ -77,11 +86,11 @@
                     </div>
                     <div class="form-group col-md-6">
                         {{ Form::label('lc', __('LC (Letter of Credit)'), ['class' => 'form-label']) }}
-                        {{ Form::text('lc', null, ['class' => 'form-control']) }}
+                        {{ Form::text('lc', $salesOrder ? (optional($salesOrder->lc)->lc_no) : null, ['class' => 'form-control']) }}
                     </div>
                     <div class="form-group col-md-6">
                         {{ Form::label('ci', __('C.I (Commercial Invoice)'), ['class' => 'form-label']) }}
-                        {{ Form::text('ci', null, ['class' => 'form-control']) }}
+                        {{ Form::text('ci', $salesOrder ? (optional($salesOrder->ci)->ci_number) : null, ['class' => 'form-control']) }}
                     </div>
                 </div>
             </div>

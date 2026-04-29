@@ -4,31 +4,31 @@
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">
-            {{ Form::label('client_name', __('Client Name'), ['class' => 'form-label']) }}
+            {{ Form::label('client_name', __('Company Name'), ['class' => 'form-label']) }}
             {{ Form::text('client_name', $order->po->client_name ?? $order->customer->name, ['class' => 'form-control', 'required' => 'required']) }}
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            {{ Form::label('client_email', __('Client Email'), ['class' => 'form-label']) }}
-            {{ Form::email('client_email', $order->po->client_email ?? $order->customer->email, ['class' => 'form-control']) }}
+            {{ Form::label('client_email', __('Company Email'), ['class' => 'form-label']) }}
+            {{ Form::email('client_email', $order->po->client_email ?? $order->customer->contact_person_email, ['class' => 'form-control']) }}
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            {{ Form::label('client_phone', __('Client Phone'), ['class' => 'form-label']) }}
-            {{ Form::text('client_phone', $order->po->client_phone ?? $order->customer->contact, ['class' => 'form-control']) }}
+            {{ Form::label('client_phone', __('Company Phone'), ['class' => 'form-label']) }}
+            {{ Form::text('client_phone', $order->po->client_phone ?? $order->customer->contact_person_number, ['class' => 'form-control']) }}
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
             {{ Form::label('signature', __('Authorized Signature Details'), ['class' => 'form-label']) }}
-            {{ Form::text('signature', $order->po->signature ?? '', ['class' => 'form-control']) }}
+            {{ Form::text('signature', $order->po->signature ?? $order->customer->contact_person_name, ['class' => 'form-control']) }}
         </div>
     </div>
     <div class="col-md-12">
         <div class="form-group">
-            {{ Form::label('client_address', __('Client Address'), ['class' => 'form-label']) }}
+            {{ Form::label('client_address', __('Company Address'), ['class' => 'form-label']) }}
             {{ Form::textarea('client_address', $order->po->client_address ?? $order->customer->billing_address, ['class' => 'form-control', 'rows' => 2]) }}
         </div>
     </div>
@@ -40,31 +40,39 @@
     </div>
 </div>
 
-<h6 class="mt-4">{{ __('Order Details') }}</h6>
+<div class="order-section mb-4">
+    <h6 class="section-title">{{ __('Order Details') }}</h6>
+</div>
 <div class="table-responsive">
-    <table class="table" id="po-items-table">
+    <table class="table table-hover mb-0" id="po-items-table">
         <thead>
             <tr>
-                <th>{{ __('Item') }}</th>
-                <th>{{ __('Description') }}</th>
-                <th width="100">{{ __('QTY') }}</th>
-                <th width="100">{{ __('Unit') }}</th>
-                <th width="150">{{ __('Price') }}</th>
-                <th width="150">{{ __('Total') }}</th>
-                <th></th>
+                <th width="20%">{{ __('Item') }}</th>
+                <th width="30%">{{ __('Description') }}</th>
+                <th width="10%">{{ __('QTY') }}</th>
+                <th width="10%">{{ __('Unit') }}</th>
+                <th width="12%">{{ __('Price') }}</th>
+                <th width="12%">{{ __('Total') }}</th>
+                <th width="6%"></th>
             </tr>
         </thead>
         <tbody>
             @if($order->po && $order->po->items->count() > 0)
                 @foreach($order->po->items as $index => $item)
                     <tr>
-                        <td><input type="text" name="items[{{$index}}][item]" class="form-control" value="{{$item->item_name}}" required></td>
-                        <td><input type="text" name="items[{{$index}}][description]" class="form-control" value="{{$item->description}}"></td>
-                        <td><input type="number" name="items[{{$index}}][qty]" class="form-control qty" value="{{$item->quantity}}" required></td>
+                        <td><input type="text" name="items[{{$index}}][item]" class="form-control" value="{{$item->item_name}}"
+                                required></td>
+                        <td><input type="text" name="items[{{$index}}][description]" class="form-control"
+                                value="{{$item->description}}"></td>
+                        <td><input type="number" name="items[{{$index}}][qty]" class="form-control qty"
+                                value="{{$item->quantity}}" required></td>
                         <td><input type="text" name="items[{{$index}}][unit]" class="form-control" value="{{$item->unit}}"></td>
-                        <td><input type="number" step="0.01" name="items[{{$index}}][price]" class="form-control price" value="{{$item->price}}" required></td>
-                        <td><input type="number" step="0.01" name="items[{{$index}}][total]" class="form-control total" value="{{$item->total}}" readonly></td>
-                        <td><button type="button" class="btn btn-danger btn-sm remove-item"><i class="ti ti-trash"></i></button></td>
+                        <td><input type="number" step="0.01" name="items[{{$index}}][price]" class="form-control price"
+                                value="{{$item->price}}" required></td>
+                        <td><input type="number" step="0.01" name="items[{{$index}}][total]" class="form-control total"
+                                value="{{$item->total}}" readonly></td>
+                        <td><button type="button" class="btn btn-danger btn-sm remove-item"><i class="ti ti-trash"></i></button>
+                        </td>
                     </tr>
                 @endforeach
             @else
@@ -81,10 +89,12 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="5" class="text-end fw-bold">{{ __('Grand Total') }}:</td>
-                <td class="fw-bold"><span id="grand_total_display">{{ number_format($order->po->grand_total ?? 0, 2) }}</span></td>
+                <td colspan="5" class="text-end fw-bold align-middle">{{ __('Grand Total') }}:</td>
+                <td class="fw-bold align-middle"><span
+                        id="grand_total_display">{{ number_format($order->po->grand_total ?? 0, 2) }}</span></td>
                 <td>
-                    <button type="button" class="btn btn-primary btn-sm add-item"><i class="ti ti-plus"></i></button>
+                    <button type="button" class="btn btn-primary btn-sm add-item" title="{{ __('Add Row') }}"><i
+                            class="ti ti-plus"></i></button>
                     <input type="hidden" name="grand_total" id="grand_total" value="{{ $order->po->grand_total ?? 0 }}">
                 </td>
             </tr>
@@ -95,8 +105,10 @@
 <div class="d-flex justify-content-between align-items-center mt-3">
     <div>
         @if($order->po)
-            <a href="{{ route('sales-orders.po.print', $order->id) }}" target="_blank" class="btn btn-secondary"><i class="ti ti-printer me-1"></i>{{ __('Print') }}</a>
-            <a href="{{ route('sales-orders.po.download', $order->id) }}" class="btn btn-info"><i class="ti ti-download me-1"></i>{{ __('Download PDF') }}</a>
+            <a href="{{ route('sales-orders.po.print', $order->id) }}" target="_blank" class="btn btn-secondary"><i
+                    class="ti ti-printer me-1"></i>{{ __('Print') }}</a>
+            <a href="{{ route('sales-orders.po.download', $order->id) }}" class="btn btn-info"><i
+                    class="ti ti-download me-1"></i>{{ __('Download PDF') }}</a>
         @endif
     </div>
     <button type="submit" class="btn btn-primary">{{ __('Save & Proceed to PI') }}</button>

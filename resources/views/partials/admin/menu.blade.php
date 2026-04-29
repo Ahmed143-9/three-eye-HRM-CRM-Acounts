@@ -60,7 +60,7 @@
 
                 <!--------------------- Start HRM ----------------------------------->
 
-                <!--------------------- Start HRM ----------------------------------->
+                @if (!empty($userPlan) && $userPlan->hrm == 1 && \Auth::user()->type != 'accountant')
                     @if (Gate::check('manage employee') ||
                         Gate::check('manage set salary') || Gate::check('manage pay slip') ||
                         Gate::check('manage leave') || Gate::check('manage attendance') ||
@@ -216,7 +216,7 @@
 
 
 
-                                @can('manage assets')
+                                @if (\Auth::user()->type == 'HR' || \Auth::user()->type == 'hr')
                                     <li class="dash-item {{ request()->is('employee-assets*') ? 'active' : '' }}">
                                         <a class="dash-link"
                                             href="{{ route('employee-assets.index') }}">{{ __('Employee Asset Setup') }}</a>
@@ -225,15 +225,7 @@
                                         <a class="dash-link"
                                             href="{{ route('company-assets.index') }}">{{ __('Company Asset Setup') }}</a>
                                     </li>
-                                @endcan
-                                {{-- @can('manage company policy')
-                                    <li class="dash-item {{ request()->is('company-policy*') ? 'active' : '' }}">
-                                        <a class="dash-link"
-                                            href="{{ route('company-policy.index') }}">{{ __('Company policy') }}</a>
-                                    </li>
-                                @endcan --}}
 
-                                @if (\Auth::user()->type == 'company' || \Auth::user()->type == 'HR')
                                     <li
                                         class="dash-item {{ Request::segment(1) == 'leavetype' ||
                                         Request::segment(1) == 'document' ||
@@ -262,6 +254,14 @@
 
                             </ul>
                         </li>
+                    @endif
+                @endif
+
+                <!--------------------- End HRM ----------------------------------->
+
+                <!--------------------- Start Account ----------------------------------->
+
+                @if (!empty($userPlan) && $userPlan->account == 1)
                     @if (Gate::check('manage budget plan') || Gate::check('income vs expense report') ||
                             Gate::check('manage goal') || Gate::check('manage constant tax') ||
                             Gate::check('manage constant category') || Gate::check('manage constant unit') ||
@@ -386,11 +386,12 @@
                                 @endif
 
 
-                                @if (Gate::check('manage accounting client') ||
+                                @if (\Auth::user()->type != 'HR' && \Auth::user()->type != 'hr' && (
+                                    Gate::check('manage accounting client') ||
                                         Gate::check('manage accounting supplier') ||
                                         Gate::check('manage accounting consultant') ||
                                         Gate::check('manage bank account') ||
-                                        \Auth::user()->type == 'company')
+                                        \Auth::user()->type == 'company'))
                                     <li
                                         class="dash-item {{ Request::segment(1) == 'accounting-clients' || Request::segment(1) == 'suppliers' || Request::segment(1) == 'consultants' ? 'active dash-trigger' : '' }}">
                                         <a class="dash-link"
@@ -418,7 +419,7 @@
 
                 <!--------------------- Start User Managaement System ----------------------------------->
 
-                @if (Gate::check('manage user') || Gate::check('manage role') || Gate::check('manage client'))
+                @if (\Auth::user()->type != 'super admin' && (Gate::check('manage user') || Gate::check('manage role')))
                     <li
                         class="dash-item dash-hasmenu {{ Request::segment(1) == 'users' ||
                         Request::segment(1) == 'roles' ||
@@ -456,7 +457,7 @@
                 {{-- Products System Removed --}}
                 <!--------------------- End Products System [DISABLED] ----------------------------------->
 
-                @if (true)
+                @if (\Auth::user()->type != 'super admin')
                     {{-- Support System Removed --}}
                     {{-- <li
                         class="dash-item dash-hasmenu {{ Request::segment(1) == 'zoom-meeting' || Request::segment(1) == 'zoom-meeting-calender' ? 'active' : '' }}">
@@ -486,7 +487,7 @@
 
                 <!--------------------- Start System Setup ----------------------------------->
 
-                @if (true)
+                @if (\Auth::user()->type != 'super admin')
                     @if (Gate::check('manage company plan') || Gate::check('manage order') || Gate::check('manage company settings'))
                         <li
                             class="dash-item dash-hasmenu {{ Request::segment(1) == 'settings' ||
@@ -623,8 +624,95 @@
                 {{-- Support System Removed --}}
             </ul>
         @endif
+        @if (\Auth::user()->type == 'super admin')
+            <ul class="dash-navbar">
+                @if (Gate::check('manage super admin dashboard'))
+                    <li class="dash-item dash-hasmenu {{ Request::segment(1) == 'dashboard' ? ' active' : '' }}">
+                        <a href="{{ route('client.dashboard.view') }}" class="dash-link">
+                            <span class="dash-micon"><i class="ti ti-home"></i></span><span
+                                class="dash-mtext">{{ __('Dashboard') }}</span>
+                        </a>
+                    </li>
+                @endif
+
+
+                @can('manage user')
+                    <li
+                        class="dash-item dash-hasmenu {{ Request::route()->getName() == 'users.index' || Request::route()->getName() == 'users.create' || Request::route()->getName() == 'users.edit' ? ' active' : '' }}">
+                        <a href="{{ route('users.index') }}" class="dash-link">
+                            <span class="dash-micon"><i class="ti ti-users"></i></span><span
+                                class="dash-mtext">{{ __('Companies') }}</span>
+                        </a>
+                    </li>
+                @endcan
+
+                @if (Gate::check('manage plan'))
+                    <li class="dash-item dash-hasmenu  {{ Request::segment(1) == 'plans' ? 'active' : '' }}">
+                        <a href="{{ route('plans.index') }}" class="dash-link">
+                            <span class="dash-micon"><i class="ti ti-trophy"></i></span><span
+                                class="dash-mtext">{{ __('Plan') }}</span>
+                        </a>
+                    </li>
+                @endif
+                @if (\Auth::user()->type == 'super admin')
+                    <li class="dash-item dash-hasmenu {{ request()->is('plan_request*') ? 'active' : '' }}">
+                        <a href="{{ route('plan_request.index') }}" class="dash-link">
+                            <span class="dash-micon"><i class="ti ti-arrow-up-right-circle"></i></span><span
+                                class="dash-mtext">{{ __('Plan Request') }}</span>
+                        </a>
+                    </li>
+                @endif
+
+                <li class="dash-item dash-hasmenu  {{ Request::segment(1) == '' ? 'active' : '' }}">
+                    <a href="{{ route('referral-program.index') }}" class="dash-link">
+                        <span class="dash-micon"><i class="ti ti-discount-2"></i></span><span
+                            class="dash-mtext">{{ __('Referral Program') }}</span>
+                    </a>
+                </li>
+
+
+                @if (Gate::check('manage coupon'))
+                    <li class="dash-item dash-hasmenu {{ Request::segment(1) == 'coupons' ? 'active' : '' }}">
+                        <a href="{{ route('coupons.index') }}" class="dash-link">
+                            <span class="dash-micon"><i class="ti ti-gift"></i></span><span
+                                class="dash-mtext">{{ __('Coupon') }}</span>
+                        </a>
+                    </li>
+                @endif
+                @if (Gate::check('manage order'))
+                    <li class="dash-item dash-hasmenu  {{ Request::segment(1) == 'orders' ? 'active' : '' }}">
+                        <a href="{{ route('order.index') }}" class="dash-link">
+                            <span class="dash-micon"><i class="ti ti-shopping-cart-plus"></i></span><span
+                                class="dash-mtext">{{ __('Order') }}</span>
+                        </a>
+                    </li>
+                @endif
+                <li
+                    class="dash-item dash-hasmenu {{ Request::segment(1) == 'email_template' || Request::route()->getName() == 'manage.email.language' ? ' active dash-trigger' : 'collapsed' }}">
+                    <a href="{{ route('email_template.index') }}" class="dash-link">
+                        <span class="dash-micon"><i class="ti ti-template"></i></span>
+                        <span class="dash-mtext">{{ __('Email Template') }}</span>
+                    </a>
+                </li>
+
+                @if (\Auth::user()->type == 'super admin')
+                    @include('landingpage::menu.landingpage')
+                @endif
+
+                @if (Gate::check('manage system settings'))
+                    <li
+                        class="dash-item dash-hasmenu {{ Request::route()->getName() == 'systems.index' ? ' active' : '' }}">
+                        <a href="{{ route('systems.index') }}" class="dash-link">
+                            <span class="dash-micon"><i class="ti ti-settings"></i></span><span
+                                class="dash-mtext">{{ __('Settings') }}</span>
+                        </a>
+                    </li>
+                @endif
+
+            </ul>
+        @endif
 
 
     </div>
 </div>
-</nav>
+</nav> 

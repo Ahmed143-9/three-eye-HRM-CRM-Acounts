@@ -1864,6 +1864,9 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
     Route::post('transport-bills/{id}/update', [App\Http\Controllers\TransportBillController::class, 'update'])->name('transport.bill.update');
     Route::get('transport-bills/{id}/pay', [App\Http\Controllers\TransportBillController::class, 'pay'])->name('transport.bill.pay');
     Route::get('transport-bills-check', [App\Http\Controllers\TransportController::class, 'newBillCheck'])->name('transport.bill.check');
+    Route::get('transport-request-check', [App\Http\Controllers\TransportController::class, 'transportRequestCheck'])->name('transport.request.check');
+    Route::post('transport-bills-mark-seen', [App\Http\Controllers\TransportController::class, 'markBillSeen'])->name('transport.bill.mark-seen');
+    Route::post('transport-request-mark-seen', [App\Http\Controllers\TransportController::class, 'markRequestSeen'])->name('transport.request.mark-seen');
     Route::post('transport-bills/{id}/seen', [App\Http\Controllers\TransportController::class, 'markSeen'])->name('transport.bill.seen');
 
     Route::resource('sales-orders', SalesOrderController::class);
@@ -1891,6 +1894,11 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
     Route::get('sales-orders/{id}/cn/print', [SalesOrderController::class, 'cnPrint'])->name('sales-orders.cn.print');
     Route::get('sales-orders/{id}/cn/download', [SalesOrderController::class, 'cnDownload'])->name('sales-orders.cn.download');
     Route::post('sales-orders/{id}/rd-store', [SalesOrderController::class, 'receivedDetailsStore'])->name('sales-orders.rd.store');
+    Route::post('sales-orders/{id}/finalize', [SalesOrderController::class, 'finalize'])->name('sales-orders.finalize');
+
+    Route::post('sales-orders/add-unit', [App\Http\Controllers\SalesOrderWorkflowController::class, 'addUnit'])->name('sales-orders.add-unit');
+    Route::post('sales-orders/add-currency', [App\Http\Controllers\SalesOrderWorkflowController::class, 'addCurrency'])->name('sales-orders.add-currency');
+    Route::get('sales-orders/customer-detail', [SalesOrderController::class, 'customerDetail'])->name('sales-orders.customer.detail');
 
 });
 

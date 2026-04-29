@@ -17,7 +17,7 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                {{ Form::label('customer_id', __('Select Customer'), ['class' => 'form-label']) }}
+                                {{ Form::label('customer_id', __('Select Company'), ['class' => 'form-label']) }}
                                 {{ Form::select('customer_id', $customers, null, ['id' => 'customer_id', 'class' => 'form-control select2-customer', 'required' => 'required']) }}
                             </div>
                         </div>

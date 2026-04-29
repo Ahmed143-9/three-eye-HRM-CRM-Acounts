@@ -22,23 +22,33 @@
     </div>
 </div>
 
-<h6 class="mt-4">{{ __('Tanker Details (Weight Slips)') }}</h6>
+<h6 class="mt-4">{{ __('Tanker Details (Sellers)') }}</h6>
+@php
+    $ciTankers = $order->ci ? $order->ci->tankers->pluck('tanker_number', 'tanker_number')->toArray() : [];
+@endphp
+
+<div class="row mb-3" id="tanker-files-container">
+    {{-- Populated by JS based on rows count --}}
+</div>
+
 <div class="table-responsive">
-    <table class="table" id="cn-weight-slips-table">
-        <thead>
+    <table class="table table-bordered" id="cn-weight-slips-table">
+        <thead class="bg-light">
             <tr>
                 <th>{{ __('Tanker Number') }}</th>
                 <th>{{ __('Seller Gross') }}</th>
                 <th>{{ __('Seller Tare') }}</th>
                 <th>{{ __('Seller Net') }}</th>
-                <th></th>
+                <th width="50px"></th>
             </tr>
         </thead>
         <tbody>
             @if($order->consignmentNote && $order->consignmentNote->weightSlips->count() > 0)
                 @foreach($order->consignmentNote->weightSlips as $index => $slip)
                     <tr>
-                        <td><input type="text" name="weight_slips[{{$index}}][tanker_id]" class="form-control" value="{{$slip->tanker_id}}" required></td>
+                        <td>
+                            {{ Form::select("weight_slips[$index][tanker_id]", $ciTankers, $slip->tanker_id, ['class' => 'form-control select2 tanker-select', 'required' => 'required']) }}
+                        </td>
                         <td><input type="number" step="0.001" name="weight_slips[{{$index}}][gross]" class="form-control w-gross" value="{{$slip->gross_weight}}" required></td>
                         <td><input type="number" step="0.001" name="weight_slips[{{$index}}][tare]" class="form-control w-tare" value="{{$slip->tare_weight}}" required></td>
                         <td><input type="number" step="0.001" name="weight_slips[{{$index}}][net]" class="form-control w-net" value="{{$slip->net_weight}}" readonly></td>
@@ -47,7 +57,9 @@
                 @endforeach
             @else
                 <tr>
-                    <td><input type="text" name="weight_slips[0][tanker_id]" class="form-control" required></td>
+                    <td>
+                        {{ Form::select("weight_slips[0][tanker_id]", $ciTankers, null, ['class' => 'form-control select2 tanker-select', 'placeholder' => __('Select Tanker'), 'required' => 'required']) }}
+                    </td>
                     <td><input type="number" step="0.001" name="weight_slips[0][gross]" class="form-control w-gross" required></td>
                     <td><input type="number" step="0.001" name="weight_slips[0][tare]" class="form-control w-tare" required></td>
                     <td><input type="number" step="0.001" name="weight_slips[0][net]" class="form-control w-net" readonly></td>
@@ -66,19 +78,64 @@
 
 @push('script-page')
 <script>
-    $(document).on('click', '.add-cn-item', function() {
-        var index = $('#cn-weight-slips-table tbody tr').length;
-        var html = `<tr>
-            <td><input type="text" name="weight_slips[${index}][tanker_id]" class="form-control" required></td>
-            <td><input type="number" step="0.001" name="weight_slips[${index}][gross]" class="form-control w-gross" required></td>
-            <td><input type="number" step="0.001" name="weight_slips[${index}][tare]" class="form-control w-tare" required></td>
-            <td><input type="number" step="0.001" name="weight_slips[${index}][net]" class="form-control w-net" readonly></td>
-            <td><button type="button" class="btn btn-danger btn-sm remove-cn-item"><i class="ti ti-trash"></i></button></td>
-        </tr>`;
-        $('#cn-weight-slips-table tbody').append(html);
-    });
+    $(document).ready(function() {
+        var ciTankersOptions = @json($ciTankers);
+        var maxTankers = Object.keys(ciTankersOptions).length;
 
-    $(document).on('click', '.remove-cn-item', function() { $(this).closest('tr').remove(); });
+        function updateFiles() {
+            var html = '';
+            $('#cn-weight-slips-table tbody tr').each(function(idx) {
+                var val = $(this).find('.tanker-select').val();
+                html += `<div class="col-md-3 mb-2">
+                    <label class="small text-muted">${val || 'Tanker ' + (idx+1)} File</label>
+                    <input type="file" name="tanker_files[${idx}]" class="form-control form-control-sm">
+                </div>`;
+            });
+            $('#tanker-files-container').html(html);
+        }
+
+        function getTankerSelect(index) {
+            var options = '<option value="">{{ __("Select Tanker") }}</option>';
+            $.each(ciTankersOptions, function(val, text) {
+                options += `<option value="${val}">${text}</option>`;
+            });
+            return `<select name="weight_slips[${index}][tanker_id]" class="form-control select2 tanker-select" required>${options}</select>`;
+        }
+
+        $(document).on('change', '.tanker-select', updateFiles);
+        $(document).on('click', '.add-cn-item', function() {
+            var index = $('#cn-weight-slips-table tbody tr').length;
+            if (index >= maxTankers) {
+                alert("Cannot add more tankers than exist in CI.");
+                return;
+            }
+            var tankerSelect = getTankerSelect(index);
+            var html = `<tr>
+                <td>${tankerSelect}</td>
+                <td><input type="number" step="0.001" name="weight_slips[${index}][gross]" class="form-control w-gross" required></td>
+                <td><input type="number" step="0.001" name="weight_slips[${index}][tare]" class="form-control w-tare" required></td>
+                <td><input type="number" step="0.001" name="weight_slips[${index}][net]" class="form-control w-net" readonly></td>
+                <td><button type="button" class="btn btn-danger btn-sm remove-cn-item"><i class="ti ti-trash"></i></button></td>
+            </tr>`;
+            $('#cn-weight-slips-table tbody').append(html);
+            if(typeof $.fn.select2 !== 'undefined') $('.select2').select2();
+            updateFiles();
+        });
+
+        $(document).on('click', '.remove-cn-item', function() { 
+            $(this).closest('tr').remove(); 
+            updateFiles();
+        });
+
+        $(document).on('keyup change', '.w-gross, .w-tare', function() {
+            var tr = $(this).closest('tr');
+            var gross = parseFloat(tr.find('.w-gross').val()) || 0;
+            var tare = parseFloat(tr.find('.w-tare').val()) || 0;
+            var net = gross - tare;
+            tr.find('.w-net').val(net.toFixed(3));
+        });
+        updateFiles();
+    });
 </script>
 @endpush
 

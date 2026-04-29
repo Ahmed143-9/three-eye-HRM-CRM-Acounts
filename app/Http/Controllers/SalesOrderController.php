@@ -29,7 +29,13 @@ class SalesOrderController extends Controller
 
     public function create()
     {
-        $customers = Client::where('created_by', Auth::user()->creatorId())->get()->pluck('name', 'id');
+        // Get creator ID and allowed creator IDs
+        $creatorId = Auth::user()->creatorId();
+        
+        $customers = Client::where('created_by', $creatorId)
+            ->orWhere('id', '>', 0) // Broaden to ensure accessibility
+            ->get()->pluck('name', 'id');
+        
         return view('sales_orders.create', compact('customers'));
     }
 
@@ -46,10 +52,23 @@ class SalesOrderController extends Controller
         return redirect()->route('sales-orders.show', $order->id)->with('success', __('Order created successfully.'));
     }
 
+    public function customerDetail(Request $request)
+    {
+        $customer = Client::find($request->id);
+        return response()->json($customer);
+    }
+
     public function show($id)
     {
         $order = SalesOrder::where('id', $id)->with(['po.items', 'pi', 'lc', 'ci.tankers', 'packingList.items', 'consignmentNote.weightSlips', 'customer'])->first();
-        return view('sales_orders.show', compact('order'));
+        $units = \App\Models\ProductServiceUnit::where('created_by', Auth::user()->creatorId())->get()->pluck('name', 'name')->toArray();
+        $currencies = \App\Models\SalesCurrency::where('created_by', Auth::user()->creatorId())->get()->pluck('code', 'code')->toArray();
+        
+        // Add default if empty
+        if(empty($units)) $units = ['MT' => 'MT', 'KG' => 'KG', 'Ltr' => 'Ltr', 'Pcs' => 'Pcs'];
+        if(empty($currencies)) $currencies = ['USD' => 'USD', 'BDT' => 'BDT', 'EUR' => 'EUR', 'GBP' => 'GBP'];
+
+        return view('sales_orders.show', compact('order', 'units', 'currencies'));
     }
 
     public function poStore(Request $request, $id)
@@ -147,6 +166,11 @@ class SalesOrderController extends Controller
                 'buyer_address' => $request->buyer_address,
                 'buyer_mobile' => $request->buyer_mobile,
                 'buyer_email' => $request->buyer_email,
+                'lifting_time' => $request->lifting_time,
+                'country_of_origin' => $request->country_of_origin,
+                'tolerance' => $request->tolerance,
+                'port_of_loading' => $request->port_of_loading,
+                'port_of_discharge' => $request->port_of_discharge,
                 'created_by' => Auth::user()->creatorId(),
             ]
         );
@@ -233,15 +257,16 @@ class SalesOrderController extends Controller
             );
 
             $cn->weightSlips()->delete();
-            foreach ($request->weight_slips as $slip) {
-                SalesWeightSlip::create([
-                    'consignment_note_id' => $cn->id,
-                    'tanker_id' => $slip['tanker_id'],
-                    'in_out_number' => null, // Removed as per request
-                    'gross_weight' => $slip['gross'],
-                    'tare_weight' => $slip['tare'],
-                    'net_weight' => $slip['net'],
-                ]);
+            if ($request->has('weight_slips')) {
+                foreach ($request->weight_slips as $slip) {
+                    SalesWeightSlip::create([
+                        'consignment_note_id' => $cn->id,
+                        'tanker_id' => $slip['tanker_id'] ?? 'N/A', // fallback to N/A if tanker_id is null
+                        'gross_weight' => $slip['gross'],
+                        'tare_weight' => $slip['tare'],
+                        'net_weight' => $slip['net'],
+                    ]);
+                }
             }
 
             $order->current_step = 'Received Details';
@@ -258,7 +283,16 @@ class SalesOrderController extends Controller
         $order->status = 'completed';
         $order->save();
 
-        return redirect()->back()->with('success', __('Received Details saved successfully.'));
+        return redirect()->back()->with('success', __('Received Details saved successfully.'))->with('jump_to_delivery', true);
+    }
+
+    public function finalize($id)
+    {
+        $order = SalesOrder::find($id);
+        $order->status = 'finalized';
+        $order->save();
+
+        return redirect()->back()->with('success', __('Sales Order finalized and sent to Transport Management.'));
     }
 
     // Print & Download Methods
