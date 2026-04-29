@@ -1,6 +1,6 @@
-<h5>{{ __('Step 1: Purchase Order (PO)') }}</h5>
+<h5>{{ __('Step 1: Product Order Details') }}</h5>
 <hr>
-{{ Form::open(['route' => ['sales-orders.po.store', $order->id], 'method' => 'post']) }}
+{{ Form::open(['route' => ['sales-orders.po.store', $order->id], 'method' => 'post', 'id' => 'workflow-form']) }}
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">
@@ -10,13 +10,13 @@
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            {{ Form::label('client_email', __('Company Email'), ['class' => 'form-label']) }}
+            {{ Form::label('client_email', __('Email'), ['class' => 'form-label']) }}
             {{ Form::email('client_email', $order->po->client_email ?? $order->customer->contact_person_email, ['class' => 'form-control']) }}
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            {{ Form::label('client_phone', __('Company Phone'), ['class' => 'form-label']) }}
+            {{ Form::label('client_phone', __('Phone'), ['class' => 'form-label']) }}
             {{ Form::text('client_phone', $order->po->client_phone ?? $order->customer->contact_person_number, ['class' => 'form-control']) }}
         </div>
     </div>
@@ -48,12 +48,13 @@
         <thead>
             <tr>
                 <th width="20%">{{ __('Item') }}</th>
-                <th width="30%">{{ __('Description') }}</th>
+                <th width="20%">{{ __('Description') }}</th>
                 <th width="10%">{{ __('QTY') }}</th>
-                <th width="10%">{{ __('Unit') }}</th>
-                <th width="12%">{{ __('Price') }}</th>
+                <th width="12%">{{ __('Unit') }}</th>
+                <th width="12%">{{ __('Price per Unit') }}</th>
+                <th width="12%">{{ __('Unit') }}</th>
                 <th width="12%">{{ __('Total') }}</th>
-                <th width="6%"></th>
+                <th width="2%"></th>
             </tr>
         </thead>
         <tbody>
@@ -66,9 +67,24 @@
                                 value="{{$item->description}}"></td>
                         <td><input type="number" name="items[{{$index}}][qty]" class="form-control qty"
                                 value="{{$item->quantity}}" required></td>
-                        <td><input type="text" name="items[{{$index}}][unit]" class="form-control" value="{{$item->unit}}"></td>
+                        <td>
+                            <select name="items[{{$index}}][unit]" class="form-control unit-select" required>
+                                @foreach($units as $val => $label)
+                                    <option value="{{$val}}" {{ $item->unit_id == $val ? 'selected' : '' }}>{{$label}}</option>
+                                @endforeach
+                                <option value="ADD_NEW_UNIT" class="text-primary fw-bold">+ {{ __('Add New') }}</option>
+                            </select>
+                        </td>
                         <td><input type="number" step="0.01" name="items[{{$index}}][price]" class="form-control price"
-                                value="{{$item->price}}" required></td>
+                                value="{{$item->price_per_unit}}" required></td>
+                        <td>
+                            <select name="items[{{$index}}][currency]" class="form-control curr-select" required>
+                                @foreach($currencies as $val => $label)
+                                    <option value="{{$val}}" {{ ($item->currency_type ?? 'BDT') == $val ? 'selected' : '' }}>{{$label}}</option>
+                                @endforeach
+                                <option value="ADD_NEW_CURR" class="text-primary fw-bold">+ {{ __('Add New') }}</option>
+                            </select>
+                        </td>
                         <td><input type="number" step="0.01" name="items[{{$index}}][total]" class="form-control total"
                                 value="{{$item->total}}" readonly></td>
                         <td><button type="button" class="btn btn-danger btn-sm remove-item"><i class="ti ti-trash"></i></button>
@@ -80,8 +96,23 @@
                     <td><input type="text" name="items[0][item]" class="form-control" required></td>
                     <td><input type="text" name="items[0][description]" class="form-control"></td>
                     <td><input type="number" name="items[0][qty]" class="form-control qty" required></td>
-                    <td><input type="text" name="items[0][unit]" class="form-control"></td>
+                    <td>
+                        <select name="items[0][unit]" class="form-control unit-select" required>
+                            @foreach($units as $val => $label)
+                                <option value="{{$val}}">{{$label}}</option>
+                            @endforeach
+                            <option value="ADD_NEW_UNIT" class="text-primary fw-bold">+ {{ __('Add New') }}</option>
+                        </select>
+                    </td>
                     <td><input type="number" step="0.01" name="items[0][price]" class="form-control price" required></td>
+                    <td>
+                        <select name="items[0][currency]" class="form-control curr-select" required>
+                            @foreach($currencies as $val => $label)
+                                <option value="{{$val}}" {{ $val == 'BDT' ? 'selected' : '' }}>{{$label}}</option>
+                            @endforeach
+                            <option value="ADD_NEW_CURR" class="text-primary fw-bold">+ {{ __('Add New') }}</option>
+                        </select>
+                    </td>
                     <td><input type="number" step="0.01" name="items[0][total]" class="form-control total" readonly></td>
                     <td></td>
                 </tr>
@@ -102,15 +133,11 @@
     </table>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mt-3">
-    <div>
-        @if($order->po)
-            <a href="{{ route('sales-orders.po.print', $order->id) }}" target="_blank" class="btn btn-secondary"><i
-                    class="ti ti-printer me-1"></i>{{ __('Print') }}</a>
-            <a href="{{ route('sales-orders.po.download', $order->id) }}" class="btn btn-info"><i
-                    class="ti ti-download me-1"></i>{{ __('Download PDF') }}</a>
-        @endif
+<div class="col-md-12 mt-4">
+    <div class="form-group">
+        {{ Form::label('terms_and_conditions', __('Terms and Conditions'), ['class' => 'form-label']) }}
+        {{ Form::textarea('terms_and_conditions', $order->po->terms_and_conditions ?? null, ['class' => 'form-control', 'rows' => 4, 'placeholder' => __('Enter terms and conditions...')]) }}
     </div>
-    <button type="submit" class="btn btn-primary">{{ __('Save & Proceed to PI') }}</button>
 </div>
+
 {{ Form::close() }}

@@ -32,7 +32,8 @@
             <th>Description</th>
             <th>Quantity</th>
             <th>Unit</th>
-            <th>Price</th>
+            <th>Price per Unit</th>
+            <th>Unit</th>
             <th>Total</th>
         </tr>
     </thead>
@@ -42,9 +43,10 @@
             <td>{{ $item->item_name }}</td>
             <td>{{ $item->description }}</td>
             <td>{{ $item->quantity }}</td>
-            <td>{{ $item->unit }}</td>
-            <td>{{ $item->price }}</td>
-            <td>{{ $item->total }}</td>
+            <td>{{ $item->unit_id }}</td>
+            <td>{{ number_format($item->price_per_unit, 2) }}</td>
+            <td>{{ $item->currency_type }}</td>
+            <td>{{ number_format($item->total, 2) }}</td>
         </tr>
         @endforeach
     </tbody>
@@ -63,6 +65,13 @@
 <div class="mt-3">
     <p><strong>Amount in Words:</strong> {{ strtoupper($amountInWords) }} ONLY</p>
 </div>
+
+@if($order->po->terms_and_conditions)
+    <div class="mt-4">
+        <h5 class="section-title">{{ __('Terms and Conditions') }}</h5>
+        <p style="white-space: pre-line;">{{ $order->po->terms_and_conditions }}</p>
+    </div>
+@endif
 
 <div class="footer">
     <div class="signature-box">

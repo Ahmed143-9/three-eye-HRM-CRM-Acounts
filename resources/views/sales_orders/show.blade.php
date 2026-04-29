@@ -179,13 +179,22 @@
         $(document).on('click', '.add-item', function() {
             var index = $('#po-items-table tbody tr').length;
             var html = `<tr>
-                <td><input type="text" name="items[${index}][item]" class="form-control form-control-sm" required></td>
-                <td><input type="text" name="items[${index}][description]" class="form-control form-control-sm"></td>
-                <td><input type="number" name="items[${index}][qty]" class="form-control form-control-sm qty" required></td>
-                <td><input type="text" name="items[${index}][unit]" class="form-control form-control-sm"></td>
-                <td><input type="number" step="0.01" name="items[${index}][price]" class="form-control form-control-sm price" required></td>
-                <td><input type="number" step="0.01" name="items[${index}][total]" class="form-control form-control-sm total" readonly></td>
-                <td><button type="button" class="btn btn-danger btn-xs remove-item"><i class="ti ti-trash"></i></button></td>
+                <td><input type="text" name="items[${index}][item]" class="form-control" required></td>
+                <td><input type="text" name="items[${index}][description]" class="form-control"></td>
+                <td><input type="number" name="items[${index}][qty]" class="form-control qty" required></td>
+                <td>
+                    <select name="items[${index}][unit]" class="form-control unit-select" required>
+                        ${getUnitOptions('MT')}
+                    </select>
+                </td>
+                <td><input type="number" step="0.01" name="items[${index}][price]" class="form-control price" required></td>
+                <td>
+                    <select name="items[${index}][currency]" class="form-control curr-select" required>
+                        ${getCurrencyOptions('BDT')}
+                    </select>
+                </td>
+                <td><input type="number" step="0.01" name="items[${index}][total]" class="form-control total" readonly></td>
+                <td><button type="button" class="btn btn-danger btn-sm remove-item"><i class="ti ti-trash"></i></button></td>
             </tr>`;
             $('#po-items-table tbody').append(html);
         });
@@ -299,6 +308,15 @@
             var tr = $(this).closest('tr');
             var net = (parseFloat(tr.find('.w-gross').val()) || 0) - (parseFloat(tr.find('.w-tare').val()) || 0);
             tr.find('.w-net').val(net.toFixed(3));
+        });
+
+        $(document).on('change', '.date-format-input', function() {
+            var val = $(this).val();
+            var regex = /^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])-\d{4}$/;
+            if (val && !regex.test(val)) {
+                show_toastr('Error', 'Please enter date in MM-DD-YYYY format', 'error');
+                $(this).val('').focus();
+            }
         });
     });
 </script>

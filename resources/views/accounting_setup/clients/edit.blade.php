@@ -73,10 +73,22 @@
                         </div>
 
                         <hr class="my-4">
-                        
+                        <h5 class="mb-3">{{ __('Banking Details') }}</h5>
                         <div class="form-group col-md-6">
-                            <label class="form-label">{{ __('Bank Details') }}</label>
-                            <textarea class="form-control" name="bank_details" rows="3">{{ $client->bank_details }}</textarea>
+                            <label class="form-label">{{ __('Bank Name') }}</label>
+                            <input type="text" class="form-control" name="bank_name" value="{{ $client->bank_name }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label class="form-label">{{ __('Account Name') }}</label>
+                            <input type="text" class="form-control" name="account_name" value="{{ $client->account_name }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label class="form-label">{{ __('Branch Name') }}</label>
+                            <input type="text" class="form-control" name="branch_name" value="{{ $client->branch_name }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label class="form-label">{{ __('Account No') }}</label>
+                            <input type="text" class="form-control" name="account_no" value="{{ $client->account_no }}">
                         </div>
                         <div class="form-group col-md-6">
                             <label class="form-label">{{ __('File Attachment') }}</label>
