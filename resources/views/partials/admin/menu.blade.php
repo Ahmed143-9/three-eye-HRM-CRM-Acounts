@@ -216,7 +216,7 @@
 
 
 
-                                @if (\Auth::user()->type == 'HR' || \Auth::user()->type == 'hr')
+                                @if (\Auth::user()->type == 'HR' || \Auth::user()->type == 'hr' || \Auth::user()->type == 'company')
                                     <li class="dash-item {{ request()->is('employee-assets*') ? 'active' : '' }}">
                                         <a class="dash-link"
                                             href="{{ route('employee-assets.index') }}">{{ __('Employee Asset Setup') }}</a>

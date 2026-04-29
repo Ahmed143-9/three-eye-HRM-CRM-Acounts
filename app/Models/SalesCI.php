@@ -28,4 +28,24 @@ class SalesCI extends Model
     {
         return $this->hasMany(SalesCITanker::class, 'ci_id');
     }
+
+    public function packingList()
+    {
+        return $this->hasOne(SalesPackingList::class, 'ci_id');
+    }
+
+    public function consignmentNote()
+    {
+        return $this->hasOne(SalesConsignmentNote::class, 'ci_id');
+    }
+
+    public function delivery()
+    {
+        return $this->hasOne(SalesDelivery::class, 'ci_id');
+    }
+
+    public function transports()
+    {
+        return $this->hasMany(Transport::class, 'ci_id');
+    }
 }

@@ -4,15 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class SalesPackingList extends Model
+class SalesDelivery extends Model
 {
-    protected $table = 'sales_packing_lists';
-
     protected $fillable = [
         'order_id',
         'ci_id',
-        'file_path',
-        'created_by',
+        'delivery_mode',
+        'packing_type',
+        'total_quantity_mt',
+        'total_quantity_kg',
+        'required_units',
+        'created_by'
     ];
 
     public function order()
@@ -23,10 +25,5 @@ class SalesPackingList extends Model
     public function ci()
     {
         return $this->belongsTo(SalesCI::class, 'ci_id');
-    }
-
-    public function items()
-    {
-        return $this->hasMany(SalesPackingListItem::class, 'packing_list_id');
     }
 }

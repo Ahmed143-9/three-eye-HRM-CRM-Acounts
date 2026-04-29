@@ -41,18 +41,18 @@ class SalesOrder extends Model
         return $this->hasOne(SalesLC::class, 'order_id');
     }
 
+    public function cis()
+    {
+        return $this->hasMany(SalesCI::class, 'order_id');
+    }
+
     public function ci()
     {
-        return $this->hasOne(SalesCI::class, 'order_id');
+        return $this->hasOne(SalesCI::class, 'order_id')->latestOfMany();
     }
 
-    public function packingList()
+    public function delivery()
     {
-        return $this->hasOne(SalesPackingList::class, 'order_id');
-    }
-
-    public function consignmentNote()
-    {
-        return $this->hasOne(SalesConsignmentNote::class, 'order_id');
+        return $this->hasOne(SalesDelivery::class, 'order_id')->latestOfMany();
     }
 }

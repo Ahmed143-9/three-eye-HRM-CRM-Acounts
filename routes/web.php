@@ -1894,6 +1894,7 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
     Route::get('sales-orders/{id}/cn/print', [SalesOrderController::class, 'cnPrint'])->name('sales-orders.cn.print');
     Route::get('sales-orders/{id}/cn/download', [SalesOrderController::class, 'cnDownload'])->name('sales-orders.cn.download');
     Route::post('sales-orders/{id}/rd-store', [SalesOrderController::class, 'receivedDetailsStore'])->name('sales-orders.rd.store');
+    Route::post('sales-orders/{id}/delivery-store', [SalesOrderController::class, 'deliveryStore'])->name('sales-orders.delivery.store');
     Route::post('sales-orders/{id}/finalize', [SalesOrderController::class, 'finalize'])->name('sales-orders.finalize');
 
     Route::post('sales-orders/add-unit', [App\Http\Controllers\SalesOrderWorkflowController::class, 'addUnit'])->name('sales-orders.add-unit');

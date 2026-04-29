@@ -45,11 +45,15 @@ class TransportController extends Controller
         $clients = ['others' => __('Others')] + $clients;
         
         $salesOrder = null;
+        $activeCi = null;
         if ($request->has('sales_order_id')) {
-            $salesOrder = SalesOrder::with(['customer', 'lc', 'ci', 'po.items'])->find($request->sales_order_id);
+            $salesOrder = SalesOrder::with(['customer', 'lc', 'cis.tankers', 'cis.delivery', 'delivery', 'po.items'])->find($request->sales_order_id);
+            if ($request->has('ci_id')) {
+                $activeCi = $salesOrder ? $salesOrder->cis->find($request->ci_id) : null;
+            }
         }
 
-        return view('transport.create', compact('clients', 'salesOrder'));
+        return view('transport.create', compact('clients', 'salesOrder', 'activeCi'));
     }
 
     public function store(Request $request)
@@ -57,23 +61,36 @@ class TransportController extends Controller
         $transport = new Transport();
         $transport->unique_id = 'TR-' . time();
         $transport->sales_order_id = $request->sales_order_id;
-        $transport->client_id = $request->client_id == 'others' ? 0 : ($request->client_id ?? 0);
+        $transport->ci_id          = $request->ci_id;
+        $transport->client_id      = $request->client_id == 'others' ? 0 : ($request->client_id ?? 0);
         $transport->manual_client_name = $request->manual_client_name;
         $transport->location_address = $request->location_address;
         $transport->location_lat     = $request->location_lat;
         $transport->location_lng     = $request->location_lng;
-        $transport->driver_name      = $request->driver_name;
-        $transport->contact_number   = $request->contact_number;
-        $transport->truck_number     = $request->truck_number;
-        $transport->starting_date    = $request->starting_date;
+        $drivers = $request->drivers;
+        $firstDriver = is_array($drivers) ? reset($drivers) : null;
+        $transport->driver_name      = $firstDriver['name'] ?? null;
+        $transport->contact_number   = $firstDriver['contact'] ?? null;
+        $transport->truck_number     = $firstDriver['truck_number'] ?? null;
+        $transport->starting_date    = $firstDriver['starting_date'] ?? null;
+        $transport->delivery_date    = $firstDriver['delivery_date'] ?? null;
+        $transport->drivers_data     = json_encode($request->drivers);
+        $transport->transport_type   = $request->transport_type;
+        $transport->required_trucks  = $request->required_trucks;
+        
         $transport->item_description = $request->item_description;
-        $transport->delivery_date    = $request->delivery_date;
         
         // Auto-fill from Sales Order if present and not manually overridden
         if ($request->sales_order_id) {
-            $order = SalesOrder::with(['lc', 'ci'])->find($request->sales_order_id);
+            $order = SalesOrder::with(['lc', 'cis'])->find($request->sales_order_id);
             $transport->lc = $request->lc ?? (optional($order->lc)->lc_no);
-            $transport->ci = $request->ci ?? (optional($order->ci)->ci_number);
+            
+            if ($request->ci_id) {
+                $ci_rec = $order->cis->find($request->ci_id);
+                $transport->ci = $request->ci ?? (optional($ci_rec)->ci_number);
+            } else {
+                $transport->ci = $request->ci;
+            }
         } else {
             $transport->lc = $request->lc;
             $transport->ci = $request->ci;
@@ -92,6 +109,8 @@ class TransportController extends Controller
             'date'              => $transport->starting_date ?? date('Y-m-d'),
             'billing_direction' => 'client',
             'entity_id'         => $transport->client_id > 0 ? $transport->client_id : 0,
+            'sales_order_id'    => $transport->sales_order_id,
+            'ci_id'             => $transport->ci_id,
             'billing_address'   => $transport->location_address,
             'total_amount'      => 0, // Accountant will fill this
             'status'            => 'due',
@@ -126,12 +145,18 @@ class TransportController extends Controller
         $transport->location_address = $request->location_address;
         $transport->location_lat     = $request->location_lat;
         $transport->location_lng     = $request->location_lng;
-        $transport->driver_name      = $request->driver_name;
-        $transport->contact_number   = $request->contact_number;
-        $transport->truck_number     = $request->truck_number;
-        $transport->starting_date    = $request->starting_date;
+        $drivers = $request->drivers;
+        $firstDriver = is_array($drivers) ? reset($drivers) : null;
+        $transport->driver_name      = $firstDriver['name'] ?? null;
+        $transport->contact_number   = $firstDriver['contact'] ?? null;
+        $transport->truck_number     = $firstDriver['truck_number'] ?? null;
+        $transport->starting_date    = $firstDriver['starting_date'] ?? null;
+        $transport->delivery_date    = $firstDriver['delivery_date'] ?? null;
+        $transport->drivers_data     = json_encode($request->drivers);
+        $transport->transport_type   = $request->transport_type;
+        $transport->required_trucks  = $request->required_trucks;
+
         $transport->item_description = $request->item_description;
-        $transport->delivery_date    = $request->delivery_date;
         $transport->lc               = $request->lc;
         $transport->ci               = $request->ci;
         $transport->save();

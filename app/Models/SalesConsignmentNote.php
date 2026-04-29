@@ -10,12 +10,18 @@ class SalesConsignmentNote extends Model
 
     protected $fillable = [
         'order_id',
+        'ci_id',
         'file_path',
     ];
 
     public function order()
     {
         return $this->belongsTo(SalesOrder::class, 'order_id');
+    }
+
+    public function ci()
+    {
+        return $this->belongsTo(SalesCI::class, 'ci_id');
     }
 
     public function weightSlips()

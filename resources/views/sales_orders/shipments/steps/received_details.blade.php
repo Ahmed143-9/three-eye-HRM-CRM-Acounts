@@ -1,14 +1,15 @@
-<h5>{{ __('Step 7: Received Details') }}</h5>
-<hr>
-
 {{ Form::open(['route' => ['sales-orders.rd.store', $order->id], 'method' => 'post', 'id' => 'rd-form']) }}
+@if($active_ci)
+    <input type="hidden" name="ci_id" value="{{ $active_ci->id }}">
+@endif
+
 @php
     $tolerance = $order->pi->tolerance ?? 0;
 @endphp
 <input type="hidden" id="rd-tolerance" value="{{ $tolerance }}">
 
 <div class="table-responsive">
-    <table class="table table-bordered align-middle" id="rd-tankers-table">
+    <table class="table table-bordered align-middle table-sm" id="rd-tankers-table">
         <thead class="bg-light text-center">
             <tr>
                 <th width="80">{{ __('Tanker No') }}</th>
@@ -20,23 +21,23 @@
         </thead>
         <tbody>
             @php
-                $tankers = $order->consignmentNote ? $order->consignmentNote->weightSlips : [];
-                $savedData = $order->tankers_data ?? [];
+                $tankers = ($active_ci && $active_ci->consignmentNote) ? $active_ci->consignmentNote->weightSlips : [];
+                $savedData = $order->tankers_data ?? []; // This needs to be moved to CI model eventually
             @endphp
             @foreach($tankers as $index => $slip)
                 @php
                     $row = $savedData[$index] ?? [];
                 @endphp
                 <tr class="tanker-row bg-white">
-                    <td class="text-center fw-bold fs-5">
+                    <td class="text-center fw-bold">
                         <input type="hidden" name="tankers[{{$index}}][tanker_id]" value="{{ $slip->tanker_id }}">
                         {{ $slip->tanker_id }}
                     </td>
                     <td class="bg-light-secondary">
                         <div class="d-flex gap-1 justify-content-center text-center">
-                           <div class="border rounded p-1 bg-white" style="min-width:60px"><small class="d-block text-muted">G</small><strong>{{ number_format($slip->gross_weight, 3) }}</strong></div>
-                           <div class="border rounded p-1 bg-white" style="min-width:60px"><small class="d-block text-muted">T</small><strong>{{ number_format($slip->tare_weight, 3) }}</strong></div>
-                           <div class="border rounded p-1 bg-white border-primary" style="min-width:60px"><small class="d-block text-muted">N</small><strong class="text-primary">{{ number_format($slip->net_weight, 3) }}</strong></div>
+                           <div class="border rounded p-1 bg-white" style="min-width:50px"><small class="d-block text-muted">G</small><strong>{{ number_format($slip->gross_weight, 3) }}</strong></div>
+                           <div class="border rounded p-1 bg-white" style="min-width:50px"><small class="d-block text-muted">T</small><strong>{{ number_format($slip->tare_weight, 3) }}</strong></div>
+                           <div class="border rounded p-1 bg-white border-primary" style="min-width:50px"><small class="d-block text-muted">N</small><strong class="text-primary">{{ number_format($slip->net_weight, 3) }}</strong></div>
                         </div>
                         <input type="hidden" class="seller-gross" value="{{ $slip->gross_weight }}">
                         <input type="hidden" class="seller-tare" value="{{ $slip->tare_weight }}">
@@ -47,16 +48,13 @@
                     <td class="bg-light-primary">
                         <div class="row g-1">
                             <div class="col-4">
-                                <label class="small text-muted mb-0">G</label>
-                                <input type="number" step="0.001" name="tankers[{{$index}}][loading_gross]" class="form-control loading-gross" value="{{ $row['loading_gross'] ?? '' }}">
+                                <input type="number" step="0.001" name="tankers[{{$index}}][loading_gross]" class="form-control form-control-sm loading-gross" value="{{ $row['loading_gross'] ?? '' }}" placeholder="Gross">
                             </div>
                             <div class="col-4">
-                                <label class="small text-muted mb-0">T</label>
-                                <input type="number" step="0.001" name="tankers[{{$index}}][loading_tare]" class="form-control loading-tare" value="{{ $row['loading_tare'] ?? '' }}">
+                                <input type="number" step="0.001" name="tankers[{{$index}}][loading_tare]" class="form-control form-control-sm loading-tare" value="{{ $row['loading_tare'] ?? '' }}" placeholder="Tare">
                             </div>
                             <div class="col-4">
-                                <label class="small text-muted mb-0">N</label>
-                                <input type="number" step="0.001" name="tankers[{{$index}}][loading_net]" class="form-control-plaintext loading-net fw-bold text-primary" value="{{ $row['loading_net'] ?? '0.000' }}" readonly>
+                                <input type="number" step="0.001" name="tankers[{{$index}}][loading_net]" class="form-control-plaintext form-control-sm loading-net fw-bold text-primary" value="{{ $row['loading_net'] ?? '0.000' }}" readonly>
                             </div>
                         </div>
                     </td>
@@ -65,21 +63,18 @@
                     <td class="bg-light-success">
                         <div class="row g-1">
                             <div class="col-4">
-                                <label class="small text-muted mb-0">G</label>
-                                <input type="number" step="0.001" name="tankers[{{$index}}][discharge_gross]" class="form-control discharge-gross" value="{{ $row['discharge_gross'] ?? '' }}">
+                                <input type="number" step="0.001" name="tankers[{{$index}}][discharge_gross]" class="form-control form-control-sm discharge-gross" value="{{ $row['discharge_gross'] ?? '' }}" placeholder="Gross">
                             </div>
                             <div class="col-4">
-                                <label class="small text-muted mb-0">T</label>
-                                <input type="number" step="0.001" name="tankers[{{$index}}][discharge_tare]" class="form-control discharge-tare" value="{{ $row['discharge_tare'] ?? '' }}">
+                                <input type="number" step="0.001" name="tankers[{{$index}}][discharge_tare]" class="form-control form-control-sm discharge-tare" value="{{ $row['discharge_tare'] ?? '' }}" placeholder="Tare">
                             </div>
                             <div class="col-4">
-                                <label class="small text-muted mb-0">N</label>
-                                <input type="number" step="0.001" name="tankers[{{$index}}][discharge_net]" class="form-control-plaintext discharge-net fw-bold text-success" value="{{ $row['discharge_net'] ?? '0.000' }}" readonly>
+                                <input type="number" step="0.001" name="tankers[{{$index}}][discharge_net]" class="form-control-plaintext form-control-sm discharge-net fw-bold text-success" value="{{ $row['discharge_net'] ?? '0.000' }}" readonly>
                             </div>
                         </div>
                     </td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-outline-primary show-diff-modal" data-bs-toggle="modal" data-bs-target="#diffModal" data-tanker="{{ $slip->tanker_id }}" 
+                        <button type="button" class="btn btn-xs btn-outline-primary show-diff-modal" data-bs-toggle="modal" data-bs-target="#diffModal" data-tanker="{{ $slip->tanker_id }}" 
                             data-sg="{{ $slip->gross_weight }}" data-st="{{ $slip->tare_weight }}" data-sn="{{ $slip->net_weight }}">
                             <i class="ti ti-eye"></i>
                         </button>
@@ -92,33 +87,33 @@
                 <td colspan="3" class="text-center">{{ __('GRAND TOTALS') }}</td>
                 <td class="text-center">
                     <div class="small opacity-75">{{ __('Loading Net') }}</div>
-                    <span id="total_loading_n" class="fs-5">0.000</span>
+                    <span id="total_loading_n" class="fs-6">0.000</span>
                 </td>
                 <td class="text-center">
                     <div class="small opacity-75">{{ __('Discharge Net') }}</div>
-                    <span id="total_discharge_n" class="fs-5">0.000</span>
+                    <span id="total_discharge_n" class="fs-6">0.000</span>
                 </td>
             </tr>
         </tfoot>
     </table>
 </div>
-@if($tolerance > 0)
-    <div class="alert alert-info mt-3 mb-0">
-        <i class="ti ti-info-circle me-1"></i> {{ __('Current Tolerance Limit from PI:') }} <strong>{{ $tolerance }}%</strong>. {{ __('If any difference exceeds this limit, saving will be disabled.') }}
-    </div>
-@endif
 
-{{-- Differences Modal --}}
+<div class="text-end mt-3">
+    <button type="submit" class="btn btn-success px-5 shadow">{{ __('Save Received Details') }}</button>
+</div>
+{{ Form::close() }}
+
+{{-- Differences Modal (Shared) --}}
 <div class="modal fade" id="diffModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">{{ __('Tanker Differences Analysis') }}</h5>
+            <div class="modal-header py-2">
+                <h6 class="modal-title">{{ __('Tanker Differences Analysis') }}</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <table class="table table-bordered text-center">
-                    <thead><tr><th>Segment</th><th>Gross Diff</th><th>Tare Diff</th><th>Net Diff</th></tr></thead>
+                <table class="table table-bordered text-center table-sm">
+                    <thead class="bg-light"><tr><th>Segment</th><th>Gross Diff</th><th>Tare Diff</th><th>Net Diff</th></tr></thead>
                     <tbody>
                         <tr><th class="text-start">Seller vs Loading (S-L)</th><td class="diff-sl-g">0</td><td class="diff-sl-t">0</td><td class="diff-sl-n">0</td></tr>
                         <tr><th class="text-start">Loading vs Discharge (L-D)</th><td class="diff-ld-g">0</td><td class="diff-ld-t">0</td><td class="diff-ld-n">0</td></tr>
@@ -129,12 +124,6 @@
         </div>
     </div>
 </div>
-
-<div class="text-end mt-3">
-    <button type="submit" class="btn btn-success btn-lg px-5 shadow">{{ __('Save Received Details') }}</button>
-</div>
-{{ Form::close() }}
-
 @push('script-page')
 <script>
     $(document).ready(function() {
@@ -196,7 +185,7 @@
 
                 row.find('.loading-net, .discharge-net').removeClass('text-danger');
 
-                if(tolerance > 0 && ln > 0 && dn > 0) { // Only validate if values are entered
+                if(tolerance > 0 && ln > 0 && dn > 0) { 
                     if(slDiff > tolerance) {
                         allWithinTolerance = false;
                         row.find('.loading-net').addClass('text-danger');

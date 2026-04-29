@@ -54,28 +54,8 @@
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ $order->current_step == 'CI' ? 'active' : '' }} {{ !$order->lc ? 'disabled' : ($order->ci ? 'text-success' : '') }}" id="pills-ci-tab" data-bs-toggle="pill" data-bs-target="#pills-ci" type="button" role="tab">
-                                @if($order->ci) <i class="ti ti-circle-check me-1"></i> @endif {{ __('4. CI') }}
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ $order->current_step == 'Packing List' ? 'active' : '' }} {{ !$order->ci ? 'disabled' : ($order->packingList ? 'text-success' : '') }}" id="pills-pl-tab" data-bs-toggle="pill" data-bs-target="#pills-pl" type="button" role="tab">
-                                @if($order->packingList) <i class="ti ti-circle-check me-1"></i> @endif {{ __('5. PL') }}
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ $order->current_step == 'Consignment Note' ? 'active' : '' }} {{ !$order->packingList ? 'disabled' : ($order->consignmentNote ? 'text-success' : '') }}" id="pills-cn-tab" data-bs-toggle="pill" data-bs-target="#pills-cn" type="button" role="tab">
-                                @if($order->consignmentNote) <i class="ti ti-circle-check me-1"></i> @endif {{ __('6. CN') }}
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ $order->current_step == 'Received Details' ? 'active' : '' }} {{ !$order->consignmentNote ? 'disabled' : ($order->status == 'completed' || $order->status == 'finalized' ? 'text-success' : '') }}" id="pills-rd-tab" data-bs-toggle="pill" data-bs-target="#pills-rd" type="button" role="tab">
-                                @if($order->status == 'completed' || $order->status == 'finalized') <i class="ti ti-circle-check me-1"></i> @endif {{ __('7. Received Details') }}
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ ($order->status != 'completed' && $order->status != 'finalized') ? 'disabled' : '' }} {{ $order->status == 'finalized' ? 'text-success' : '' }}" id="pills-delivery-tab" data-bs-toggle="pill" data-bs-target="#pills-delivery" type="button" role="tab">
-                                @if($order->status == 'finalized') <i class="ti ti-circle-check me-1"></i> @endif {{ __('8. Delivery') }}
+                            <button class="nav-link {{ in_array($order->current_step, ['CI', 'Packing List', 'Consignment Note', 'Received Details', 'Delivery']) || session('active_ci_id') ? 'active' : '' }} {{ !$order->lc ? 'disabled' : ($order->cis->count() > 0 ? 'text-success' : '') }}" id="pills-shipments-tab" data-bs-toggle="pill" data-bs-target="#pills-shipments" type="button" role="tab">
+                                @if($order->cis->count() > 0) <i class="ti ti-package me-1"></i> @endif {{ __('4. Shipments (Partial Deliveries)') }}
                             </button>
                         </li>
                     </ul>
@@ -90,38 +70,8 @@
                         <div class="tab-pane fade {{ $order->current_step == 'LC' ? 'show active' : '' }}" id="pills-lc" role="tabpanel">
                             @include('sales_orders.steps.lc')
                         </div>
-                        <div class="tab-pane fade {{ $order->current_step == 'CI' ? 'show active' : '' }}" id="pills-ci" role="tabpanel">
-                            @include('sales_orders.steps.ci')
-                        </div>
-                        <div class="tab-pane fade {{ $order->current_step == 'Packing List' ? 'show active' : '' }}" id="pills-pl" role="tabpanel">
-                            @include('sales_orders.steps.pl')
-                        </div>
-                        <div class="tab-pane fade {{ $order->current_step == 'Consignment Note' ? 'show active' : '' }}" id="pills-cn" role="tabpanel">
-                            @include('sales_orders.steps.cn')
-                        </div>
-                        <div class="tab-pane fade {{ $order->current_step == 'Received Details' ? 'show active' : '' }}" id="pills-rd" role="tabpanel">
-                            @include('sales_orders.steps.received_details')
-                        </div>
-                        <div class="tab-pane fade {{ $order->status == 'finalized' || session('jump_to_delivery') ? 'show active' : '' }}" id="pills-delivery" role="tabpanel">
-                            <div class="text-center p-5">
-                                @if($order->status == 'completed')
-                                    <h4 class="text-warning"><i class="ti ti-info-circle fs-1"></i></h4>
-                                    <h3>{{ __('Finalize Sales Order') }}</h3>
-                                    <p>{{ __('Please confirm to finalize this order and send it for transport management.') }}</p>
-                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#finalizeModal">
-                                        {{ __('Finalize Order') }}
-                                    </button>
-                                @elseif($order->status == 'finalized')
-                                    <h4 class="text-success"><i class="ti ti-circle-check fs-1"></i></h4>
-                                    <h3>{{ __('Order Finalized') }}</h3>
-                                    <p>{{ __('This sales order has been finalized and sent to transport management.') }}</p>
-                                    <a href="{{ route('transports.create') }}?sales_order_id={{ $order->id }}" class="btn btn-primary">{{ __('Create Transport Request') }}</a>
-                                @else
-                                    <h4 class="text-muted"><i class="ti ti-lock fs-1"></i></h4>
-                                    <h3>{{ __('Waiting for Received Details') }}</h3>
-                                    <p>{{ __('Please complete the previous steps to enable delivery.') }}</p>
-                                @endif
-                            </div>
+                        <div class="tab-pane fade {{ in_array($order->current_step, ['CI', 'Packing List', 'Consignment Note', 'Received Details', 'Delivery']) || session('active_ci_id') ? 'show active' : '' }}" id="pills-shipments" role="tabpanel">
+                            @include('sales_orders.shipments.index')
                         </div>
                     </div>
                 </div>
@@ -241,6 +191,19 @@
             $('.t-total').each(function() { tAmt += parseFloat($(this).val() || 0); });
             $('#ci_total_qty').text(tQty.toFixed(3));
             $('#ci_total_amount').text(tAmt.toFixed(2));
+            
+            // Matrix Update
+            if ($('#matrix_total_val').length) {
+                var totalOrderQty = parseFloat($('#matrix_total_val').val()) || 0;
+                var remainingQty = totalOrderQty - tQty;
+                $('#matrix_delivered').text(tQty.toFixed(3) + ' MT');
+                $('#matrix_remaining').text(remainingQty.toFixed(3) + ' MT');
+                if(remainingQty < 0) {
+                    $('#matrix_remaining').removeClass('text-warning').addClass('text-danger');
+                } else {
+                    $('#matrix_remaining').removeClass('text-danger').addClass('text-warning');
+                }
+            }
         }
         calculateCITotals();
 

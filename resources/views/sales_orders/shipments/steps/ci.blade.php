@@ -1,80 +1,36 @@
-<h5>{{ __('Step 4: Commercial Invoice (CI)') }}</h5>
-<hr>
-
-@php
-    $totalOrderQty = $order->po && $order->po->items ? $order->po->items->sum('quantity') : 0;
-    $deliveredQty = $order->ci && $order->ci->tankers ? $order->ci->tankers->sum('quantity_mt') : 0;
-    $remainingQty = $totalOrderQty - $deliveredQty;
-@endphp
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-primary text-white">
-                <h6 class="mb-0">{{ __('Delivery Tracking Matrix (Based on PO Total)') }}</h6>
-            </div>
-            <div class="card-body bg-light">
-                <div class="row text-center">
-                    <div class="col-md-4 border-end">
-                        <p class="text-muted mb-1">{{ __('Total Order Qty') }}</p>
-                        <h4 class="text-primary" id="matrix_total">{{ number_format($totalOrderQty, 3) }} MT</h4>
-                        <input type="hidden" id="matrix_total_val" value="{{ $totalOrderQty }}">
-                    </div>
-                    <div class="col-md-4 border-end">
-                        <p class="text-muted mb-1">{{ __('Delivered / Shipped') }}</p>
-                        <h4 class="text-success" id="matrix_delivered">{{ number_format($deliveredQty, 3) }} MT</h4>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1">{{ __('Remaining Qty') }}</p>
-                        <h4 class="{{ $remainingQty >= 0 ? 'text-warning' : 'text-danger' }}" id="matrix_remaining">{{ number_format($remainingQty, 3) }} MT</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row mb-3 text-sm">
-    <div class="col-md-4">
-        <strong>{{ __('PO Ref:') }}</strong> {{ $order->po->order_number ?? 'N/A' }}
-    </div>
-    <div class="col-md-4">
-        <strong>{{ __('PI Ref:') }}</strong> {{ $order->pi->pi_number ?? 'N/A' }}
-        ({{ $order->pi->pi_date ?? '' }})
-    </div>
-    <div class="col-md-4">
-        <strong>{{ __('LC Ref:') }}</strong> {{ $order->lc->lc_no ?? 'N/A' }} ({{ $order->lc->lc_date ?? '' }})
-    </div>
-</div>
-
 {{ Form::open(['route' => ['sales-orders.ci.store', $order->id], 'method' => 'post']) }}
+@if($active_ci)
+    <input type="hidden" name="ci_id" value="{{ $active_ci->id }}">
+@endif
+
 <div class="row">
     <div class="col-md-3">
         <div class="form-group">
             {{ Form::label('ci_number', __('CI Number'), ['class' => 'form-label']) }}
-            {{ Form::text('ci_number', $order->ci->ci_number ?? 'CI-' . time(), ['class' => 'form-control form-control-sm', 'required' => 'required']) }}
+            {{ Form::text('ci_number', $active_ci->ci_number ?? 'CI-' . ($order->cis->count() + 1), ['class' => 'form-control form-control-sm', 'required' => 'required']) }}
         </div>
     </div>
     <div class="col-md-3">
         <div class="form-group">
             {{ Form::label('ci_date', __('CI Date'), ['class' => 'form-label']) }}
-            {{ Form::date('ci_date', $order->ci->ci_date ?? date('Y-m-d'), ['class' => 'form-control form-control-sm', 'required' => 'required']) }}
+            {{ Form::date('ci_date', $active_ci->ci_date ?? date('Y-m-d'), ['class' => 'form-control form-control-sm', 'required' => 'required']) }}
         </div>
     </div>
     <div class="col-md-3">
         <div class="form-group">
             {{ Form::label('lc_validity_date', __('LC Validity Date'), ['class' => 'form-label']) }}
-            {{ Form::date('lc_validity_date', $order->ci->lc_validity_date ?? (optional($order->lc)->lc_validity_date), ['class' => 'form-control form-control-sm']) }}
+            {{ Form::date('lc_validity_date', $active_ci->lc_validity_date ?? (optional($order->lc)->lc_validity_date), ['class' => 'form-control form-control-sm']) }}
         </div>
     </div>
     <div class="col-md-3">
         <div class="form-group">
             {{ Form::label('latest_shipment_date', __('Latest Shipment Date'), ['class' => 'form-label']) }}
-            {{ Form::date('latest_shipment_date', $order->ci->latest_shipment_date ?? (optional($order->lc)->latest_shipment_date), ['class' => 'form-control form-control-sm']) }}
+            {{ Form::date('latest_shipment_date', $active_ci->latest_shipment_date ?? (optional($order->lc)->latest_shipment_date), ['class' => 'form-control form-control-sm']) }}
         </div>
     </div>
 </div>
 
-<h6 class="mt-3">{{ __('Tanker Details') }}</h6>
+<h6 class="mt-3">{{ __('Tanker Details for this Shipment') }}</h6>
 <div class="table-responsive">
     <table class="table table-sm table-hover align-middle" id="ci-tankers-table">
         <thead class="bg-light">
@@ -89,8 +45,8 @@
             </tr>
         </thead>
         <tbody>
-            @if($order->ci && $order->ci->tankers->count() > 0)
-                @foreach($order->ci->tankers as $index => $tanker)
+            @if($active_ci && $active_ci->tankers->count() > 0)
+                @foreach($active_ci->tankers as $index => $tanker)
                     <tr>
                         <td><input type="text" name="tankers[{{$index}}][tanker_number]" class="form-control form-control-sm" value="{{$tanker->tanker_number}}" required></td>
                         <td><input type="number" step="0.001" name="tankers[{{$index}}][qty_mt]" class="form-control form-control-sm t-qty" value="{{$tanker->quantity_mt}}" required></td>
@@ -117,19 +73,19 @@
                 @endforeach
             @else
                 <tr>
-                    <td><input type="text" name="tankers[0][tanker_number]" class="form-control form-control-sm" required></td>
-                    <td><input type="number" step="0.001" name="tankers[0][qty_mt]" class="form-control form-control-sm t-qty" required></td>
+                    <td><input type="text" name="tankers[0][tanker_number]" class="form-control form-control-sm" required="required"></td>
+                    <td><input type="number" step="0.001" name="tankers[0][qty_mt]" class="form-control form-control-sm t-qty" required="required"></td>
                     <td>
-                        <select name="tankers[0][quantity_unit]" class="form-control form-control-sm unit-select" required>
+                        <select name="tankers[0][quantity_unit]" class="form-control form-control-sm unit-select" required="required">
                             @foreach($units as $val => $label)
                                 <option value="{{$val}}">{{$label}}</option>
                             @endforeach
                             <option value="ADD_NEW_UNIT" class="text-primary fw-bold">+ {{ __('Add New') }}</option>
                         </select>
                     </td>
-                    <td><input type="number" step="0.01" name="tankers[0][cpt_usd]" class="form-control form-control-sm t-cpt" required></td>
+                    <td><input type="number" step="0.01" name="tankers[0][cpt_usd]" class="form-control form-control-sm t-cpt" required="required"></td>
                     <td>
-                        <select name="tankers[0][currency]" class="form-control form-control-sm curr-select" required>
+                        <select name="tankers[0][currency]" class="form-control form-control-sm curr-select" required="required">
                             @foreach($currencies as $val => $label)
                                 <option value="{{$val}}">{{$label}}</option>
                             @endforeach
@@ -157,9 +113,9 @@
 
 <div class="d-flex justify-content-between align-items-center mt-3">
     <div>
-        @if($order->ci)
-            <a href="{{ route('sales-orders.ci.print', $order->id) }}" target="_blank" class="btn btn-secondary"><i class="ti ti-printer me-1"></i>{{ __('Print') }}</a>
-            <a href="{{ route('sales-orders.ci.download', $order->id) }}" class="btn btn-info"><i class="ti ti-download me-1"></i>{{ __('Download PDF') }}</a>
+        @if($active_ci)
+            <a href="{{ route('sales-orders.ci.print', $order->id) }}?ci_id={{ $active_ci->id }}" target="_blank" class="btn btn-secondary"><i class="ti ti-printer me-1"></i>{{ __('Print') }}</a>
+            <a href="{{ route('sales-orders.ci.download', $order->id) }}?ci_id={{ $active_ci->id }}" class="btn btn-info"><i class="ti ti-download me-1"></i>{{ __('Download PDF') }}</a>
         @endif
     </div>
     <button type="submit" class="btn btn-primary">{{ __('Save & Proceed to Packing List') }}</button>

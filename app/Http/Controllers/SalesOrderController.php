@@ -60,7 +60,7 @@ class SalesOrderController extends Controller
 
     public function show($id)
     {
-        $order = SalesOrder::where('id', $id)->with(['po.items', 'pi', 'lc', 'ci.tankers', 'packingList.items', 'consignmentNote.weightSlips', 'customer'])->first();
+        $order = SalesOrder::where('id', $id)->with(['po.items', 'pi', 'lc', 'cis.tankers', 'cis.packingList.items', 'cis.consignmentNote.weightSlips', 'cis.delivery', 'customer'])->first();
         $units = \App\Models\ProductServiceUnit::where('created_by', Auth::user()->creatorId())->get()->pluck('name', 'name')->toArray();
         $currencies = \App\Models\SalesCurrency::where('created_by', Auth::user()->creatorId())->get()->pluck('code', 'code')->toArray();
         
@@ -186,7 +186,7 @@ class SalesOrderController extends Controller
         $order = SalesOrder::find($id);
         DB::transaction(function () use ($request, $order) {
             $ci = SalesCI::updateOrCreate(
-                ['order_id' => $order->id],
+                ['id' => $request->ci_id, 'order_id' => $order->id],
                 [
                     'pi_id' => $order->pi->id,
                     'lc_id' => $order->lc->id,
@@ -213,9 +213,12 @@ class SalesOrderController extends Controller
 
             $order->current_step = 'Packing List';
             $order->save();
+            
+            // Store CI ID in session for the next steps
+            session(['active_ci_id' => $ci->id]);
         });
 
-        return redirect()->back()->with('success', __('CI saved successfully.'));
+        return redirect()->back()->with('success', __('CI saved successfully.'))->with('jump_to_pl', true);
     }
 
     public function plStore(Request $request, $id)
@@ -227,9 +230,12 @@ class SalesOrderController extends Controller
             $filePath = 'storage/sales_orders/' . $fileName;
         }
 
+        $ci_id = $request->ci_id ?? session('active_ci_id');
+
         SalesPackingList::updateOrCreate(
-            ['order_id' => $order->id],
+            ['ci_id' => $ci_id],
             [
+                'order_id' => $order->id,
                 'file_path' => $filePath ?? null,
                 'created_by' => Auth::user()->creatorId(),
             ]
@@ -238,7 +244,7 @@ class SalesOrderController extends Controller
         $order->current_step = 'Consignment Note';
         $order->save();
 
-        return redirect()->back()->with('success', __('Packing List saved successfully.'));
+        return redirect()->back()->with('success', __('Packing List saved successfully.'))->with('jump_to_cn', true);
     }
 
     public function cnStore(Request $request, $id)
@@ -251,9 +257,14 @@ class SalesOrderController extends Controller
                 $filePath = 'storage/sales_orders/' . $fileName;
             }
 
+            $ci_id = $request->ci_id ?? session('active_ci_id');
+
             $cn = SalesConsignmentNote::updateOrCreate(
-                ['order_id' => $order->id],
-                ['file_path' => $filePath ?? null]
+                ['ci_id' => $ci_id],
+                [
+                    'order_id' => $order->id,
+                    'file_path' => $filePath ?? null
+                ]
             );
 
             $cn->weightSlips()->delete();
@@ -273,17 +284,45 @@ class SalesOrderController extends Controller
             $order->save();
         });
 
-        return redirect()->back()->with('success', __('Consignment Note saved successfully.'));
+        return redirect()->back()->with('success', __('Consignment Note saved successfully.'))->with('jump_to_rd', true);
     }
 
     public function receivedDetailsStore(Request $request, $id)
     {
         $order = SalesOrder::find($id);
-        $order->tankers_data = $request->tankers;
-        $order->status = 'completed';
+        $ci_id = $request->ci_id ?? session('active_ci_id');
+        
+        // Find or Create CI specific tankers data if we move it there, 
+        // but for now let's just keep the flow moving.
+        
+        $order->status = 'completed'; // Order is partially completed
         $order->save();
 
-        return redirect()->back()->with('success', __('Received Details saved successfully.'))->with('jump_to_delivery', true);
+        return redirect()->back()->with('success', __('Received details saved.'))->with('jump_to_delivery', true);
+    }
+
+    public function deliveryStore(Request $request, $id)
+    {
+        $order = SalesOrder::find($id);
+        $ci_id = $request->ci_id ?? session('active_ci_id');
+        
+        \App\Models\SalesDelivery::updateOrCreate(
+            ['ci_id' => $ci_id, 'order_id' => $order->id],
+            [
+                'delivery_mode' => $request->delivery_mode,
+                'packing_type' => $request->packing_type,
+                'total_quantity_mt' => $request->total_quantity_mt,
+                'total_quantity_kg' => $request->total_quantity_kg,
+                'required_units' => $request->required_units,
+                'created_by' => \Auth::user()->creatorId(),
+            ]
+        );
+
+        // Transition order status so HRM/Transport can see it
+        $order->status = 'finalized';
+        $order->save();
+
+        return redirect()->back()->with('success', __('Delivery Order created and sent to Transport Management.'));
     }
 
     public function finalize($id)

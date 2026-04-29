@@ -9,6 +9,7 @@ class Transport extends Model
     protected $fillable = [
         'unique_id',
         'sales_order_id',
+        'ci_id',
         'client_id',
         'manual_client_name',
         'location_address',
@@ -52,5 +53,10 @@ class Transport extends Model
     public function salesOrder()
     {
         return $this->belongsTo(SalesOrder::class, 'sales_order_id', 'id');
+    }
+
+    public function salesCi()
+    {
+        return $this->belongsTo(SalesCI::class, 'ci_id', 'id');
     }
 }
