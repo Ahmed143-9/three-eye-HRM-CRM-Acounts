@@ -6,7 +6,7 @@
     <div class="col-md-4"><strong>{{ __('LC:') }}</strong> {{ $order->lc->lc_no ?? 'N/A' }}</div>
 </div>
 
-{{ Form::open(['route' => ['sales-orders.pl.store', $order->id], 'method' => 'post', 'enctype' => 'multipart/form-data']) }}
+{{ Form::open(['route' => ['sales-orders.pl.store', $order->id], 'method' => 'post', 'enctype' => 'multipart/form-data', 'id' => 'workflow-form']) }}
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">
@@ -46,13 +46,4 @@
     </table>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mt-3">
-    <div>
-        @if($order->packingList)
-            <a href="{{ route('sales-orders.pl.print', $order->id) }}" target="_blank" class="btn btn-secondary"><i class="ti ti-printer me-1"></i>{{ __('Print') }}</a>
-            <a href="{{ route('sales-orders.pl.download', $order->id) }}" class="btn btn-info"><i class="ti ti-download me-1"></i>{{ __('Download PDF') }}</a>
-        @endif
-    </div>
-    <button type="submit" class="btn btn-primary">{{ __('Save & Proceed to Consignment Note') }}</button>
-</div>
 {{ Form::close() }}

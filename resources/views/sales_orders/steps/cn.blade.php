@@ -7,8 +7,8 @@
     <div class="col-md-3"><strong>{{ __('CI:') }}</strong> {{ $order->ci->ci_number ?? 'N/A' }}</div>
 </div>
 
-{{ Form::open(['route' => ['sales-orders.cn.store', $order->id], 'method' => 'post', 'enctype' => 'multipart/form-data']) }}
-<div class="row">
+{{ Form::open(['route' => ['sales-orders.cn.store', $order->id], 'method' => 'post', 'enctype' => 'multipart/form-data', 'id' => 'workflow-form']) }}
+<!-- <div class="row">
     <div class="col-md-6">
         <div class="form-group">
             {{ Form::label('file', __('Upload Consignment Note (PDF/Image)'), ['class' => 'form-label']) }}
@@ -20,132 +20,79 @@
             @endif
         </div>
     </div>
-</div>
+</div> -->
 
-<h6 class="mt-4">{{ __('Tanker Details (Sellers)') }}</h6>
-@php
-    $ciTankers = $order->ci ? $order->ci->tankers->pluck('tanker_number', 'tanker_number')->toArray() : [];
-@endphp
-
-<div class="row mb-3" id="tanker-files-container">
-    {{-- Populated by JS based on rows count --}}
-</div>
-
-<div class="table-responsive">
-    <table class="table table-bordered" id="cn-weight-slips-table">
-        <thead class="bg-light">
-            <tr>
-                <th>{{ __('Tanker Number') }}</th>
-                <th>{{ __('Seller Gross') }}</th>
-                <th>{{ __('Seller Tare') }}</th>
-                <th>{{ __('Seller Net') }}</th>
-                <th width="50px"></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if($order->consignmentNote && $order->consignmentNote->weightSlips->count() > 0)
-                @foreach($order->consignmentNote->weightSlips as $index => $slip)
-                    <tr>
-                        <td>
-                            {{ Form::select("weight_slips[$index][tanker_id]", $ciTankers, $slip->tanker_id, ['class' => 'form-control select2 tanker-select', 'required' => 'required']) }}
-                        </td>
-                        <td><input type="number" step="0.001" name="weight_slips[{{$index}}][gross]" class="form-control w-gross" value="{{$slip->gross_weight}}" required></td>
-                        <td><input type="number" step="0.001" name="weight_slips[{{$index}}][tare]" class="form-control w-tare" value="{{$slip->tare_weight}}" required></td>
-                        <td><input type="number" step="0.001" name="weight_slips[{{$index}}][net]" class="form-control w-net" value="{{$slip->net_weight}}" readonly></td>
-                        <td><button type="button" class="btn btn-danger btn-sm remove-cn-item"><i class="ti ti-trash"></i></button></td>
-                    </tr>
-                @endforeach
-            @else
-                <tr>
-                    <td>
-                        {{ Form::select("weight_slips[0][tanker_id]", $ciTankers, null, ['class' => 'form-control select2 tanker-select', 'placeholder' => __('Select Tanker'), 'required' => 'required']) }}
-                    </td>
-                    <td><input type="number" step="0.001" name="weight_slips[0][gross]" class="form-control w-gross" required></td>
-                    <td><input type="number" step="0.001" name="weight_slips[0][tare]" class="form-control w-tare" required></td>
-                    <td><input type="number" step="0.001" name="weight_slips[0][net]" class="form-control w-net" readonly></td>
-                    <td></td>
-                </tr>
-            @endif
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="4"></td>
-                <td><button type="button" class="btn btn-primary btn-sm add-cn-item"><i class="ti ti-plus"></i></button></td>
-            </tr>
-        </tfoot>
-    </table>
+<div class="row mt-4">
+    @if($order->ci && $order->ci->tankers->count() > 0)
+        @foreach($order->ci->tankers as $index => $tanker)
+            @php
+                $slip = $order->consignmentNote ? $order->consignmentNote->weightSlips->where('tanker_id', $tanker->tanker_number)->first() : null;
+            @endphp
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-none border h-100">
+                    <div class="card-header bg-light py-2">
+                        <h6 class="mb-0">{{ __('Tanker:') }} <span class="text-primary">{{ $tanker->tanker_number }}</span></h6>
+                    </div>
+                    <div class="card-body">
+                        <input type="hidden" name="weight_slips[{{$index}}][tanker_id]" value="{{ $tanker->tanker_number }}">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="form-group mb-0">
+                                    {{ Form::label("weight_slips[$index][gross]", __('Seller Gross'), ['class' => 'form-label small']) }}
+                                    <input type="number" step="0.001" name="weight_slips[{{$index}}][gross]" class="form-control form-control-sm w-gross" value="{{ $slip->gross_weight ?? '' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-0">
+                                    {{ Form::label("weight_slips[$index][tare]", __('Seller Tare'), ['class' => 'form-label small']) }}
+                                    <input type="number" step="0.001" name="weight_slips[{{$index}}][tare]" class="form-control form-control-sm w-tare" value="{{ $slip->tare_weight ?? '' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-0">
+                                    {{ Form::label("weight_slips[$index][net]", __('Seller Net'), ['class' => 'form-label small']) }}
+                                    <input type="number" step="0.001" name="weight_slips[{{$index}}][net]" class="form-control form-control-sm w-net" value="{{ $slip->net_weight ?? '' }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group mb-0">
+                                    {{ Form::label("tanker_files[$index]", __('Weight Slip Image'), ['class' => 'form-label small']) }}
+                                    <input type="file" name="tanker_files[{{$index}}]" class="form-control form-control-sm">
+                                    @if($slip && $slip->file_path)
+                                        <div class="mt-2">
+                                            <a href="{{ asset($slip->file_path) }}" target="_blank" class="btn btn-xs btn-info text-xs py-1">
+                                                <i class="ti ti-eye me-1"></i>{{ __('View Current Image') }}
+                                            </a>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    @else
+        <div class="col-12 text-center py-4">
+            <div class="alert alert-warning">
+                <i class="ti ti-info-circle me-1"></i>{{ __('No tankers found in CI. Please add tankers in the CI step first.') }}
+            </div>
+        </div>
+    @endif
 </div>
 
 @push('script-page')
 <script>
     $(document).ready(function() {
-        var ciTankersOptions = @json($ciTankers);
-        var maxTankers = Object.keys(ciTankersOptions).length;
-
-        function updateFiles() {
-            var html = '';
-            $('#cn-weight-slips-table tbody tr').each(function(idx) {
-                var val = $(this).find('.tanker-select').val();
-                html += `<div class="col-md-3 mb-2">
-                    <label class="small text-muted">${val || 'Tanker ' + (idx+1)} File</label>
-                    <input type="file" name="tanker_files[${idx}]" class="form-control form-control-sm">
-                </div>`;
-            });
-            $('#tanker-files-container').html(html);
-        }
-
-        function getTankerSelect(index) {
-            var options = '<option value="">{{ __("Select Tanker") }}</option>';
-            $.each(ciTankersOptions, function(val, text) {
-                options += `<option value="${val}">${text}</option>`;
-            });
-            return `<select name="weight_slips[${index}][tanker_id]" class="form-control select2 tanker-select" required>${options}</select>`;
-        }
-
-        $(document).on('change', '.tanker-select', updateFiles);
-        $(document).on('click', '.add-cn-item', function() {
-            var index = $('#cn-weight-slips-table tbody tr').length;
-            if (index >= maxTankers) {
-                alert("Cannot add more tankers than exist in CI.");
-                return;
-            }
-            var tankerSelect = getTankerSelect(index);
-            var html = `<tr>
-                <td>${tankerSelect}</td>
-                <td><input type="number" step="0.001" name="weight_slips[${index}][gross]" class="form-control w-gross" required></td>
-                <td><input type="number" step="0.001" name="weight_slips[${index}][tare]" class="form-control w-tare" required></td>
-                <td><input type="number" step="0.001" name="weight_slips[${index}][net]" class="form-control w-net" readonly></td>
-                <td><button type="button" class="btn btn-danger btn-sm remove-cn-item"><i class="ti ti-trash"></i></button></td>
-            </tr>`;
-            $('#cn-weight-slips-table tbody').append(html);
-            if(typeof $.fn.select2 !== 'undefined') $('.select2').select2();
-            updateFiles();
-        });
-
-        $(document).on('click', '.remove-cn-item', function() { 
-            $(this).closest('tr').remove(); 
-            updateFiles();
-        });
-
         $(document).on('keyup change', '.w-gross, .w-tare', function() {
-            var tr = $(this).closest('tr');
-            var gross = parseFloat(tr.find('.w-gross').val()) || 0;
-            var tare = parseFloat(tr.find('.w-tare').val()) || 0;
+            var card = $(this).closest('.card-body');
+            var gross = parseFloat(card.find('.w-gross').val()) || 0;
+            var tare = parseFloat(card.find('.w-tare').val()) || 0;
             var net = gross - tare;
-            tr.find('.w-net').val(net.toFixed(3));
+            card.find('.w-net').val(net.toFixed(3));
         });
-        updateFiles();
     });
 </script>
 @endpush
 
-<div class="d-flex justify-content-between align-items-center mt-3">
-    <div>
-        @if($order->consignmentNote)
-            <a href="{{ route('sales-orders.cn.print', $order->id) }}" target="_blank" class="btn btn-secondary"><i class="ti ti-printer me-1"></i>{{ __('Print') }}</a>
-            <a href="{{ route('sales-orders.cn.download', $order->id) }}" class="btn btn-info"><i class="ti ti-download me-1"></i>{{ __('Download PDF') }}</a>
-        @endif
-    </div>
-    <button type="submit" class="btn btn-primary">{{ __('Save & Proceed to Received Details') }}</button>
-</div>
 {{ Form::close() }}

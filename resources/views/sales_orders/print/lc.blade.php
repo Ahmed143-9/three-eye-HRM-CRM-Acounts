@@ -6,10 +6,12 @@
         <h3>LETTER OF CREDIT (LC)</h3>
     </div>
     <div class="header-info">
-        <p><strong>LC Number:</strong> {{ $order->lc->lc_no }}</p>
-        <p><strong>Client LC #:</strong> {{ $order->lc->client_lc_number ?? 'N/A' }}</p>
-        <p><strong>LC Date:</strong> {{ $order->lc->lc_date }}</p>
-        <p><strong>Total Amount:</strong> {{ $order->lc->amount }}</p>
+        <p><strong>LC Reference No.:</strong> {{ $order->lc->lc_reference_no }}</p>
+        <p><strong>Client LC No.:</strong> {{ $order->lc->client_lc_no ?? 'N/A' }}</p>
+        <p><strong>Date of Issue:</strong> {{ $order->lc->date_of_issue }}</p>
+        <p><strong>LC Type:</strong> {{ $order->lc->lc_type ?? 'N/A' }}</p>
+        <p><strong>Incoterms:</strong> {{ $order->lc->incoterm ?? 'N/A' }}</p>
+        <p><strong>LC Amount (QTY):</strong> {{ number_format($order->lc->lc_qty, 3) }} {{ $order->lc->unit }}</p>
     </div>
 </div>
 
@@ -46,13 +48,12 @@
     </tr>
 </table>
 
-@php
-    $controller = new \App\Http\Controllers\SalesOrderController();
-    $amountInWords = $controller->numberToWords($order->lc->amount);
-@endphp
-<div class="mt-3">
-    <p><strong>Amount in Words:</strong> {{ strtoupper($amountInWords) }} ONLY</p>
-</div>
+@if($order->lc->terms_and_conditions)
+    <div class="mt-4">
+        <h5 class="section-title">{{ __('Terms and Conditions') }}</h5>
+        <p style="white-space: pre-line;">{{ $order->lc->terms_and_conditions }}</p>
+    </div>
+@endif
 
 <div class="footer">
     <div class="signature-box">

@@ -46,7 +46,7 @@
     </div>
 </div>
 
-{{ Form::open(['route' => ['sales-orders.ci.store', $order->id], 'method' => 'post']) }}
+{{ Form::open(['route' => ['sales-orders.ci.store', $order->id], 'method' => 'post', 'id' => 'workflow-form']) }}
 <div class="row">
     <div class="col-md-3">
         <div class="form-group">
@@ -57,25 +57,28 @@
     <div class="col-md-3">
         <div class="form-group">
             {{ Form::label('ci_date', __('CI Date'), ['class' => 'form-label']) }}
-            {{ Form::date('ci_date', $order->ci->ci_date ?? date('Y-m-d'), ['class' => 'form-control form-control-sm', 'required' => 'required']) }}
+            {{ Form::text('ci_date', isset($order->ci->ci_date) ? \Carbon\Carbon::parse($order->ci->ci_date)->format('m-d-Y') : date('m-d-Y'), ['class' => 'form-control form-control-sm date-format-input', 'required' => 'required', 'placeholder' => 'MM-DD-YYYY']) }}
+            <small class="text-muted text-xs">{{ __('Format: MM-DD-YYYY') }}</small>
         </div>
     </div>
     <div class="col-md-3">
         <div class="form-group">
             {{ Form::label('lc_validity_date', __('LC Validity Date'), ['class' => 'form-label']) }}
-            {{ Form::date('lc_validity_date', $order->ci->lc_validity_date ?? (optional($order->lc)->lc_validity_date), ['class' => 'form-control form-control-sm']) }}
+            {{ Form::text('lc_validity_date', isset($order->ci->lc_validity_date) ? \Carbon\Carbon::parse($order->ci->lc_validity_date)->format('m-d-Y') : (isset($order->lc->lc_validity_date) ? \Carbon\Carbon::parse($order->lc->lc_validity_date)->format('m-d-Y') : null), ['class' => 'form-control form-control-sm date-format-input', 'placeholder' => 'MM-DD-YYYY']) }}
+            <small class="text-muted text-xs">{{ __('Format: MM-DD-YYYY') }}</small>
         </div>
     </div>
     <div class="col-md-3">
         <div class="form-group">
             {{ Form::label('latest_shipment_date', __('Latest Shipment Date'), ['class' => 'form-label']) }}
-            {{ Form::date('latest_shipment_date', $order->ci->latest_shipment_date ?? (optional($order->lc)->latest_shipment_date), ['class' => 'form-control form-control-sm']) }}
+            {{ Form::text('latest_shipment_date', isset($order->ci->latest_shipment_date) ? \Carbon\Carbon::parse($order->ci->latest_shipment_date)->format('m-d-Y') : (isset($order->lc->latest_shipment_date) ? \Carbon\Carbon::parse($order->lc->latest_shipment_date)->format('m-d-Y') : null), ['class' => 'form-control form-control-sm date-format-input', 'placeholder' => 'MM-DD-YYYY']) }}
+            <small class="text-muted text-xs">{{ __('Format: MM-DD-YYYY') }}</small>
         </div>
     </div>
 </div>
 
 <h6 class="mt-3">{{ __('Tanker Details') }}</h6>
-<div class="table-responsive">
+<div class="table-responsive mt-3">
     <table class="table table-sm table-hover align-middle" id="ci-tankers-table">
         <thead class="bg-light">
             <tr>
@@ -155,13 +158,5 @@
     </table>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mt-3">
-    <div>
-        @if($order->ci)
-            <a href="{{ route('sales-orders.ci.print', $order->id) }}" target="_blank" class="btn btn-secondary"><i class="ti ti-printer me-1"></i>{{ __('Print') }}</a>
-            <a href="{{ route('sales-orders.ci.download', $order->id) }}" class="btn btn-info"><i class="ti ti-download me-1"></i>{{ __('Download PDF') }}</a>
-        @endif
-    </div>
-    <button type="submit" class="btn btn-primary">{{ __('Save & Proceed to Packing List') }}</button>
 </div>
 {{ Form::close() }}

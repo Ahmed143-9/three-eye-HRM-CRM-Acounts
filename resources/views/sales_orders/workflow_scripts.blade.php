@@ -1,113 +1,9 @@
-@extends('layouts.admin')
-@push('css-page')
-<style>
-    /* Prevent dropdown text overlap with arrow icon */
-    .form-control.select2-hidden-accessible + .select2-container .select2-selection--single,
-    select.form-control {
-        padding-right: 2rem !important;
-        position: relative;
-    }
-    
-    /* Ensure table rows in PO and CI don't wrap/break */
-    #po-items-table tr td, #ci-tankers-table tr td {
-        vertical-align: middle;
-        padding: 0.5rem;
-    }
-    #po-items-table input, #ci-tankers-table input, #ci-tankers-table select {
-        min-width: 80px;
-    }
-    
-    .table-responsive {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-</style>
-@endpush
-@section('page-title')
-    {{__('Sales Order Workflow')}} - {{ $order->order_number }}
-@endsection
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{__('Dashboard')}}</a></li>
-    <li class="breadcrumb-item"><a href="{{route('sales-orders.index')}}">{{__('Sales Orders')}}</a></li>
-    <li class="breadcrumb-item">{{ $order->order_number }}</li>
-@endsection
-
-@section('content')
-    <div class="row">
-        <div class="col-12">
-            <div class="card mt-3">
-                <div class="card-body">
-                    <ul class="nav nav-pills mb-3 justify-content-center" id="pills-tab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ $order->current_step == 'PO' ? 'active' : '' }} {{ $order->po ? 'text-success' : '' }}" id="pills-po-tab" data-bs-toggle="pill" data-bs-target="#pills-po" type="button" role="tab">
-                                @if($order->po) <i class="ti ti-circle-check me-1"></i> @endif {{ __('1. PO') }}
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ $order->current_step == 'PI' ? 'active' : '' }} {{ !$order->po ? 'disabled' : ($order->pi ? 'text-success' : '') }}" id="pills-pi-tab" data-bs-toggle="pill" data-bs-target="#pills-pi" type="button" role="tab">
-                                @if($order->pi) <i class="ti ti-circle-check me-1"></i> @endif {{ __('2. PI') }}
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ $order->current_step == 'LC' ? 'active' : '' }} {{ !$order->pi ? 'disabled' : ($order->lc ? 'text-success' : '') }}" id="pills-lc-tab" data-bs-toggle="pill" data-bs-target="#pills-lc" type="button" role="tab">
-                                @if($order->lc) <i class="ti ti-circle-check me-1"></i> @endif {{ __('3. LC') }}
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ in_array($order->current_step, ['CI', 'Packing List', 'Consignment Note', 'Received Details', 'Delivery']) || session('active_ci_id') ? 'active' : '' }} {{ !$order->lc ? 'disabled' : ($order->cis->count() > 0 ? 'text-success' : '') }}" id="pills-shipments-tab" data-bs-toggle="pill" data-bs-target="#pills-shipments" type="button" role="tab">
-                                @if($order->cis->count() > 0) <i class="ti ti-package me-1"></i> @endif {{ __('4. Shipments (Partial Deliveries)') }}
-                            </button>
-                        </li>
-                    </ul>
-
-                    <div class="tab-content" id="pills-tabContent">
-                        <div class="tab-pane fade {{ $order->current_step == 'PO' ? 'show active' : '' }}" id="pills-po" role="tabpanel">
-                            @include('sales_orders.steps.po')
-                        </div>
-                        <div class="tab-pane fade {{ $order->current_step == 'PI' ? 'show active' : '' }}" id="pills-pi" role="tabpanel">
-                            @include('sales_orders.steps.pi')
-                        </div>
-                        <div class="tab-pane fade {{ $order->current_step == 'LC' ? 'show active' : '' }}" id="pills-lc" role="tabpanel">
-                            @include('sales_orders.steps.lc')
-                        </div>
-                        <div class="tab-pane fade {{ in_array($order->current_step, ['CI', 'Packing List', 'Consignment Note', 'Received Details', 'Delivery']) || session('active_ci_id') ? 'show active' : '' }}" id="pills-shipments" role="tabpanel">
-                            @include('sales_orders.shipments.index')
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Finalize Modal -->
-    <div class="modal fade" id="finalizeModal" tabindex="-1" aria-labelledby="finalizeModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="finalizeModalLabel">{{ __('Confirm Finalization') }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    {{ __('Are you sure you want to finalize this sales order? This will notify the transport management team.') }}
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
-                    {{ Form::open(['route' => ['sales-orders.finalize', $order->id], 'method' => 'post']) }}
-                        <button type="submit" class="btn btn-primary">{{ __('Confirm & Finalize') }}</button>
-                    {{ Form::close() }}
-                </div>
-            </div>
-        </div>
-    </div>
-@endsection
-
 @push('script-page')
-<script>
-    $(document).ready(function() {
-        var units = @json($units);
-        var currencies = @json($currencies);
+    <script>
+        var units = {!! json_encode($units) !!};
+        var currencies = {!! json_encode($currencies) !!};
 
-        function getUnitOptions(selected = '') {
+        function getUnitOptions(selected) {
             var options = '';
             $.each(units, function(k, v) {
                 options += `<option value="${k}" ${k == selected ? 'selected' : ''}>${v}</option>`;
@@ -116,7 +12,7 @@
             return options;
         }
 
-        function getCurrencyOptions(selected = '') {
+        function getCurrencyOptions(selected) {
             var options = '';
             $.each(currencies, function(k, v) {
                 options += `<option value="${k}" ${k == selected ? 'selected' : ''}>${v}</option>`;
@@ -200,21 +96,11 @@
             $('.t-total').each(function() { tAmt += parseFloat($(this).val() || 0); });
             $('#ci_total_qty').text(tQty.toFixed(3));
             $('#ci_total_amount').text(tAmt.toFixed(2));
-            
-            // Matrix Update
-            if ($('#matrix_total_val').length) {
-                var totalOrderQty = parseFloat($('#matrix_total_val').val()) || 0;
-                var remainingQty = totalOrderQty - tQty;
-                $('#matrix_delivered').text(tQty.toFixed(3) + ' MT');
-                $('#matrix_remaining').text(remainingQty.toFixed(3) + ' MT');
-                if(remainingQty < 0) {
-                    $('#matrix_remaining').removeClass('text-warning').addClass('text-danger');
-                } else {
-                    $('#matrix_remaining').removeClass('text-danger').addClass('text-warning');
-                }
-            }
         }
-        calculateCITotals();
+        
+        if($('#ci-tankers-table').length) {
+            calculateCITotals();
+        }
 
         // AJAX for Add New
         $(document).on('change', '.unit-select', function() {
@@ -267,20 +153,98 @@
             }
         });
 
-        $(document).on('keyup change', '.w-gross, .w-tare', function() {
-            var tr = $(this).closest('tr');
-            var net = (parseFloat(tr.find('.w-gross').val()) || 0) - (parseFloat(tr.find('.w-tare').val()) || 0);
-            tr.find('.w-net').val(net.toFixed(3));
-        });
+        // Datepicker Initialization
+        if ($(".datepicker").length) {
+            $(".datepicker").flatpickr({
+                dateFormat: "m-d-Y",
+                allowInput: true,
+                onReady: function(selectedDates, dateStr, instance) {
+                    // Force the placeholder to be MM-DD-YYYY
+                    $(instance.element).attr('placeholder', 'MM-DD-YYYY');
+                }
+            });
+        }
 
-        $(document).on('change', '.date-format-input', function() {
-            var val = $(this).val();
+        // Date format validation (for manual typing if allowed)
+        $(document).on('change', '.datepicker', function() {
+            var dateVal = $(this).val();
             var regex = /^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])-\d{4}$/;
-            if (val && !regex.test(val)) {
-                show_toastr('Error', 'Please enter date in MM-DD-YYYY format', 'error');
-                $(this).val('').focus();
+            if (dateVal && !regex.test(dateVal)) {
+                show_toastr('Error', 'Invalid date format. Please use MM-DD-YYYY', 'error');
+                $(this).val('');
             }
         });
-    });
-</script>
+
+        // Mismatch Validation Logic
+        function checkMismatch(inputId, piValueId, warningId, type = 'text') {
+            var val = $('#' + inputId).val();
+            var piVal = $('#' + piValueId).val();
+
+            if (!val && !piVal) {
+                $('#' + warningId).addClass('d-none');
+                return;
+            }
+
+            var mismatch = false;
+            if (type === 'number') {
+                mismatch = Math.abs(parseFloat(val) - parseFloat(piVal)) > 0.001;
+            } else if (type === 'date_validity') {
+                var piDateStr = $('#pi_date').val();
+                var validityDays = parseInt($('#pi_validity').val()) || 0;
+                var lcDateStr = val;
+                if (piDateStr && lcDateStr && validityDays > 0) {
+                    var piDate = new Date(piDateStr);
+                    var lcDate = new Date(lcDateStr);
+                    var expiryDate = new Date(piDate);
+                    expiryDate.setDate(expiryDate.getDate() + validityDays);
+                    mismatch = lcDate > expiryDate;
+                }
+            } else if (type === 'date_match') {
+                if (val && piVal) {
+                    var d1 = new Date(val);
+                    var d2 = new Date(piVal);
+                    mismatch = d1.getTime() !== d2.getTime();
+                }
+            } else {
+                mismatch = (val || '').trim().toLowerCase() !== (piVal || '').trim().toLowerCase();
+            }
+
+            if (mismatch) {
+                $('#' + warningId).removeClass('d-none');
+            } else {
+                $('#' + warningId).addClass('d-none');
+            }
+        }
+
+        $(document).on('keyup change', '#lc_qty', function () { checkMismatch('lc_qty', 'pi_qty', 'warning_qty', 'number'); });
+        $(document).on('change', '#date_of_issue', function () { 
+            checkMismatch('date_of_issue', 'pi_date', 'warning_date', 'date_validity'); 
+        });
+        $(document).on('change', '#lc_shipment_date', function () { checkMismatch('lc_shipment_date', 'pi_shipment_date', 'warning_shipment_date', 'date_match'); });
+
+        ['seller_name', 'seller_address', 'seller_mobile', 'seller_email',
+            'buyer_name', 'buyer_address', 'buyer_mobile', 'buyer_email',
+            'lifting_time', 'country_of_origin', 'tolerance', 'port_of_loading', 'port_of_discharge'
+        ].forEach(function (field) {
+            var inputId = field === 'lifting_time' ? 'lc_lifting_time' : 'lc_' + field;
+            var piValueId = field === 'lifting_time' ? 'pi_lifting_time_val' : 'pi_' + field;
+            $(document).on('keyup change', '#' + inputId, function () {
+                checkMismatch(inputId, piValueId, 'warning_' + field);
+            });
+        });
+
+        // Trigger initial checks for LC if present
+        if ($('#lc_qty').length) {
+            $('#lc_qty').trigger('change');
+            $('#date_of_issue').trigger('change');
+            $('#lc_shipment_date').trigger('change');
+            ['seller_name', 'seller_address', 'seller_mobile', 'seller_email',
+                'buyer_name', 'buyer_address', 'buyer_mobile', 'buyer_email',
+                'lifting_time', 'country_of_origin', 'tolerance', 'port_of_loading', 'port_of_discharge'
+            ].forEach(function (field) {
+                var inputId = field === 'lifting_time' ? 'lc_lifting_time' : 'lc_' + field;
+                $('#' + inputId).trigger('change');
+            });
+        }
+    </script>
 @endpush

@@ -15,6 +15,7 @@ class SalesWeightSlip extends Model
         'gross_weight',
         'tare_weight',
         'net_weight',
+        'file_path',
     ];
 
     public function consignmentNote()

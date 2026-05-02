@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
- 
+
 use App\Models\Client;
 use App\Models\SalesCI;
 use App\Models\SalesCITanker;
@@ -18,6 +18,7 @@ use App\Models\Utility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class SalesOrderController extends Controller
 {
@@ -31,11 +32,11 @@ class SalesOrderController extends Controller
     {
         // Get creator ID and allowed creator IDs
         $creatorId = Auth::user()->creatorId();
-        
+
         $customers = Client::where('created_by', $creatorId)
             ->orWhere('id', '>', 0) // Broaden to ensure accessibility
             ->get()->pluck('name', 'id');
-        
+
         return view('sales_orders.create', compact('customers'));
     }
 
@@ -63,12 +64,65 @@ class SalesOrderController extends Controller
         $order = SalesOrder::where('id', $id)->with(['po.items', 'pi', 'lc', 'cis.tankers', 'cis.packingList.items', 'cis.consignmentNote.weightSlips', 'cis.delivery', 'customer'])->first();
         $units = \App\Models\ProductServiceUnit::where('created_by', Auth::user()->creatorId())->get()->pluck('name', 'name')->toArray();
         $currencies = \App\Models\SalesCurrency::where('created_by', Auth::user()->creatorId())->get()->pluck('code', 'code')->toArray();
-        
-        // Add default if empty
-        if(empty($units)) $units = ['MT' => 'MT', 'KG' => 'KG', 'Ltr' => 'Ltr', 'Pcs' => 'Pcs'];
-        if(empty($currencies)) $currencies = ['USD' => 'USD', 'BDT' => 'BDT', 'EUR' => 'EUR', 'GBP' => 'GBP'];
+        if (empty($units))
+            $units = ['MT' => 'MT', 'KG' => 'KG', 'Ton' => 'Ton', 'Ltr' => 'Ltr', 'Pcs' => 'Pcs'];
+        if (empty($currencies))
+            $currencies = ['USD' => 'USD', 'BDT' => 'BDT', 'INR' => 'Rupee (INR)', 'EUR' => 'EUR', 'GBP' => 'GBP'];
+        return compact('units', 'currencies');
+    }
 
-        return view('sales_orders.show', compact('order', 'units', 'currencies'));
+    public function poPage($id)
+    {
+        $order = SalesOrder::where('id', $id)->with(['po.items', 'customer'])->first();
+        return view('sales_orders.workflow.po', array_merge(['order' => $order], $this->getCommonData()));
+    }
+
+    public function piPage($id)
+    {
+        $order = SalesOrder::where('id', $id)->with(['po.items', 'pi', 'customer'])->first();
+        if (!$order->po)
+            return redirect()->route('sales-orders.po', $id)->with('error', __('Please complete PO first.'));
+        return view('sales_orders.workflow.pi', array_merge(['order' => $order], $this->getCommonData()));
+    }
+
+    public function lcPage($id)
+    {
+        $order = SalesOrder::where('id', $id)->with(['po.items', 'pi', 'lc', 'customer'])->first();
+        if (!$order->pi)
+            return redirect()->route('sales-orders.pi', $id)->with('error', __('Please complete PI first.'));
+        return view('sales_orders.workflow.lc', array_merge(['order' => $order], $this->getCommonData()));
+    }
+
+    public function ciPage($id)
+    {
+        $order = SalesOrder::where('id', $id)->with(['po.items', 'pi', 'lc', 'ci.tankers', 'customer'])->first();
+        if (!$order->lc)
+            return redirect()->route('sales-orders.lc', $id)->with('error', __('Please complete LC first.'));
+        return view('sales_orders.workflow.ci', array_merge(['order' => $order], $this->getCommonData()));
+    }
+
+    public function plPage($id)
+    {
+        $order = SalesOrder::where('id', $id)->with(['ci.tankers', 'packingList.items', 'customer'])->first();
+        if (!$order->ci)
+            return redirect()->route('sales-orders.ci', $id)->with('error', __('Please complete CI first.'));
+        return view('sales_orders.workflow.pl', array_merge(['order' => $order], $this->getCommonData()));
+    }
+
+    public function cnPage($id)
+    {
+        $order = SalesOrder::where('id', $id)->with(['ci.tankers', 'packingList', 'consignmentNote.weightSlips', 'customer'])->first();
+        if (!$order->packingList)
+            return redirect()->route('sales-orders.pl', $id)->with('error', __('Please complete Packing List first.'));
+        return view('sales_orders.workflow.cn', array_merge(['order' => $order], $this->getCommonData()));
+    }
+
+    public function receivedDetailsPage($id)
+    {
+        $order = SalesOrder::where('id', $id)->with(['consignmentNote.weightSlips', 'customer'])->first();
+        if (!$order->consignmentNote)
+            return redirect()->route('sales-orders.cn', $id)->with('error', __('Please complete Consignment Note first.'));
+        return view('sales_orders.workflow.received_details', array_merge(['order' => $order], $this->getCommonData()));
     }
 
     public function poStore(Request $request, $id)
@@ -85,28 +139,32 @@ class SalesOrderController extends Controller
                     'hs_code' => $request->hs_code,
                     'grand_total' => $request->grand_total,
                     'signature' => $request->signature,
+                    'terms_and_conditions' => $request->terms_and_conditions,
                     'created_by' => Auth::user()->creatorId(),
                 ]
             );
 
             $po->items()->delete();
-            foreach ($request->items as $item) {
-                SalesPOItem::create([
-                    'po_id' => $po->id,
-                    'item_name' => $item['item'],
-                    'description' => $item['description'],
-                    'quantity' => $item['qty'],
-                    'unit' => $item['unit'],
-                    'price' => $item['price'],
-                    'total' => $item['total'],
-                ]);
+            if ($request->has('items')) {
+                foreach ($request->items as $item) {
+                    SalesPOItem::create([
+                        'po_id' => $po->id,
+                        'item_name' => $item['item'],
+                        'description' => $item['description'],
+                        'quantity' => $item['qty'],
+                        'unit_id' => $item['unit'],
+                        'price_per_unit' => $item['price'],
+                        'currency_type' => $item['currency'] ?? 'BDT',
+                        'total' => $item['total'],
+                    ]);
+                }
             }
 
             $order->current_step = 'PI';
             $order->save();
         });
 
-        return redirect()->back()->with('success', __('PO saved successfully.'));
+        return redirect()->route('sales-orders.pi', $order->id)->with('success', __('PO saved successfully.'));
     }
 
     public function piStore(Request $request, $id)
@@ -117,7 +175,7 @@ class SalesOrderController extends Controller
             [
                 'pi_number' => $request->pi_number,
                 'client_pi_number' => $request->client_pi_number,
-                'pi_date' => $request->pi_date,
+                'pi_date' => $this->parseDate($request->pi_date),
                 'validity' => $request->validity,
                 'lifting_time' => $request->lifting_time,
                 'payment_terms' => $request->payment_terms,
@@ -126,7 +184,6 @@ class SalesOrderController extends Controller
                 'tolerance' => $request->tolerance,
                 'port_of_loading' => $request->port_of_loading,
                 'port_of_discharge' => $request->port_of_discharge,
-                'amount' => $request->amount,
                 'seller_name' => $request->seller_name,
                 'seller_address' => $request->seller_address,
                 'seller_mobile' => $request->seller_mobile,
@@ -135,6 +192,13 @@ class SalesOrderController extends Controller
                 'buyer_address' => $request->buyer_address,
                 'buyer_mobile' => $request->buyer_mobile,
                 'buyer_email' => $request->buyer_email,
+                'bank_name' => $request->bank_name,
+                'account_name' => $request->account_name,
+                'branch_name' => $request->branch_name,
+                'account_no' => $request->account_no,
+                'swift_code' => $request->swift_code,
+                'incoterm' => $request->incoterm,
+                'terms_and_conditions' => $request->terms_and_conditions,
                 'created_by' => Auth::user()->creatorId(),
             ]
         );
@@ -142,7 +206,7 @@ class SalesOrderController extends Controller
         $order->current_step = 'LC';
         $order->save();
 
-        return redirect()->back()->with('success', __('PI saved successfully.'));
+        return redirect()->route('sales-orders.lc', $order->id)->with('success', __('PI saved successfully.'));
     }
 
     public function lcStore(Request $request, $id)
@@ -152,12 +216,16 @@ class SalesOrderController extends Controller
             ['order_id' => $order->id],
             [
                 'pi_id' => $order->pi->id,
-                'lc_no' => $request->lc_no,
-                'client_lc_number' => $request->client_lc_number,
-                'amount' => $request->amount,
-                'lc_date' => $request->lc_date,
-                'latest_shipment_date' => $request->latest_shipment_date,
-                'lc_validity_date' => $request->lc_validity_date,
+                'lc_reference_no' => $request->lc_reference_no,
+                'client_lc_no' => $request->client_lc_no,
+                'lc_qty' => $request->lc_qty,
+                'unit' => $request->unit,
+                'date_of_issue' => $this->parseDate($request->date_of_issue),
+                'latest_shipment_date' => $this->parseDate($request->latest_shipment_date),
+                'lc_validity_date' => $this->parseDate($request->lc_validity_date),
+                'lc_type' => $request->lc_type,
+                'incoterm' => $request->incoterm,
+                'terms_and_conditions' => $request->terms_and_conditions,
                 'seller_name' => $request->seller_name,
                 'seller_address' => $request->seller_address,
                 'seller_mobile' => $request->seller_mobile,
@@ -178,7 +246,7 @@ class SalesOrderController extends Controller
         $order->current_step = 'CI';
         $order->save();
 
-        return redirect()->back()->with('success', __('LC saved successfully.'));
+        return redirect()->route('sales-orders.ci', $order->id)->with('success', __('LC saved successfully.'));
     }
 
     public function ciStore(Request $request, $id)
@@ -191,9 +259,9 @@ class SalesOrderController extends Controller
                     'pi_id' => $order->pi->id,
                     'lc_id' => $order->lc->id,
                     'ci_number' => $request->ci_number,
-                    'ci_date' => $request->ci_date,
-                    'lc_validity_date' => $request->lc_validity_date,
-                    'latest_shipment_date' => $request->latest_shipment_date,
+                    'ci_date' => $this->parseDate($request->ci_date),
+                    'lc_validity_date' => $this->parseDate($request->lc_validity_date),
+                    'latest_shipment_date' => $this->parseDate($request->latest_shipment_date),
                     'created_by' => Auth::user()->creatorId(),
                 ]
             );
@@ -213,7 +281,7 @@ class SalesOrderController extends Controller
 
             $order->current_step = 'Packing List';
             $order->save();
-            
+
             // Store CI ID in session for the next steps
             session(['active_ci_id' => $ci->id]);
         });
@@ -267,15 +335,28 @@ class SalesOrderController extends Controller
                 ]
             );
 
+            // Get existing slips to preserve file paths if no new file is uploaded
+            $existingSlips = $cn->weightSlips->pluck('file_path', 'tanker_id')->toArray();
+
             $cn->weightSlips()->delete();
             if ($request->has('weight_slips')) {
-                foreach ($request->weight_slips as $slip) {
+                foreach ($request->weight_slips as $index => $slip) {
+                    $filePath = $existingSlips[$slip['tanker_id']] ?? null;
+
+                    if ($request->hasFile("tanker_files.$index")) {
+                        $file = $request->file("tanker_files.$index");
+                        $fileName = time() . "_cn_{$index}_" . $file->getClientOriginalName();
+                        $file->storeAs('public/sales_orders', $fileName);
+                        $filePath = 'storage/sales_orders/' . $fileName;
+                    }
+
                     SalesWeightSlip::create([
                         'consignment_note_id' => $cn->id,
-                        'tanker_id' => $slip['tanker_id'] ?? 'N/A', // fallback to N/A if tanker_id is null
+                        'tanker_id' => $slip['tanker_id'],
                         'gross_weight' => $slip['gross'],
                         'tare_weight' => $slip['tare'],
                         'net_weight' => $slip['net'],
+                        'file_path' => $filePath,
                     ]);
                 }
             }
@@ -291,10 +372,10 @@ class SalesOrderController extends Controller
     {
         $order = SalesOrder::find($id);
         $ci_id = $request->ci_id ?? session('active_ci_id');
-        
+
         // Find or Create CI specific tankers data if we move it there, 
         // but for now let's just keep the flow moving.
-        
+
         $order->status = 'completed'; // Order is partially completed
         $order->save();
 
@@ -305,7 +386,7 @@ class SalesOrderController extends Controller
     {
         $order = SalesOrder::find($id);
         $ci_id = $request->ci_id ?? session('active_ci_id');
-        
+
         \App\Models\SalesDelivery::updateOrCreate(
             ['ci_id' => $ci_id, 'order_id' => $order->id],
             [
@@ -335,104 +416,116 @@ class SalesOrderController extends Controller
     }
 
     // Print & Download Methods
-    public function poPrint($id) {
+    public function poPrint($id)
+    {
         $order = SalesOrder::with(['po.items'])->find($id);
         $amountInWords = $this->numberToWords($order->po->grand_total ?? 0);
         return view('sales_orders.print.po', compact('order', 'amountInWords'));
     }
-    public function poDownload($id) {
+    public function poDownload($id)
+    {
         $order = SalesOrder::with(['po.items'])->find($id);
         return view('sales_orders.print.po', compact('order')); // Browser can print to PDF
     }
 
-    public function piPrint($id) {
+    public function piPrint($id)
+    {
         $order = SalesOrder::with(['pi'])->find($id);
         return view('sales_orders.print.pi', compact('order'));
     }
-    public function piDownload($id) {
+    public function piDownload($id)
+    {
         $order = SalesOrder::with(['pi'])->find($id);
         return view('sales_orders.print.pi', compact('order'));
     }
 
-    public function lcPrint($id) {
+    public function lcPrint($id)
+    {
         $order = SalesOrder::with(['lc'])->find($id);
         return view('sales_orders.print.lc', compact('order'));
     }
-    public function lcDownload($id) {
+    public function lcDownload($id)
+    {
         $order = SalesOrder::with(['lc'])->find($id);
         return view('sales_orders.print.lc', compact('order'));
     }
 
-    public function ciPrint($id) {
+    public function ciPrint($id)
+    {
         $order = SalesOrder::with(['ci.tankers'])->find($id);
         return view('sales_orders.print.ci', compact('order'));
     }
-    public function ciDownload($id) {
+    public function ciDownload($id)
+    {
         $order = SalesOrder::with(['ci.tankers'])->find($id);
         return view('sales_orders.print.ci', compact('order'));
     }
 
-    public function plPrint($id) {
+    public function plPrint($id)
+    {
         $order = SalesOrder::with(['packingList'])->find($id);
         return view('sales_orders.print.pl', compact('order'));
     }
-    public function plDownload($id) {
+    public function plDownload($id)
+    {
         $order = SalesOrder::with(['packingList'])->find($id);
         return view('sales_orders.print.pl', compact('order'));
     }
 
-    public function cnPrint($id) {
+    public function cnPrint($id)
+    {
         $order = SalesOrder::with(['consignmentNote.weightSlips.tanker'])->find($id);
         return view('sales_orders.print.cn', compact('order'));
     }
 
-    public function cnDownload($id) {
+    public function cnDownload($id)
+    {
         $order = SalesOrder::with(['consignmentNote.weightSlips.tanker'])->find($id);
         return view('sales_orders.print.cn', compact('order'));
     }
 
     private function numberToWords($number)
     {
-        $hyphen      = '-';
+        $hyphen = '-';
         $conjunction = ' and ';
-        $separator   = ', ';
-        $negative    = 'negative ';
-        $decimal     = ' point ';
-        $dictionary  = array(
-            0                   => 'zero',
-            1                   => 'one',
-            2                   => 'two',
-            3                   => 'three',
-            4                   => 'four',
-            5                   => 'five',
-            6                   => 'six',
-            7                   => 'seven',
-            8                   => 'eight',
-            9                   => 'nine',
-            10                  => 'ten',
-            11                  => 'eleven',
-            12                  => 'twelve',
-            13                  => 'thirteen',
-            14                  => 'fourteen',
-            15                  => 'fifteen',
-            16                  => 'sixteen',
-            17                  => 'seventeen',
-            18                  => 'eighteen',
-            19                  => 'nineteen',
-            20                  => 'twenty',
-            30                  => 'thirty',
-            40                  => 'forty',
-            50                  => 'fifty',
-            60                  => 'sixty',
-            70                  => 'seventy',
-            80                  => 'eighty',
-            90                  => 'ninety',
-            100                 => 'hundred',
-            1000                => 'thousand',
-            1000000             => 'million',
-            1000000000          => 'billion',
-            1000000000000       => 'trillion',
-            1000000000000000    => 'quadrillion',
+        $separator = ', ';
+        $negative = 'negative ';
+        $decimal = ' point ';
+        $dictionary = array(
+            0 => 'zero',
+            1 => 'one',
+            2 => 'two',
+            3 => 'three',
+            4 => 'four',
+            5 => 'five',
+            6 => 'six',
+            7 => 'seven',
+            8 => 'eight',
+            9 => 'nine',
+            10 => 'ten',
+            11 => 'eleven',
+            12 => 'twelve',
+            13 => 'thirteen',
+            14 => 'fourteen',
+            15 => 'fifteen',
+            16 => 'sixteen',
+            17 => 'seventeen',
+            18 => 'eighteen',
+            19 => 'nineteen',
+            20 => 'twenty',
+            30 => 'thirty',
+            40 => 'forty',
+            50 => 'fifty',
+            60 => 'sixty',
+            70 => 'seventy',
+            80 => 'eighty',
+            90 => 'ninety',
+            100 => 'hundred',
+            1000 => 'thousand',
+            1000000 => 'million',
+            1000000000 => 'billion',
+            1000000000000 => 'trillion',
+            1000000000000000 => 'quadrillion',
             1000000000000000000 => 'quintillion'
         );
 
@@ -463,15 +556,15 @@ class SalesOrderController extends Controller
                 $string = $dictionary[$number];
                 break;
             case $number < 100:
-                $tens   = ((int) ($number / 10)) * 10;
-                $units  = $number % 10;
+                $tens = ((int) ($number / 10)) * 10;
+                $units = $number % 10;
                 $string = $dictionary[$tens];
                 if ($units) {
                     $string .= $hyphen . $dictionary[$units];
                 }
                 break;
             case $number < 1000:
-                $hundreds  = $number / 100;
+                $hundreds = $number / 100;
                 $remainder = $number % 100;
                 $string = $dictionary[(int) $hundreds] . ' ' . $dictionary[100];
                 if ($remainder) {
@@ -496,5 +589,16 @@ class SalesOrderController extends Controller
         }
 
         return ucfirst($string);
+    }
+
+    private function parseDate($date)
+    {
+        if (!$date)
+            return null;
+        try {
+            return \Carbon\Carbon::createFromFormat('m-d-Y', $date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return $date; // Fallback to original if already in Y-m-d or other format
+        }
     }
 }

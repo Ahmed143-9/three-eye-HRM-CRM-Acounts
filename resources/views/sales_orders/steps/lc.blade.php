@@ -3,63 +3,60 @@
 <div class="alert alert-info py-2">
     {{ __('Linked PI: ') }} <strong>{{ optional($order->pi)->pi_number ?? 'N/A' }}</strong>
     ({{ optional($order->pi)->pi_date ?? '' }}) -
-    {{ __('Amount: ') }} <strong>{{ number_format(optional($order->pi)->amount ?? 0, 2) }}</strong>
+    {{ __('Total QTY (from PI): ') }} <strong>{{ number_format($order->po->items->sum('quantity'), 3) }} {{ $order->po->items->first()->unit_id ?? '' }}</strong>
 </div>
 
-{{ Form::open(['route' => ['sales-orders.lc.store', $order->id], 'method' => 'post']) }}
+{{ Form::open(['route' => ['sales-orders.lc.store', $order->id], 'method' => 'post', 'id' => 'workflow-form']) }}
 <div class="row">
     <div class="col-md-4">
         <div class="form-group">
-            {{ Form::label('lc_no', __('LC Number'), ['class' => 'form-label']) }}
-            {{ Form::text('lc_no', $order->lc->lc_no ?? null, ['class' => 'form-control', 'required' => 'required']) }}
+            {{ Form::label('lc_reference_no', __('LC Reference No.'), ['class' => 'form-label']) }}
+            {{ Form::text('lc_reference_no', $order->lc->lc_reference_no ?? 'LC-' . time(), ['class' => 'form-control', 'required' => 'required', 'readonly']) }}
         </div>
     </div>
     <div class="col-md-4">
         <div class="form-group">
-            {{ Form::label('client_lc_number', __('Client LC Number'), ['class' => 'form-label']) }}
-            {{ Form::text('client_lc_number', $order->lc->client_lc_number ?? null, ['class' => 'form-control']) }}
+            {{ Form::label('client_lc_no', __('Client LC No.'), ['class' => 'form-label']) }}
+            {{ Form::text('client_lc_no', $order->lc->client_lc_no ?? null, ['class' => 'form-control']) }}
         </div>
     </div>
     <div class="col-md-4">
         <div class="form-group">
-            {{ Form::label('amount', __('LC Amount'), ['class' => 'form-label']) }}
-            {{ Form::number('amount', $order->lc->amount ?? null, ['class' => 'form-control', 'step' => '0.01', 'id' => 'lc_amount']) }}
+            {{ Form::label('lc_qty', __('LC Amount (QTY)'), ['class' => 'form-label']) }}
+            {{ Form::number('lc_qty', $order->lc->lc_qty ?? $order->po->items->sum('quantity'), ['class' => 'form-control', 'step' => '0.001', 'id' => 'lc_qty']) }}
             <small class="text-danger d-none mismatch-label"
-                id="warning_amount">{{ __('Warning: Does not match PI (') . number_format(optional($order->pi)->amount ?? 0, 2) . ')' }}</small>
-            <input type="hidden" id="pi_amount" value="{{ optional($order->pi)->amount ?? 0 }}">
+                id="warning_qty">{{ __('Warning: Does not match PI Total QTY (') . number_format($order->po->items->sum('quantity'), 3) . ')' }}</small>
+            <input type="hidden" id="pi_qty" value="{{ $order->po->items->sum('quantity') }}">
         </div>
     </div>
     <div class="col-md-4">
         <div class="form-group">
-            {{ Form::label('lc_date', __('LC Date'), ['class' => 'form-label']) }}
-            {{ Form::date('lc_date', $order->lc->lc_date ?? null, ['class' => 'form-control', 'id' => 'lc_date']) }}
-            <small class="text-danger d-none mismatch-label"
-                id="warning_date">{{ __('Warning: Exceeds PI Validity') }}</small>
+            {{ Form::label('unit', __('Unit'), ['class' => 'form-label']) }}
+            {{ Form::text('unit', $order->lc->unit ?? ($order->po->items->first()->unit_id ?? null), ['class' => 'form-control', 'readonly']) }}
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            {{ Form::label('date_of_issue', __('Date of Issue (LC)'), ['class' => 'form-label']) }}
+            {{ Form::text('date_of_issue', isset($order->lc->date_of_issue) ? \Carbon\Carbon::parse($order->lc->date_of_issue)->format('m-d-Y') : null, ['class' => 'form-control datepicker', 'id' => 'date_of_issue', 'placeholder' => 'MM-DD-YYYY']) }}
+            <small class="text-danger d-none mismatch-label mt-1" id="warning_date">{{ __('Warning: Exceeds PI Validity') }}</small>
             <input type="hidden" id="pi_date" value="{{ optional($order->pi)->pi_date ?? '' }}">
             <input type="hidden" id="pi_validity" value="{{ optional($order->pi)->validity ?? 0 }}">
         </div>
     </div>
     <div class="col-md-4">
-        <!-- <div class="form-group">
-            {{ Form::label('latest_shipment_date', __('Latest Shipment Date'), ['class' => 'form-label']) }}
-            {{ Form::date('latest_shipment_date', $order->lc->latest_shipment_date ?? null, ['class' => 'form-control', 'id' => 'lc_shipment_date']) }}
-            <small class="text-danger d-none mismatch-label" id="warning_shipment_date">{{ __('Warning: Does not match PI') }}</small>
-            <input type="hidden" id="pi_shipment_date" value="{{ optional($order->pi)->latest_shipment_date ?? '' }}">
-        </div> -->
         <div class="form-group">
-            {{ Form::label('latest_shipment_date', __('Latest Shipment Date'), ['class' => 'form-label']) }}
-            {{ Form::date('latest_shipment_date', $order->lc->latest_shipment_date ?? null, ['class' => 'form-control']) }}
+            {{ Form::label('lc_type', __('LC Type'), ['class' => 'form-label']) }}
+            {{ Form::text('lc_type', $order->lc->lc_type ?? null, ['class' => 'form-control']) }}
         </div>
     </div>
 
     <div class="col-md-4">
         <div class="form-group">
             {{ Form::label('lc_validity_date', __('LC Validity Date'), ['class' => 'form-label']) }}
-            {{ Form::date('lc_validity_date', $order->lc->lc_validity_date ?? null, ['class' => 'form-control', 'id' => 'lc_validity_date']) }}
-            {{-- This is specific to LC, but let's check against PI's notion if it exists --}}
+            {{ Form::text('lc_validity_date', isset($order->lc->lc_validity_date) ? \Carbon\Carbon::parse($order->lc->lc_validity_date)->format('m-d-Y') : null, ['class' => 'form-control datepicker', 'id' => 'lc_validity_date', 'placeholder' => 'MM-DD-YYYY']) }}
         </div>
     </div>
-
     <div class="col-md-4">
         <div class="form-group">
             {{ Form::label('lifting_time', __('Lifting Time'), ['class' => 'form-label']) }}
@@ -67,15 +64,6 @@
             <small class="text-danger d-none mismatch-label"
                 id="warning_lifting_time">{{ __('Warning: Does not match PI (') . (optional($order->pi)->lifting_time ?? 'N/A') . ')' }}</small>
             <input type="hidden" id="pi_lifting_time_val" value="{{ optional($order->pi)->lifting_time ?? '' }}">
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="form-group">
-            {{ Form::label('country_of_origin', __('Country of Origin'), ['class' => 'form-label']) }}
-            {{ Form::text('country_of_origin', $order->lc->country_of_origin ?? null, ['class' => 'form-control', 'id' => 'lc_country_of_origin']) }}
-            <small class="text-danger d-none mismatch-label"
-                id="warning_country_of_origin">{{ __('Warning: Does not match PI (') . (optional($order->pi)->country_of_origin ?? 'N/A') . ')' }}</small>
-            <input type="hidden" id="pi_country_of_origin" value="{{ optional($order->pi)->country_of_origin ?? '' }}">
         </div>
     </div>
     <div class="col-md-4">
@@ -89,6 +77,15 @@
     </div>
     <div class="col-md-6">
         <div class="form-group">
+            {{ Form::label('country_of_origin', __('Country of Origin'), ['class' => 'form-label']) }}
+            {{ Form::text('country_of_origin', $order->lc->country_of_origin ?? null, ['class' => 'form-control', 'id' => 'lc_country_of_origin']) }}
+            <small class="text-danger d-none mismatch-label"
+                id="warning_country_of_origin">{{ __('Warning: Does not match PI (') . (optional($order->pi)->country_of_origin ?? 'N/A') . ')' }}</small>
+            <input type="hidden" id="pi_country_of_origin" value="{{ optional($order->pi)->country_of_origin ?? '' }}">
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
             {{ Form::label('port_of_loading', __('Port of Loading'), ['class' => 'form-label']) }}
             {{ Form::text('port_of_loading', $order->lc->port_of_loading ?? null, ['class' => 'form-control', 'id' => 'lc_port_of_loading']) }}
             <small class="text-danger d-none mismatch-label"
@@ -96,7 +93,22 @@
             <input type="hidden" id="pi_port_of_loading" value="{{ optional($order->pi)->port_of_loading ?? '' }}">
         </div>
     </div>
-    <div class="col-md-6">
+
+    <div class="col-md-4">
+        <div class="form-group">
+            {{ Form::label('incoterm', __('Incoterms'), ['class' => 'form-label']) }}
+            {{ Form::text('incoterm', $order->pi->incoterm ?? null, ['class' => 'form-control', 'readonly']) }}
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            {{ Form::label('latest_shipment_date', __('Latest Shipment Date'), ['class' => 'form-label']) }}
+            {{ Form::text('latest_shipment_date', isset($order->lc->latest_shipment_date) ? \Carbon\Carbon::parse($order->lc->latest_shipment_date)->format('m-d-Y') : null, ['class' => 'form-control datepicker', 'id' => 'lc_shipment_date', 'placeholder' => 'MM-DD-YYYY']) }}
+            <small class="text-danger d-none mismatch-label mt-1" id="warning_shipment_date">{{ __('Warning: Does not match PI') }}</small>
+            <input type="hidden" id="pi_shipment_date" value="{{ optional($order->pi)->latest_shipment_date ?? '' }}">
+        </div>
+    </div>
+    <div class="col-md-4">
         <div class="form-group">
             {{ Form::label('port_of_discharge', __('Port of Discharge'), ['class' => 'form-label']) }}
             {{ Form::text('port_of_discharge', $order->lc->port_of_discharge ?? null, ['class' => 'form-control', 'id' => 'lc_port_of_discharge']) }}
@@ -185,84 +197,13 @@
     </div>
 </div>
 
-@push('script-page')
-    <script>
-        $(document).ready(function () {
-            function checkMismatch(inputId, piValueId, warningId, type = 'text') {
-                var val = $('#' + inputId).val();
-                var piVal = $('#' + piValueId).val();
 
-                if (!val && !piVal) {
-                    $('#' + warningId).addClass('d-none');
-                    return;
-                }
 
-                var mismatch = false;
-                if (type === 'number') {
-                    mismatch = Math.abs(parseFloat(val) - parseFloat(piVal)) > 0.01;
-                } else if (type === 'date_validity') {
-                    var piDateStr = $('#pi_date').val();
-                    var validityDays = parseInt($('#pi_validity').val()) || 0;
-                    var lcDateStr = val;
-                    if (piDateStr && lcDateStr && validityDays > 0) {
-                        var piDate = new Date(piDateStr);
-                        var lcDate = new Date(lcDateStr);
-                        var expiryDate = new Date(piDate);
-                        expiryDate.setDate(expiryDate.getDate() + validityDays);
-                        mismatch = lcDate > expiryDate;
-                    }
-                } else if (type === 'date_match') {
-                    mismatch = val !== piVal;
-                } else {
-                    mismatch = (val || '').trim().toLowerCase() !== (piVal || '').trim().toLowerCase();
-                }
-
-                if (mismatch) {
-                    $('#' + warningId).removeClass('d-none');
-                } else {
-                    $('#' + warningId).addClass('d-none');
-                }
-            }
-
-            $('#lc_amount').on('keyup change', function () { checkMismatch('lc_amount', 'pi_amount', 'warning_amount', 'number'); });
-            $('#lc_date').on('change', function () { checkMismatch('lc_date', 'pi_date', 'warning_date', 'date_validity'); });
-            $('#lc_shipment_date').on('change', function () { checkMismatch('lc_shipment_date', 'pi_shipment_date', 'warning_shipment_date', 'date_match'); });
-
-            ['seller_name', 'seller_address', 'seller_mobile', 'seller_email',
-                'buyer_name', 'buyer_address', 'buyer_mobile', 'buyer_email',
-                'lifting_time', 'country_of_origin', 'tolerance', 'port_of_loading', 'port_of_discharge'
-            ].forEach(function (field) {
-                var inputId = field === 'lifting_time' ? 'lc_lifting_time' : 'lc_' + field;
-                var piValueId = field === 'lifting_time' ? 'pi_lifting_time_val' : 'pi_' + field;
-                $('#' + inputId).on('keyup change', function () {
-                    checkMismatch(inputId, piValueId, 'warning_' + field);
-                });
-            });
-
-            // Trigger checks
-            $('#lc_amount').trigger('change');
-            $('#lc_date').trigger('change');
-            $('#lc_shipment_date').trigger('change');
-            ['seller_name', 'seller_address', 'seller_mobile', 'seller_email',
-                'buyer_name', 'buyer_address', 'buyer_mobile', 'buyer_email',
-                'lifting_time', 'country_of_origin', 'tolerance', 'port_of_loading', 'port_of_discharge'
-            ].forEach(function (field) {
-                var inputId = field === 'lifting_time' ? 'lc_lifting_time' : 'lc_' + field;
-                $('#' + inputId).trigger('change');
-            });
-        });
-    </script>
-@endpush
-
-<div class="d-flex justify-content-between align-items-center mt-3">
-    <div>
-        @if($order->lc)
-            <a href="{{ route('sales-orders.lc.print', $order->id) }}" target="_blank" class="btn btn-secondary"><i
-                    class="ti ti-printer me-1"></i>{{ __('Print') }}</a>
-            <a href="{{ route('sales-orders.lc.download', $order->id) }}" class="btn btn-info"><i
-                    class="ti ti-download me-1"></i>{{ __('Download PDF') }}</a>
-        @endif
+<div class="col-md-12 mt-4">
+    <div class="form-group">
+        {{ Form::label('terms_and_conditions', __('Terms and Conditions'), ['class' => 'form-label']) }}
+        {{ Form::textarea('terms_and_conditions', $order->lc->terms_and_conditions ?? null, ['class' => 'form-control', 'rows' => 4, 'placeholder' => __('Enter terms and conditions...')]) }}
     </div>
-    <button type="submit" class="btn btn-primary">{{ __('Save & Proceed to CI') }}</button>
 </div>
+
 {{ Form::close() }}

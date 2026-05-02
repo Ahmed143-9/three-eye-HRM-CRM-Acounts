@@ -791,6 +791,7 @@ Route::group(['middleware' => ['verified']], function () {
             'prefix' => 'accounting-setup'
         ],
         function () {
+            Route::get('accounting-clients/get-info/{id}', [\App\Http\Controllers\AccountingClientController::class, 'getClientInfo'])->name('accounting-clients.get-info');
             Route::resource('accounting-clients', \App\Http\Controllers\AccountingClientController::class);
             Route::resource('suppliers', \App\Http\Controllers\SupplierController::class);
             Route::resource('consultants', \App\Http\Controllers\ConsultantController::class);
@@ -1870,29 +1871,37 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
     Route::post('transport-bills/{id}/seen', [App\Http\Controllers\TransportController::class, 'markSeen'])->name('transport.bill.seen');
 
     Route::resource('sales-orders', SalesOrderController::class);
+    Route::get('sales-orders/{id}/po', [SalesOrderController::class, 'poPage'])->name('sales-orders.po');
     Route::post('sales-orders/{id}/po', [SalesOrderController::class, 'poStore'])->name('sales-orders.po.store');
     Route::get('sales-orders/{id}/po/print', [SalesOrderController::class, 'poPrint'])->name('sales-orders.po.print');
     Route::get('sales-orders/{id}/po/download', [SalesOrderController::class, 'poDownload'])->name('sales-orders.po.download');
 
+    Route::get('sales-orders/{id}/pi', [SalesOrderController::class, 'piPage'])->name('sales-orders.pi');
     Route::post('sales-orders/{id}/pi', [SalesOrderController::class, 'piStore'])->name('sales-orders.pi.store');
     Route::get('sales-orders/{id}/pi/print', [SalesOrderController::class, 'piPrint'])->name('sales-orders.pi.print');
     Route::get('sales-orders/{id}/pi/download', [SalesOrderController::class, 'piDownload'])->name('sales-orders.pi.download');
 
+    Route::get('sales-orders/{id}/lc', [SalesOrderController::class, 'lcPage'])->name('sales-orders.lc');
     Route::post('sales-orders/{id}/lc', [SalesOrderController::class, 'lcStore'])->name('sales-orders.lc.store');
     Route::get('sales-orders/{id}/lc/print', [SalesOrderController::class, 'lcPrint'])->name('sales-orders.lc.print');
     Route::get('sales-orders/{id}/lc/download', [SalesOrderController::class, 'lcDownload'])->name('sales-orders.lc.download');
 
+    Route::get('sales-orders/{id}/ci', [SalesOrderController::class, 'ciPage'])->name('sales-orders.ci');
     Route::post('sales-orders/{id}/ci', [SalesOrderController::class, 'ciStore'])->name('sales-orders.ci.store');
     Route::get('sales-orders/{id}/ci/print', [SalesOrderController::class, 'ciPrint'])->name('sales-orders.ci.print');
     Route::get('sales-orders/{id}/ci/download', [SalesOrderController::class, 'ciDownload'])->name('sales-orders.ci.download');
 
+    Route::get('sales-orders/{id}/pl', [SalesOrderController::class, 'plPage'])->name('sales-orders.pl');
     Route::post('sales-orders/{id}/pl', [SalesOrderController::class, 'plStore'])->name('sales-orders.pl.store');
     Route::get('sales-orders/{id}/pl/print', [SalesOrderController::class, 'plPrint'])->name('sales-orders.pl.print');
     Route::get('sales-orders/{id}/pl/download', [SalesOrderController::class, 'plDownload'])->name('sales-orders.pl.download');
 
+    Route::get('sales-orders/{id}/cn', [SalesOrderController::class, 'cnPage'])->name('sales-orders.cn');
     Route::post('sales-orders/{id}/cn', [SalesOrderController::class, 'cnStore'])->name('sales-orders.cn.store');
     Route::get('sales-orders/{id}/cn/print', [SalesOrderController::class, 'cnPrint'])->name('sales-orders.cn.print');
     Route::get('sales-orders/{id}/cn/download', [SalesOrderController::class, 'cnDownload'])->name('sales-orders.cn.download');
+    
+    Route::get('sales-orders/{id}/rd', [SalesOrderController::class, 'receivedDetailsPage'])->name('sales-orders.rd');
     Route::post('sales-orders/{id}/rd-store', [SalesOrderController::class, 'receivedDetailsStore'])->name('sales-orders.rd.store');
     Route::post('sales-orders/{id}/delivery-store', [SalesOrderController::class, 'deliveryStore'])->name('sales-orders.delivery.store');
     Route::post('sales-orders/{id}/finalize', [SalesOrderController::class, 'finalize'])->name('sales-orders.finalize');

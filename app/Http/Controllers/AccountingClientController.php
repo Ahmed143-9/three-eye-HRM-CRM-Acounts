@@ -17,10 +17,10 @@ class AccountingClientController extends Controller
         return view('accounting_setup.clients.index', compact('clients'));
     }
 
-    public function getClients()
+    public function getClientInfo($id)
     {
-        $clients = Client::select('id', 'name', 'billing_address')->get();
-        return response()->json($clients);
+        $client = Client::find($id);
+        return response()->json($client);
     }
 
     public function create()
@@ -48,6 +48,10 @@ class AccountingClientController extends Controller
             'factory_address' => 'nullable|string',
             'billing_address' => 'nullable|string',
             'delivery_address' => 'nullable|string',
+            'bank_name' => 'nullable|string|max:255',
+            'account_name' => 'nullable|string|max:255',
+            'branch_name' => 'nullable|string|max:255',
+            'account_no' => 'nullable|string|max:255',
             'bank_details' => 'nullable|string',
             'file_attachment' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:2048',
         ]);
@@ -102,6 +106,10 @@ class AccountingClientController extends Controller
             'factory_address' => 'nullable|string',
             'billing_address' => 'nullable|string',
             'delivery_address' => 'nullable|string',
+            'bank_name' => 'nullable|string|max:255',
+            'account_name' => 'nullable|string|max:255',
+            'branch_name' => 'nullable|string|max:255',
+            'account_no' => 'nullable|string|max:255',
             'bank_details' => 'nullable|string',
             'file_attachment' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:2048',
         ]);

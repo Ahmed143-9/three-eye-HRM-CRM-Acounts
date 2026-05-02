@@ -30,6 +30,13 @@ class SalesPI extends Model
         'buyer_address',
         'buyer_mobile',
         'buyer_email',
+        'bank_name',
+        'account_name',
+        'branch_name',
+        'account_no',
+        'swift_code',
+        'incoterm',
+        'terms_and_conditions',
         'created_by',
     ];
 

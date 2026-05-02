@@ -130,10 +130,21 @@
     </div>
 </div>
 
-<div class="text-end mt-3">
-    <button type="submit" class="btn btn-success btn-lg px-5 shadow">{{ __('Save Received Details') }}</button>
-</div>
 {{ Form::close() }}
+
+@if($order->status != 'finalized')
+    <div class="mt-5 border-top pt-4 text-center">
+        <h5>{{ __('Finalize Sales Order') }}</h5>
+        <p class="text-muted">{{ __('Once finalized, you will no longer be able to edit any details in this workflow.') }}</p>
+        {{ Form::open(['route' => ['sales-orders.finalize', $order->id], 'method' => 'post']) }}
+        <button type="submit" class="btn btn-danger btn-lg px-5 shadow-sm">{{ __('Finalize Order') }} <i class="ti ti-lock ms-1"></i></button>
+        {{ Form::close() }}
+    </div>
+@else
+    <div class="alert alert-success mt-4">
+        <i class="ti ti-circle-check me-1"></i>{{ __('This order is finalized and locked.') }}
+    </div>
+@endif
 
 @push('script-page')
 <script>

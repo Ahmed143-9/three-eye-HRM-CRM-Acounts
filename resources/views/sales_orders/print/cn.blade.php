@@ -24,10 +24,10 @@
     <tbody>
         @foreach($order->consignmentNote->weightSlips as $slip)
         <tr>
-            <td>{{ $slip->tanker->tanker_number }}</td>
-            <td>{{ $slip->gross_weight }}</td>
-            <td>{{ $slip->tare_weight }}</td>
-            <td>{{ $slip->net_weight }}</td>
+            <td>{{ $slip->tanker_id }}</td>
+            <td>{{ number_format($slip->gross_weight, 3) }}</td>
+            <td>{{ number_format($slip->tare_weight, 3) }}</td>
+            <td>{{ number_format($slip->net_weight, 3) }}</td>
         </tr>
         @endforeach
     </tbody>
