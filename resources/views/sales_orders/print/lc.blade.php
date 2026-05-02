@@ -1,4 +1,4 @@
-@extends('layouts.print', ['title' => 'Letter of Credit - ' . $order->lc->lc_no])
+@extends('layouts.print', ['title' => 'Letter of Credit - ' . ($order->lc->lc_reference_no ?? '')])
 
 @section('content')
 <div class="header">
@@ -6,10 +6,10 @@
         <h3>LETTER OF CREDIT (LC)</h3>
     </div>
     <div class="header-info">
-        <p><strong>LC Number:</strong> {{ $order->lc->lc_no }}</p>
-        <p><strong>Client LC #:</strong> {{ $order->lc->client_lc_number ?? 'N/A' }}</p>
+        <p><strong>LC Number:</strong> {{ $order->lc->lc_reference_no }}</p>
+        <p><strong>Client LC #:</strong> {{ $order->lc->client_lc_no ?? 'N/A' }}</p>
         <p><strong>LC Date:</strong> {{ $order->lc->lc_date }}</p>
-        <p><strong>Total Amount:</strong> {{ $order->lc->amount }}</p>
+        <p><strong>LC Quantity:</strong> {{ number_format($order->lc->lc_qty, 2) }} {{ $order->lc->unit }}</p>
     </div>
 </div>
 
@@ -46,13 +46,6 @@
     </tr>
 </table>
 
-@php
-    $controller = new \App\Http\Controllers\SalesOrderController();
-    $amountInWords = $controller->numberToWords($order->lc->amount);
-@endphp
-<div class="mt-3">
-    <p><strong>Amount in Words:</strong> {{ strtoupper($amountInWords) }} ONLY</p>
-</div>
 
 <div class="footer">
     <div class="signature-box">

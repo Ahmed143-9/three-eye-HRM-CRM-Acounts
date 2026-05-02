@@ -8,41 +8,18 @@
             // If creating a new CI, don't pull from session
             $active_ci_id = request()->new_ci ? null : (request()->ci_id ?? session('active_ci_id'));
             $active_ci = $active_ci_id ? $order->cis->find($active_ci_id) : null;
+
+            // Smart Auto-fill Defaults from PO
+            $firstPoItem = $order->po && $order->po->items ? $order->po->items->first() : null;
+            $defaultUnit = $firstPoItem ? $firstPoItem->unit : 'MT';
+            $defaultPrice = $firstPoItem ? $firstPoItem->price : 0;
+            $defaultCurrency = $firstPoItem ? $firstPoItem->currency : 'USD';
         @endphp
 
-        <!-- 1. Summary Matrix -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0 text-white">{{ __('Partial Delivery Matrix (Container View)') }}</h6>
-                        <span class="badge bg-light text-dark">{{ __('Total Order: ') }} {{ number_format($totalOrderQty, 3) }} MT</span>
-                    </div>
-                    <div class="card-body bg-light">
-                        <div class="row text-center">
-                            <div class="col-md-4 border-end">
-                                <p class="text-muted mb-1">{{ __('Total Shipped (Across all CIs)') }}</p>
-                                <h4 class="text-success">{{ number_format($deliveredQty, 3) }} MT</h4>
-                            </div>
-                            <div class="col-md-4 border-end">
-                                <p class="text-muted mb-1">{{ __('Remaining Balance') }}</p>
-                                <h4 class="{{ $remainingQty > 0 ? 'text-warning' : ($remainingQty < 0 ? 'text-danger' : 'text-primary') }}">
-                                    {{ number_format($remainingQty, 3) }} MT
-                                </h4>
-                            </div>
-                            <div class="col-md-4">
-                                <p class="text-muted mb-1">{{ __('Completion Status') }}</p>
-                                <div class="progress mt-2" style="height: 10px;">
-                                    @php $percent = $totalOrderQty > 0 ? min(100, ($deliveredQty / $totalOrderQty) * 100) : 0; @endphp
-                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ $percent }}%"></div>
-                                </div>
-                                <small>{{ number_format($percent, 1) }}% {{ __('Delivered') }}</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <input type="hidden" id="default_unit" value="{{ $defaultUnit }}">
+        <input type="hidden" id="default_price" value="{{ $defaultPrice }}">
+        <input type="hidden" id="default_currency" value="{{ $defaultCurrency }}">
+
 
         <div class="row">
             <!-- 2. CI List Sidebar -->

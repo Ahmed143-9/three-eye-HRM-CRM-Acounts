@@ -16,6 +16,7 @@ class SalesCITanker extends Model
         'cpt_usd',
         'currency',
         'total_amount_usd',
+        'file_path',
     ];
 
     public function ci()

@@ -3,6 +3,8 @@
     <input type="hidden" name="ci_id" value="{{ $active_ci->id }}">
 @endif
 
+<h6 class="fw-bold text-dark mt-4 mb-3">{{ __('Packing List Documentation') }}</h6>
+
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">

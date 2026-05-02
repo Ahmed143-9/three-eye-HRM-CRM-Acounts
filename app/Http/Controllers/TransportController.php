@@ -83,7 +83,7 @@ class TransportController extends Controller
         // Auto-fill from Sales Order if present and not manually overridden
         if ($request->sales_order_id) {
             $order = SalesOrder::with(['lc', 'cis'])->find($request->sales_order_id);
-            $transport->lc = $request->lc ?? (optional($order->lc)->lc_no);
+            $transport->lc = $request->lc ?? (optional($order->lc)->client_lc_no);
             
             if ($request->ci_id) {
                 $ci_rec = $order->cis->find($request->ci_id);

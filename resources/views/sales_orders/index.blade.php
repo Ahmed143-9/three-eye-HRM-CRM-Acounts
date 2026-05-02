@@ -25,6 +25,7 @@
                             <thead>
                             <tr>
                                 <th>{{__('Order Number')}}</th>
+                                <th>{{__('PI Number')}}</th>
                                 <th>{{__('Customer')}}</th>
                                 <th>{{__('Current Step')}}</th>
                                 <th>{{__('Status')}}</th>
@@ -34,10 +35,10 @@
                             </thead>
                             <tbody>
                             @foreach ($orders as $order)
-                                <tr>
-                                    <td>{{ $order->order_number }}</td>
-                                    <td>{{ $order->customer->name ?? 'N/A' }}</td>
-                                    <td><span class="badge bg-info p-2 px-3 rounded">{{ $order->current_step }}</span></td>
+                            <tr>
+                                <td>{{ $order->order_number }}</td>
+                                <td>{{ $order->pi ? $order->pi->pi_number : 'N/A' }}</td>
+                                <td>{{ $order->customer->name ?? 'N/A' }}</td>                                    <td><span class="badge bg-info p-2 px-3 rounded">{{ $order->current_step }}</span></td>
                                     <td>
                                         @if($order->status == 'pending')
                                             <span class="badge bg-warning p-2 px-3 rounded">{{ ucfirst($order->status) }}</span>

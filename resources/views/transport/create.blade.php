@@ -23,28 +23,73 @@
             <div class="card-body">
                 <div class="row">
                     @if($salesOrder)
-                        <div class="col-md-12"><h6 class="mb-3 text-primary">{{ __('Sales Order & Client Information') }}</h6></div>
-                        <div class="form-group col-md-3">
-                            {{ Form::label('order_number', __('Order ID'), ['class' => 'form-label']) }}
-                            {{ Form::text('order_number', $salesOrder->order_number ?? $salesOrder->id, ['class' => 'form-control', 'readonly' => 'readonly']) }}
+                        <div class="col-md-12">
+                            <div class="card bg-light border-0 mb-4">
+                                <div class="card-body">
+                                    <h6 class="text-primary mb-3"><i class="ti ti-link me-2"></i>{{ __('Linked Shipment Details') }}</h6>
+                                    <div class="row text-sm">
+                                        <div class="col-md-3">
+                                            <span class="text-muted d-block">{{ __('Order ID') }}</span>
+                                            <span class="fw-bold fs-6">{{ $salesOrder->order_number ?? $salesOrder->id }}</span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <span class="text-muted d-block">{{ __('LC Number') }}</span>
+                                            <span class="fw-bold fs-6">{{ optional($salesOrder->lc)->client_lc_no ?? 'N/A' }}</span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <span class="text-muted d-block">{{ __('CI Number') }}</span>
+                                            <span class="fw-bold fs-6 text-success">{{ $activeCi ? $activeCi->ci_number : (optional($salesOrder->ci)->ci_number ?? 'N/A') }}</span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <span class="text-muted d-block">{{ __('Client') }}</span>
+                                            <span class="fw-bold fs-6">{{ $salesOrder->customer->name ?? 'N/A' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group col-md-3">
-                            {{ Form::label('client_name', __('Client Name'), ['class' => 'form-label']) }}
-                            {{ Form::text('client_name', $salesOrder->customer->name ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) }}
-                            <input type="hidden" name="client_id" value="{{ $salesOrder->customer_id }}">
-                        </div>
-                        <div class="form-group col-md-3">
-                            {{ Form::label('client_email', __('Client Email'), ['class' => 'form-label']) }}
-                            {{ Form::text('client_email', $salesOrder->customer->contact_person_email ?? $salesOrder->customer->email ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) }}
-                        </div>
-                        <div class="form-group col-md-3">
-                            {{ Form::label('client_phone', __('Client Phone'), ['class' => 'form-label']) }}
-                            {{ Form::text('client_phone', $salesOrder->customer->contact_person_number ?? $salesOrder->customer->contact ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) }}
-                        </div>
-                        <div class="form-group col-md-12">
-                            {{ Form::label('client_address', __('Client Address'), ['class' => 'form-label']) }}
-                            {{ Form::text('client_address', $salesOrder->customer->billing_address ?? ($salesOrder->customer->shipping_address ?? ''), ['class' => 'form-control', 'readonly' => 'readonly']) }}
-                        </div>
+
+                        <!-- Hidden Inputs for Form Submission -->
+                        <input type="hidden" name="order_number" value="{{ $salesOrder->order_number }}">
+                        <input type="hidden" name="client_id" value="{{ $salesOrder->customer_id }}">
+                        <input type="hidden" name="lc" value="{{ optional($salesOrder->lc)->client_lc_no }}">
+                        <input type="hidden" name="ci" value="{{ $activeCi ? $activeCi->ci_number : optional($salesOrder->ci)->ci_number }}">
+
+                        @if($activeCi && $activeCi->tankers->count() > 0)
+                            <div class="col-md-12 mb-4">
+                                <h6 class="mb-3"><i class="ti ti-truck-delivery me-2"></i>{{ __('Tanker Details for this Shipment') }}</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th>{{ __('Tanker Number') }}</th>
+                                                <th>{{ __('Quantity (MT)') }}</th>
+                                                <th>{{ __('Price (CPT)') }}</th>
+                                                <th>{{ __('Total Amount') }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($activeCi->tankers as $tanker)
+                                                <tr>
+                                                    <td>{{ $tanker->tanker_number }}</td>
+                                                    <td>{{ number_format($tanker->quantity_mt, 3) }}</td>
+                                                    <td>{{ number_format($tanker->cpt_usd, 2) }} {{ $tanker->currency }}</td>
+                                                    <td>{{ number_format($tanker->total_amount_usd, 2) }} {{ $tanker->currency }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                        <tfoot class="bg-light">
+                                            <tr class="fw-bold">
+                                                <td>{{ __('TOTAL') }}</td>
+                                                <td>{{ number_format($activeCi->tankers->sum('quantity_mt'), 3) }} MT</td>
+                                                <td></td>
+                                                <td>{{ number_format($activeCi->tankers->sum('total_amount_usd'), 2) }} USD</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        @endif
                     @else
                         <div class="form-group col-md-6">
                             {{ Form::label('client_id', __('Client Name'), ['class' => 'form-label']) }}
@@ -55,6 +100,7 @@
                             {{ Form::text('manual_client_name', null, ['class' => 'form-control']) }}
                         </div>
                     @endif
+                    
                     @if(!$salesOrder)
                         <div class="form-group col-md-12">
                             {{ Form::label('location_address', __('Location / Address'), ['class' => 'form-label']) }}
@@ -65,27 +111,6 @@
                             {{ Form::hidden('location_lat', null, ['id' => 'location_lat']) }}
                             {{ Form::hidden('location_lng', null, ['id' => 'location_lng']) }}
                         </div>
-                    @endif
-                    @if($salesOrder)
-                        <hr class="mt-3">
-                        <div class="col-md-12"><h6 class="mb-3 text-primary">{{ __('Order Information') }}</h6></div>
-                        <div class="form-group col-md-3">
-                            {{ Form::label('po', __('PO (Purchase Order)'), ['class' => 'form-label']) }}
-                            {{ Form::text('po', optional($salesOrder->po)->order_number, ['class' => 'form-control', 'readonly' => 'readonly']) }}
-                        </div>
-                        <div class="form-group col-md-3">
-                            {{ Form::label('pi', __('PI (Proforma Invoice)'), ['class' => 'form-label']) }}
-                            {{ Form::text('pi', optional($salesOrder->pi)->pi_number, ['class' => 'form-control', 'readonly' => 'readonly']) }}
-                        </div>
-                        <div class="form-group col-md-3">
-                            {{ Form::label('lc', __('LC (Letter of Credit)'), ['class' => 'form-label']) }}
-                            {{ Form::text('lc', optional($salesOrder->lc)->lc_no, ['class' => 'form-control', 'readonly' => 'readonly']) }}
-                        </div>
-                        <div class="form-group col-md-3">
-                            {{ Form::label('ci', __('C.I (Commercial Invoice)'), ['class' => 'form-label']) }}
-                            {{ Form::text('ci', $activeCi ? $activeCi->ci_number : (optional($salesOrder->ci)->ci_number), ['class' => 'form-control', 'readonly' => 'readonly']) }}
-                        </div>
-                    @else
                         <div class="form-group col-md-6">
                             {{ Form::label('lc', __('LC (Letter of Credit)'), ['class' => 'form-label']) }}
                             {{ Form::text('lc', null, ['class' => 'form-control']) }}
@@ -100,7 +125,8 @@
                     <div class="col-md-12"><h6 class="mb-3 text-primary">{{ __('Transport Requirements') }}</h6></div>
                     
                     @php
-                        $delivery = $activeCi ? $activeCi->delivery : $salesOrder->delivery;
+                        $delivery = $activeCi ? $activeCi->delivery : ($salesOrder ? $salesOrder->delivery : null);
+                        $required_units = $delivery ? $delivery->required_units : 0;
                     @endphp
                     @if($salesOrder && $delivery)
                         <div class="form-group col-md-12">
@@ -114,8 +140,8 @@
                     @endif
 
                     <div class="form-group col-md-6">
-                        {{ Form::label('transport_type', __('Transport Type / Truck'), ['class' => 'form-label']) }}
-                        <select name="transport_type" id="transport_type" class="form-control">
+                        {{ Form::label('transport_type', __('Transport Type / Truck Capacity'), ['class' => 'form-label']) }}
+                        <select name="transport_type" id="transport_type" class="form-control" required>
                             <option value="">{{__('Select Transport Type')}}</option>
                             <option value="Truck (75 Drums)" data-cap="75">Truck (75 Drums)</option>
                             <option value="Truck (80 Drums)" data-cap="80">Truck (80 Drums)</option>
@@ -125,17 +151,13 @@
                         <input type="hidden" id="truck_capacity" value="0">
                     </div>
                     <div class="form-group col-md-6">
-                        {{ Form::label('required_trucks', __('Required Trucks/Units'), ['class' => 'form-label']) }}
+                        {{ Form::label('required_trucks', __('Calculated Trucks Needed'), ['class' => 'form-label']) }}
                         {{ Form::number('required_trucks', null, ['class' => 'form-control', 'step' => '0.01', 'id' => 'required_trucks', 'readonly' => 'readonly']) }}
-                        @php
-                            $delivery = $activeCi ? $activeCi->delivery : $salesOrder->delivery;
-                            $required_units = $delivery ? $delivery->required_units : 0;
-                        @endphp
                         <input type="hidden" id="total_required_units" value="{{ $required_units }}">
                         @if($required_units > 0)
-                            <small class="text-success">{{ __('Calculating based on ') }} <strong>{{ $required_units }}</strong> {{ __(' units from Delivery Order.') }}</small>
+                            <small class="text-success fw-bold">{{ __('Calculating based on ') }} <strong>{{ number_format($required_units, 0) }}</strong> {{ __(' units from Delivery Order.') }}</small>
                         @else
-                            <small class="text-danger">{{ __('Warning: 0 units found in Delivery Order. Math will result in 0.') }}</small>
+                            <small class="text-danger fw-bold">{{ __('Warning: 0 units found. Please ensure Delivery Order is saved in Sales Order workflow.') }}</small>
                         @endif
                     </div>
                 </div>

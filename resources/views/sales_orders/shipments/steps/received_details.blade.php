@@ -8,7 +8,9 @@
 @endphp
 <input type="hidden" id="rd-tolerance" value="{{ $tolerance }}">
 
-<div class="table-responsive">
+<h6 class="fw-bold text-dark mt-4 mb-3">{{ __('Tanker Weight Details') }}</h6>
+
+<div class="table-responsive mt-3">
     <table class="table table-bordered align-middle table-sm" id="rd-tankers-table">
         <thead class="bg-light text-center">
             <tr>
@@ -99,7 +101,7 @@
 </div>
 
 <div class="text-end mt-3">
-    <button type="submit" class="btn btn-success px-5 shadow">{{ __('Save Received Details') }}</button>
+    <button type="submit" class="btn btn-success px-5">{{ __('Save Received Details') }}</button>
 </div>
 {{ Form::close() }}
 

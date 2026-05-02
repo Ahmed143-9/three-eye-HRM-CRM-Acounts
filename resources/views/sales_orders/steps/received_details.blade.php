@@ -1,5 +1,6 @@
-<h5>{{ __('Step 7: Received Details') }}</h5>
-<hr>
+<h5 class="fw-bold mb-0">{{ __('Step 7: Received Details') }}</h5>
+<p class="text-muted mb-0" style="font-size:0.85rem;">{{ __('Step 7 of 7') }}</p>
+<hr class="mt-2 mb-3">
 
 {{ Form::open(['route' => ['sales-orders.rd.store', $order->id], 'method' => 'post', 'id' => 'rd-form']) }}
 @php
@@ -7,7 +8,12 @@
 @endphp
 <input type="hidden" id="rd-tolerance" value="{{ $tolerance }}">
 
-<div class="table-responsive">
+<div class="d-flex align-items-center gap-2 mb-3">
+    <i class="ti ti-truck-delivery text-primary"></i>
+    <h6 class="fw-semibold mb-0 text-dark">{{ __('Tanker Weight Details') }}</h6>
+</div>
+
+<div class="table-responsive mt-3">
     <table class="table table-bordered align-middle" id="rd-tankers-table">
         <thead class="bg-light text-center">
             <tr>
@@ -131,7 +137,11 @@
 </div>
 
 <div class="text-end mt-3">
-    <button type="submit" class="btn btn-success btn-lg px-5 shadow">{{ __('Save Received Details') }}</button>
+    <button type="submit" class="btn btn-success d-inline-flex align-items-center gap-2"
+            style="background-color:#6fd943;border-color:#6fd943;padding:10px 25px;font-weight:600;">
+        {{ __('Save Received Details') }}
+        <i class="ti ti-check"></i>
+    </button>
 </div>
 {{ Form::close() }}
 

@@ -15,6 +15,7 @@ class SalesPOItem extends Model
         'quantity',
         'unit',
         'price',
+        'currency',
         'total',
     ];
 }

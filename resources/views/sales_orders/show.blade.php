@@ -39,38 +39,38 @@
                 <div class="card-body">
                     <ul class="nav nav-pills mb-3 justify-content-center" id="pills-tab" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ $order->current_step == 'PO' ? 'active' : '' }} {{ $order->po ? 'text-success' : '' }}" id="pills-po-tab" data-bs-toggle="pill" data-bs-target="#pills-po" type="button" role="tab">
+                            <button class="nav-link {{ ($order->current_step == 'PO' && !request()->ci_id && !request()->new_ci) ? 'active' : '' }} {{ $order->po ? 'text-success' : '' }}" id="pills-po-tab" data-bs-toggle="pill" data-bs-target="#pills-po" type="button" role="tab">
                                 @if($order->po) <i class="ti ti-circle-check me-1"></i> @endif {{ __('1. PO') }}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ $order->current_step == 'PI' ? 'active' : '' }} {{ !$order->po ? 'disabled' : ($order->pi ? 'text-success' : '') }}" id="pills-pi-tab" data-bs-toggle="pill" data-bs-target="#pills-pi" type="button" role="tab">
+                            <button class="nav-link {{ ($order->current_step == 'PI' && !request()->ci_id && !request()->new_ci) ? 'active' : '' }} {{ !$order->po ? 'disabled' : ($order->pi ? 'text-success' : '') }}" id="pills-pi-tab" data-bs-toggle="pill" data-bs-target="#pills-pi" type="button" role="tab">
                                 @if($order->pi) <i class="ti ti-circle-check me-1"></i> @endif {{ __('2. PI') }}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ $order->current_step == 'LC' ? 'active' : '' }} {{ !$order->pi ? 'disabled' : ($order->lc ? 'text-success' : '') }}" id="pills-lc-tab" data-bs-toggle="pill" data-bs-target="#pills-lc" type="button" role="tab">
+                            <button class="nav-link {{ ($order->current_step == 'LC' && !request()->ci_id && !request()->new_ci) ? 'active' : '' }} {{ !$order->pi ? 'disabled' : ($order->lc ? 'text-success' : '') }}" id="pills-lc-tab" data-bs-toggle="pill" data-bs-target="#pills-lc" type="button" role="tab">
                                 @if($order->lc) <i class="ti ti-circle-check me-1"></i> @endif {{ __('3. LC') }}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ in_array($order->current_step, ['CI', 'Packing List', 'Consignment Note', 'Received Details', 'Delivery']) || session('active_ci_id') ? 'active' : '' }} {{ !$order->lc ? 'disabled' : ($order->cis->count() > 0 ? 'text-success' : '') }}" id="pills-shipments-tab" data-bs-toggle="pill" data-bs-target="#pills-shipments" type="button" role="tab">
+                            <button class="nav-link {{ (in_array($order->current_step, ['CI', 'Packing List', 'Consignment Note', 'Received Details', 'Delivery']) || request()->ci_id || request()->new_ci) ? 'active' : '' }} {{ !$order->lc ? 'disabled' : ($order->cis->count() > 0 ? 'text-success' : '') }}" id="pills-shipments-tab" data-bs-toggle="pill" data-bs-target="#pills-shipments" type="button" role="tab">
                                 @if($order->cis->count() > 0) <i class="ti ti-package me-1"></i> @endif {{ __('4. Shipments (Partial Deliveries)') }}
                             </button>
                         </li>
                     </ul>
 
                     <div class="tab-content" id="pills-tabContent">
-                        <div class="tab-pane fade {{ $order->current_step == 'PO' ? 'show active' : '' }}" id="pills-po" role="tabpanel">
+                        <div class="tab-pane fade {{ ($order->current_step == 'PO' && !request()->ci_id && !request()->new_ci) ? 'show active' : '' }}" id="pills-po" role="tabpanel">
                             @include('sales_orders.steps.po')
                         </div>
-                        <div class="tab-pane fade {{ $order->current_step == 'PI' ? 'show active' : '' }}" id="pills-pi" role="tabpanel">
+                        <div class="tab-pane fade {{ ($order->current_step == 'PI' && !request()->ci_id && !request()->new_ci) ? 'show active' : '' }}" id="pills-pi" role="tabpanel">
                             @include('sales_orders.steps.pi')
                         </div>
-                        <div class="tab-pane fade {{ $order->current_step == 'LC' ? 'show active' : '' }}" id="pills-lc" role="tabpanel">
+                        <div class="tab-pane fade {{ ($order->current_step == 'LC' && !request()->ci_id && !request()->new_ci) ? 'show active' : '' }}" id="pills-lc" role="tabpanel">
                             @include('sales_orders.steps.lc')
                         </div>
-                        <div class="tab-pane fade {{ in_array($order->current_step, ['CI', 'Packing List', 'Consignment Note', 'Received Details', 'Delivery']) || session('active_ci_id') ? 'show active' : '' }}" id="pills-shipments" role="tabpanel">
+                        <div class="tab-pane fade {{ (in_array($order->current_step, ['CI', 'Packing List', 'Consignment Note', 'Received Details', 'Delivery']) || request()->ci_id || request()->new_ci) ? 'show active' : '' }}" id="pills-shipments" role="tabpanel">
                             @include('sales_orders.shipments.index')
                         </div>
                     </div>
@@ -107,7 +107,7 @@
         var units = @json($units);
         var currencies = @json($currencies);
 
-        function getUnitOptions(selected = '') {
+        function getUnitOptions(selected = 'Pc') {
             var options = '';
             $.each(units, function(k, v) {
                 options += `<option value="${k}" ${k == selected ? 'selected' : ''}>${v}</option>`;
@@ -116,7 +116,7 @@
             return options;
         }
 
-        function getCurrencyOptions(selected = '') {
+        function getCurrencyOptions(selected = 'D.') {
             var options = '';
             $.each(currencies, function(k, v) {
                 options += `<option value="${k}" ${k == selected ? 'selected' : ''}>${v}</option>`;
@@ -129,38 +129,24 @@
         $(document).on('click', '.add-item', function() {
             var index = $('#po-items-table tbody tr').length;
             var html = `<tr>
-                <td><input type="text" name="items[${index}][item]" class="form-control form-control-sm" required></td>
-                <td><input type="text" name="items[${index}][description]" class="form-control form-control-sm"></td>
-                <td><input type="number" name="items[${index}][qty]" class="form-control form-control-sm qty" required></td>
-                <td><input type="text" name="items[${index}][unit]" class="form-control form-control-sm"></td>
-                <td><input type="number" step="0.01" name="items[${index}][price]" class="form-control form-control-sm price" required></td>
-                <td><input type="number" step="0.01" name="items[${index}][total]" class="form-control form-control-sm total" readonly></td>
-                <td><button type="button" class="btn btn-danger btn-xs remove-item"><i class="ti ti-trash"></i></button></td>
+                <td><input type="text" name="items[${index}][item]" class="form-control" required></td>
+                <td><input type="text" name="items[${index}][description]" class="form-control"></td>
+                <td><input type="number" name="items[${index}][qty]" class="form-control qty" required></td>
+                <td>
+                    <select name="items[${index}][unit]" class="form-control unit-select" required>
+                        ${getUnitOptions()}
+                    </select>
+                </td>
+                <td><input type="number" step="0.01" name="items[${index}][price]" class="form-control price" required></td>
+                <td>
+                    <select name="items[${index}][currency]" class="form-control curr-select" required>
+                        ${getCurrencyOptions()}
+                    </select>
+                </td>
+                <td><input type="number" step="0.01" name="items[${index}][total]" class="form-control total" readonly></td>
+                <td><button type="button" class="btn btn-danger btn-sm remove-item"><i class="ti ti-trash"></i></button></td>
             </tr>`;
             $('#po-items-table tbody').append(html);
-        });
-
-        // CI Logic
-        $(document).on('click', '.add-tanker', function() {
-            var index = $('#ci-tankers-table tbody tr').length;
-            var html = `<tr>
-                <td><input type="text" name="tankers[${index}][tanker_number]" class="form-control form-control-sm" required></td>
-                <td><input type="number" step="0.001" name="tankers[${index}][qty_mt]" class="form-control form-control-sm t-qty" required></td>
-                <td>
-                    <select name="tankers[${index}][quantity_unit]" class="form-control form-control-sm unit-select" required>
-                        ${getUnitOptions('MT')}
-                    </select>
-                </td>
-                <td><input type="number" step="0.01" name="tankers[${index}][cpt_usd]" class="form-control form-control-sm t-cpt" required></td>
-                <td>
-                    <select name="tankers[${index}][currency]" class="form-control form-control-sm curr-select" required>
-                        ${getCurrencyOptions('USD')}
-                    </select>
-                </td>
-                <td><input type="number" step="0.01" name="tankers[${index}][total_amount]" class="form-control form-control-sm t-total" readonly></td>
-                <td><button type="button" class="btn btn-danger btn-xs remove-tanker"><i class="ti ti-trash"></i></button></td>
-            </tr>`;
-            $('#ci-tankers-table tbody').append(html);
         });
 
         // Calculation logic
@@ -177,6 +163,33 @@
             $('#grand_total').val(grandTotal.toFixed(2));
             $('#grand_total_display').text(grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2}));
         }
+
+        // CI tankers logic
+        $(document).on('click', '.add-tanker', function() {
+            var index = $('#ci-tankers-table tbody tr').length;
+            var defUnit = $('#default_unit').val() || 'MT';
+            var defPrice = $('#default_price').val() || '';
+            var defCurr = $('#default_currency').val() || 'USD';
+
+            var html = `<tr>
+                <td><input type="text" name="tankers[${index}][tanker_number]" class="form-control form-control-sm" required></td>
+                <td><input type="number" step="0.001" name="tankers[${index}][qty_mt]" class="form-control form-control-sm t-qty" required></td>
+                <td>
+                    <select name="tankers[${index}][quantity_unit]" class="form-control form-control-sm unit-select" required>
+                        ${getUnitOptions(defUnit)}
+                    </select>
+                </td>
+                <td><input type="number" step="0.01" name="tankers[${index}][cpt_usd]" class="form-control form-control-sm t-cpt" value="${defPrice}" required></td>
+                <td>
+                    <select name="tankers[${index}][currency]" class="form-control form-control-sm curr-select" required>
+                        ${getCurrencyOptions(defCurr)}
+                    </select>
+                </td>
+                <td><input type="number" step="0.01" name="tankers[${index}][total_amount]" class="form-control form-control-sm t-total" readonly></td>
+                <td><button type="button" class="btn btn-danger btn-xs remove-tanker"><i class="ti ti-trash"></i></button></td>
+            </tr>`;
+            $('#ci-tankers-table tbody').append(html);
+        });
 
         $(document).on('click', '.remove-tanker', function() { $(this).closest('tr').remove(); calculateCITotals(); });
         $(document).on('keyup change', '.t-qty, .t-cpt', function() {

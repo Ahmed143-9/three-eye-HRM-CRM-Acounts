@@ -1,12 +1,14 @@
-<h5>{{ __('Step 5: Packing List') }}</h5>
-<hr>
+<h5 class="fw-bold mb-0">{{ __('Step 5: Packing List') }}</h5>
+<p class="text-muted mb-0" style="font-size:0.85rem;">{{ __('Step 5 of 7') }}</p>
+<hr class="mt-2 mb-3">
 <div class="row mb-3">
     <div class="col-md-4"><strong>{{ __('PO:') }}</strong> {{ $order->po->order_number ?? 'N/A' }}</div>
     <div class="col-md-4"><strong>{{ __('PI:') }}</strong> {{ $order->pi->pi_number ?? 'N/A' }}</div>
-    <div class="col-md-4"><strong>{{ __('LC:') }}</strong> {{ $order->lc->lc_no ?? 'N/A' }}</div>
+    <div class="col-md-4"><strong>{{ __('LC:') }}</strong> {{ $order->lc->lc_reference_no ?? 'N/A' }}</div>
 </div>
 
 {{ Form::open(['route' => ['sales-orders.pl.store', $order->id], 'method' => 'post', 'enctype' => 'multipart/form-data']) }}
+<input type="hidden" name="ci_id" value="{{ $order->ci->id ?? '' }}">
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">
@@ -19,6 +21,11 @@
             @endif
         </div>
     </div>
+</div>
+
+<div class="d-flex align-items-center gap-2 mb-3 mt-4">
+    <i class="ti ti-package text-primary"></i>
+    <h6 class="fw-semibold mb-0 text-dark">{{ __('PO Items Summary') }}</h6>
 </div>
 
 <div class="table-responsive mt-3">
@@ -53,6 +60,10 @@
             <a href="{{ route('sales-orders.pl.download', $order->id) }}" class="btn btn-info"><i class="ti ti-download me-1"></i>{{ __('Download PDF') }}</a>
         @endif
     </div>
-    <button type="submit" class="btn btn-primary">{{ __('Save & Proceed to Consignment Note') }}</button>
+    <button type="submit" class="btn btn-success d-inline-flex align-items-center gap-2"
+            style="background-color:#6fd943;border-color:#6fd943;padding:10px 25px;font-weight:600;">
+        {{ __('Save & Proceed to Consignment Note') }}
+        <i class="ti ti-chevron-right"></i>
+    </button>
 </div>
 {{ Form::close() }}

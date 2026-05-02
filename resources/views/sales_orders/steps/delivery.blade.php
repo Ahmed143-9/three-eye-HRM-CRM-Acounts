@@ -1,5 +1,6 @@
-<h5>{{ __('Step 8: Delivery') }}</h5>
-<hr>
+<h5 class="fw-bold mb-0">{{ __('Step 8: Delivery') }}</h5>
+<p class="text-muted mb-0" style="font-size:0.85rem;">{{ __('Final Step') }}</p>
+<hr class="mt-2 mb-3">
 
 {{ Form::open(['route' => ['sales-orders.delivery.store', $order->id], 'method' => 'post', 'id' => 'delivery-form']) }}
 <div class="row">

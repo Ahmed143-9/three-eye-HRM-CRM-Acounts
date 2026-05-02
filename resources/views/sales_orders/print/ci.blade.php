@@ -8,7 +8,7 @@
     <div class="header-info">
         <p><strong>CI Number:</strong> {{ $order->ci->ci_number }}</p>
         <p><strong>CI Date:</strong> {{ $order->ci->ci_date }}</p>
-        <p><strong>LC Number:</strong> {{ $order->lc->lc_no }}</p>
+        <p><strong>LC Number:</strong> {{ $order->lc->lc_reference_no }}</p>
     </div>
 </div>
 

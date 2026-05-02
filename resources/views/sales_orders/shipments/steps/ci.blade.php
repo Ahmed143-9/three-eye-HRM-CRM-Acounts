@@ -30,8 +30,9 @@
     </div>
 </div>
 
-<h6 class="mt-3">{{ __('Tanker Details for this Shipment') }}</h6>
-<div class="table-responsive">
+<h6 class="fw-bold text-dark mt-4 mb-3">{{ __('Tanker Details for this Shipment') }}</h6>
+
+<div class="table-responsive mt-3">
     <table class="table table-sm table-hover align-middle" id="ci-tankers-table">
         <thead class="bg-light">
             <tr>

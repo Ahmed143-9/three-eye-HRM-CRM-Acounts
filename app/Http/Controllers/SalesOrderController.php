@@ -60,13 +60,17 @@ class SalesOrderController extends Controller
 
     public function show($id)
     {
-        $order = SalesOrder::where('id', $id)->with(['po.items', 'pi', 'lc', 'cis.tankers', 'cis.packingList.items', 'cis.consignmentNote.weightSlips', 'cis.delivery', 'customer'])->first();
+        $order = SalesOrder::where('id', $id)->with(['po.items', 'pi', 'lc', 'ci.tankers', 'cis.tankers', 'cis.packingList.items', 'cis.consignmentNote.weightSlips', 'cis.delivery', 'customer'])->first();
+        
         $units = \App\Models\ProductServiceUnit::where('created_by', Auth::user()->creatorId())->get()->pluck('name', 'name')->toArray();
         $currencies = \App\Models\SalesCurrency::where('created_by', Auth::user()->creatorId())->get()->pluck('code', 'code')->toArray();
         
-        // Add default if empty
-        if(empty($units)) $units = ['MT' => 'MT', 'KG' => 'KG', 'Ltr' => 'Ltr', 'Pcs' => 'Pcs'];
-        if(empty($currencies)) $currencies = ['USD' => 'USD', 'BDT' => 'BDT', 'EUR' => 'EUR', 'GBP' => 'GBP'];
+        // Add default if empty or ensure Pc/D. are available
+        if(empty($units)) $units = ['MT' => 'MT', 'KG' => 'KG', 'Ltr' => 'Ltr', 'Pc' => 'Pc'];
+        else $units['Pc'] = 'Pc';
+        
+        if(empty($currencies)) $currencies = ['USD' => 'USD', 'BDT' => 'BDT', 'EUR' => 'EUR', 'D.' => 'D.'];
+        else $currencies['D.'] = 'D.';
 
         return view('sales_orders.show', compact('order', 'units', 'currencies'));
     }
@@ -98,6 +102,7 @@ class SalesOrderController extends Controller
                     'quantity' => $item['qty'],
                     'unit' => $item['unit'],
                     'price' => $item['price'],
+                    'currency' => $item['currency'] ?? 'D.',
                     'total' => $item['total'],
                 ]);
             }
@@ -112,12 +117,22 @@ class SalesOrderController extends Controller
     public function piStore(Request $request, $id)
     {
         $order = SalesOrder::find($id);
+        
+        $pi_date = $request->pi_date;
+        if($pi_date) {
+            try {
+                $pi_date = \Carbon\Carbon::createFromFormat('m-d-Y', $pi_date)->format('Y-m-d');
+            } catch (\Exception $e) {
+                $pi_date = date('Y-m-d');
+            }
+        }
+
         SalesPI::updateOrCreate(
             ['order_id' => $order->id],
             [
                 'pi_number' => $request->pi_number,
                 'client_pi_number' => $request->client_pi_number,
-                'pi_date' => $request->pi_date,
+                'pi_date' => $pi_date,
                 'validity' => $request->validity,
                 'lifting_time' => $request->lifting_time,
                 'payment_terms' => $request->payment_terms,
@@ -126,7 +141,7 @@ class SalesOrderController extends Controller
                 'tolerance' => $request->tolerance,
                 'port_of_loading' => $request->port_of_loading,
                 'port_of_discharge' => $request->port_of_discharge,
-                'amount' => $request->amount,
+                'amount' => $request->amount ?? (optional($order->po)->grand_total ?? 0),
                 'seller_name' => $request->seller_name,
                 'seller_address' => $request->seller_address,
                 'seller_mobile' => $request->seller_mobile,
@@ -135,6 +150,13 @@ class SalesOrderController extends Controller
                 'buyer_address' => $request->buyer_address,
                 'buyer_mobile' => $request->buyer_mobile,
                 'buyer_email' => $request->buyer_email,
+                'incoterm' => $request->incoterm,
+                'bank_name' => $request->bank_name,
+                'account_name' => $request->account_name,
+                'branch' => $request->branch,
+                'account_no' => $request->account_no,
+                'swift_code' => $request->swift_code,
+                'terms_and_conditions' => $request->terms_and_conditions,
                 'created_by' => Auth::user()->creatorId(),
             ]
         );
@@ -151,27 +173,30 @@ class SalesOrderController extends Controller
         SalesLC::updateOrCreate(
             ['order_id' => $order->id],
             [
-                'pi_id' => $order->pi->id,
-                'lc_no' => $request->lc_no,
-                'client_lc_number' => $request->client_lc_number,
-                'amount' => $request->amount,
-                'lc_date' => $request->lc_date,
-                'latest_shipment_date' => $request->latest_shipment_date,
-                'lc_validity_date' => $request->lc_validity_date,
-                'seller_name' => $request->seller_name,
-                'seller_address' => $request->seller_address,
-                'seller_mobile' => $request->seller_mobile,
-                'seller_email' => $request->seller_email,
-                'buyer_name' => $request->buyer_name,
-                'buyer_address' => $request->buyer_address,
-                'buyer_mobile' => $request->buyer_mobile,
-                'buyer_email' => $request->buyer_email,
-                'lifting_time' => $request->lifting_time,
-                'country_of_origin' => $request->country_of_origin,
-                'tolerance' => $request->tolerance,
-                'port_of_loading' => $request->port_of_loading,
-                'port_of_discharge' => $request->port_of_discharge,
-                'created_by' => Auth::user()->creatorId(),
+                'pi_id'               => $order->pi->id,
+                'lc_reference_no'     => $request->lc_reference_no,
+                'client_lc_no'        => $request->client_lc_no,
+                'lc_type'             => $request->lc_type,
+                'lc_qty'              => $request->lc_qty,
+                'unit'                => $request->unit,
+                'lc_date'             => $request->lc_date,
+                'latest_shipment_date'=> $request->latest_shipment_date,
+                'lc_validity_date'    => $request->lc_validity_date,
+                'seller_name'         => $request->seller_name,
+                'seller_address'      => $request->seller_address,
+                'seller_mobile'       => $request->seller_mobile,
+                'seller_email'        => $request->seller_email,
+                'buyer_name'          => $request->buyer_name,
+                'buyer_address'       => $request->buyer_address,
+                'buyer_mobile'        => $request->buyer_mobile,
+                'buyer_email'         => $request->buyer_email,
+                'lifting_time'        => $request->lifting_time,
+                'country_of_origin'   => $request->country_of_origin,
+                'tolerance'           => $request->tolerance,
+                'port_of_loading'     => $request->port_of_loading,
+                'port_of_discharge'   => $request->port_of_discharge,
+                'terms_and_conditions'=> $request->terms_and_conditions,
+                'created_by'          => Auth::user()->creatorId(),
             ]
         );
 
@@ -199,16 +224,28 @@ class SalesOrderController extends Controller
             );
 
             $ci->tankers()->delete();
-            foreach ($request->tankers as $tanker) {
-                SalesCITanker::create([
-                    'ci_id' => $ci->id,
-                    'tanker_number' => $tanker['tanker_number'],
-                    'quantity_mt' => $tanker['qty_mt'],
-                    'quantity_unit' => $tanker['quantity_unit'] ?? 'MT',
-                    'cpt_usd' => $tanker['cpt_usd'],
-                    'currency' => $tanker['currency'] ?? 'USD',
-                    'total_amount_usd' => $tanker['total_amount'],
-                ]);
+            if ($request->has('tankers')) {
+                foreach ($request->tankers as $index => $tankerData) {
+                    $filePath = $tankerData['existing_file'] ?? null;
+                    
+                    if ($request->hasFile("tankers.$index.file")) {
+                        $file = $request->file("tankers.$index.file");
+                        $fileName = time() . '_tanker_' . $index . '_' . $file->getClientOriginalName();
+                        $file->storeAs('public/sales_orders', $fileName);
+                        $filePath = 'storage/sales_orders/' . $fileName;
+                    }
+
+                    SalesCITanker::create([
+                        'ci_id' => $ci->id,
+                        'tanker_number' => $tankerData['tanker_number'],
+                        'quantity_mt' => $tankerData['qty_mt'],
+                        'quantity_unit' => $tankerData['quantity_unit'] ?? 'MT',
+                        'cpt_usd' => $tankerData['cpt_usd'],
+                        'currency' => $tankerData['currency'] ?? 'USD',
+                        'total_amount_usd' => $tankerData['total_amount'],
+                        'file_path' => $filePath,
+                    ]);
+                }
             }
 
             $order->current_step = 'Packing List';
@@ -266,6 +303,22 @@ class SalesOrderController extends Controller
                     'file_path' => $filePath ?? null
                 ]
             );
+
+            // Handle per-tanker files if any
+            if ($request->hasFile('tanker_files')) {
+                $ci = SalesCI::find($ci_id);
+                if ($ci) {
+                    foreach ($request->file('tanker_files') as $idx => $file) {
+                        $tanker = $ci->tankers->get($idx);
+                        if ($tanker) {
+                            $fileName = time() . '_tanker_cn_' . $idx . '_' . $file->getClientOriginalName();
+                            $file->storeAs('public/sales_orders', $fileName);
+                            $tanker->file_path = 'storage/sales_orders/' . $fileName;
+                            $tanker->save();
+                        }
+                    }
+                }
+            }
 
             $cn->weightSlips()->delete();
             if ($request->has('weight_slips')) {

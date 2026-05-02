@@ -3,26 +3,62 @@
     <input type="hidden" name="ci_id" value="{{ $active_ci->id }}">
 @endif
 
-<div class="row">
-    <div class="col-md-6">
-        <div class="form-group">
-            {{ Form::label('file', __('Upload Consignment Note for ') . ($active_ci->ci_number ?? ''), ['class' => 'form-label']) }}
-            {{ Form::file('file', ['class' => 'form-control', ($active_ci && $active_ci->consignmentNote) ? '' : 'required']) }}
-            @if($active_ci && $active_ci->consignmentNote && $active_ci->consignmentNote->file_path)
-                <div class="mt-2">
-                    <a href="{{ asset($active_ci->consignmentNote->file_path) }}" target="_blank" class="btn btn-sm btn-info">{{ __('View Uploaded Note') }}</a>
-                </div>
-            @endif
-        </div>
-    </div>
-</div>
-
-<h6 class="mt-4">{{ __('Tanker Details (Sellers)') }}</h6>
 @php
     $ciTankers = $active_ci ? $active_ci->tankers->pluck('tanker_number', 'tanker_number')->toArray() : [];
 @endphp
 
-<div class="table-responsive">
+@if(empty($ciTankers))
+    <div class="alert alert-warning">
+        <i class="ti ti-info-circle"></i> {{ __('No tankers found for this shipment. Please ensure you have added and SAVED tankers in the CI Details step before proceeding.') }}
+    </div>
+@endif
+
+{{-- Per-tanker image uploads --}}
+@if($active_ci && $active_ci->tankers->count() > 0)
+<h6 class="fw-bold text-dark mt-4 mb-3">{{ __('Consignment Note Images (Per Tanker)') }}</h6>
+<div class="row g-3">
+                @foreach($active_ci->tankers as $idx => $tanker)
+                    <div class="col-md-4">
+                        <div class="form-group mb-0">
+                            <label class="form-label fw-semibold">
+                                <i class="ti ti-truck me-1 text-muted"></i>{{ $tanker->tanker_number }}
+                            </label>
+                            <input type="file"
+                                   name="tanker_files[{{ $idx }}]"
+                                   class="form-control"
+                                   accept="image/*,application/pdf">
+                            @if($tanker->file_path)
+                                <div class="mt-1">
+                                    <a href="{{ asset($tanker->file_path) }}"
+                                       target="_blank"
+                                       class="btn btn-xs btn-outline-info">
+                                        <i class="ti ti-eye me-1"></i>{{ __('View') }}
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+@else
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                {{ Form::label('file', __('Upload Consignment Note for ') . ($active_ci->ci_number ?? ''), ['class' => 'form-label']) }}
+                {{ Form::file('file', ['class' => 'form-control', ($active_ci && $active_ci->consignmentNote) ? '' : 'required']) }}
+                @if($active_ci && $active_ci->consignmentNote && $active_ci->consignmentNote->file_path)
+                    <div class="mt-2">
+                        <a href="{{ asset($active_ci->consignmentNote->file_path) }}" target="_blank" class="btn btn-sm btn-info">{{ __('View Uploaded Note') }}</a>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+@endif
+
+<h6 class="fw-bold text-dark mt-4 mb-3">{{ __('Tanker Weight Details (Sellers)') }}</h6>
+
+<div class="table-responsive mt-3">
     <table class="table table-bordered table-sm" id="cn-weight-slips-table">
         <thead class="bg-light">
             <tr>
@@ -38,7 +74,7 @@
                 @foreach($active_ci->consignmentNote->weightSlips as $index => $slip)
                     <tr>
                         <td>
-                            {{ Form::select("weight_slips[$index][tanker_id]", $ciTankers, $slip->tanker_id, ['class' => 'form-control tanker-select', 'required' => 'required']) }}
+                            {{ Form::select("weight_slips[$index][tanker_id]", $ciTankers, $slip->tanker_id, ['class' => 'form-control select2 tanker-select', 'required' => 'required']) }}
                         </td>
                         <td><input type="number" step="0.001" name="weight_slips[{{$index}}][gross]" class="form-control w-gross" value="{{$slip->gross_weight}}" required></td>
                         <td><input type="number" step="0.001" name="weight_slips[{{$index}}][tare]" class="form-control w-tare" value="{{$slip->tare_weight}}" required></td>
@@ -49,7 +85,7 @@
             @else
                 <tr>
                     <td>
-                        {{ Form::select("weight_slips[0][tanker_id]", $ciTankers, null, ['class' => 'form-control tanker-select', 'placeholder' => __('Select Tanker'), 'required' => 'required']) }}
+                        {{ Form::select("weight_slips[0][tanker_id]", $ciTankers, null, ['class' => 'form-control select2 tanker-select', 'placeholder' => __('Select Tanker'), 'required' => 'required']) }}
                     </td>
                     <td><input type="number" step="0.001" name="weight_slips[0][gross]" class="form-control w-gross" required></td>
                     <td><input type="number" step="0.001" name="weight_slips[0][tare]" class="form-control w-tare" required></td>
@@ -84,6 +120,15 @@
         var ciTankersOptions = @json($ciTankers);
         var maxTankers = Object.keys(ciTankersOptions).length;
 
+        function initSelects() {
+            if ($.fn.select2) {
+                $('.tanker-select').select2({
+                    dropdownParent: $('#step-cn-form')
+                });
+            }
+        }
+        initSelects();
+
         $(document).off('click', '.add-cn-item').on('click', '.add-cn-item', function() {
             var index = $('#cn-weight-slips-table tbody tr').length;
             if (index >= maxTankers && maxTankers > 0) {
@@ -97,13 +142,14 @@
             });
             
             var html = `<tr>
-                <td><select name="weight_slips[${index}][tanker_id]" class="form-control tanker-select" required>${options}</select></td>
+                <td><select name="weight_slips[${index}][tanker_id]" class="form-control select2 tanker-select" required>${options}</select></td>
                 <td><input type="number" step="0.001" name="weight_slips[${index}][gross]" class="form-control w-gross" required></td>
                 <td><input type="number" step="0.001" name="weight_slips[${index}][tare]" class="form-control w-tare" required></td>
                 <td><input type="number" step="0.001" name="weight_slips[${index}][net]" class="form-control w-net" readonly></td>
                 <td><button type="button" class="btn btn-danger btn-sm remove-cn-item"><i class="ti ti-trash"></i></button></td>
             </tr>`;
             $('#cn-weight-slips-table tbody').append(html);
+            initSelects();
         });
 
         $(document).on('click', '.remove-cn-item', function() { 

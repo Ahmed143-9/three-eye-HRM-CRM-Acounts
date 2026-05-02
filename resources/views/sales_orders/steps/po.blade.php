@@ -40,20 +40,22 @@
     </div>
 </div>
 
-<div class="order-section mb-4">
-    <h6 class="section-title">{{ __('Order Details') }}</h6>
+<div class="d-flex align-items-center gap-2 mb-3">
+    <i class="ti ti-list-details text-primary"></i>
+    <h6 class="fw-semibold mb-0 text-dark">{{ __('Order Details') }}</h6>
 </div>
-<div class="table-responsive">
+<div class="table-responsive mt-3">
     <table class="table table-hover mb-0" id="po-items-table">
         <thead>
             <tr>
                 <th width="20%">{{ __('Item') }}</th>
-                <th width="30%">{{ __('Description') }}</th>
+                <th width="20%">{{ __('Description') }}</th>
                 <th width="10%">{{ __('QTY') }}</th>
-                <th width="10%">{{ __('Unit') }}</th>
-                <th width="12%">{{ __('Price') }}</th>
+                <th width="12%">{{ __('Unit') }}</th>
+                <th width="12%">{{ __('Price Per Unit') }}</th>
+                <th width="12%">{{ __('Unit') }}</th>
                 <th width="12%">{{ __('Total') }}</th>
-                <th width="6%"></th>
+                <th width="2%"></th>
             </tr>
         </thead>
         <tbody>
@@ -66,9 +68,25 @@
                                 value="{{$item->description}}"></td>
                         <td><input type="number" name="items[{{$index}}][qty]" class="form-control qty"
                                 value="{{$item->quantity}}" required></td>
-                        <td><input type="text" name="items[{{$index}}][unit]" class="form-control" value="{{$item->unit}}"></td>
+                        <td>
+                            <select name="items[{{$index}}][unit]" class="form-control unit-select" required>
+                                @foreach($units as $val => $label)
+                                    <option value="{{$val}}" {{ $item->unit == $val ? 'selected' : '' }}>{{$label}}</option>
+                                @endforeach
+                                <option value="ADD_NEW_UNIT" class="text-primary fw-bold">+ {{ __('Add New') }}</option>
+                            </select>
+                        </td>
                         <td><input type="number" step="0.01" name="items[{{$index}}][price]" class="form-control price"
                                 value="{{$item->price}}" required></td>
+                        <td>
+                            <select name="items[{{$index}}][currency]" class="form-control curr-select" required>
+                                @foreach($currencies as $val => $label)
+                                    <option value="{{$val}}" {{ ($item->currency ?? 'D.') == $val ? 'selected' : '' }}>{{$label}}
+                                    </option>
+                                @endforeach
+                                <option value="ADD_NEW_CURR" class="text-primary fw-bold">+ {{ __('Add New') }}</option>
+                            </select>
+                        </td>
                         <td><input type="number" step="0.01" name="items[{{$index}}][total]" class="form-control total"
                                 value="{{$item->total}}" readonly></td>
                         <td><button type="button" class="btn btn-danger btn-sm remove-item"><i class="ti ti-trash"></i></button>
@@ -80,8 +98,23 @@
                     <td><input type="text" name="items[0][item]" class="form-control" required></td>
                     <td><input type="text" name="items[0][description]" class="form-control"></td>
                     <td><input type="number" name="items[0][qty]" class="form-control qty" required></td>
-                    <td><input type="text" name="items[0][unit]" class="form-control"></td>
+                    <td>
+                        <select name="items[0][unit]" class="form-control unit-select" required>
+                            @foreach($units as $val => $label)
+                                <option value="{{$val}}" {{ $val == 'Pc' ? 'selected' : '' }}>{{$label}}</option>
+                            @endforeach
+                            <option value="ADD_NEW_UNIT" class="text-primary fw-bold">+ {{ __('Add New') }}</option>
+                        </select>
+                    </td>
                     <td><input type="number" step="0.01" name="items[0][price]" class="form-control price" required></td>
+                    <td>
+                        <select name="items[0][currency]" class="form-control curr-select" required>
+                            @foreach($currencies as $val => $label)
+                                <option value="{{$val}}" {{ $val == 'D.' ? 'selected' : '' }}>{{$label}}</option>
+                            @endforeach
+                            <option value="ADD_NEW_CURR" class="text-primary fw-bold">+ {{ __('Add New') }}</option>
+                        </select>
+                    </td>
                     <td><input type="number" step="0.01" name="items[0][total]" class="form-control total" readonly></td>
                     <td></td>
                 </tr>
@@ -89,17 +122,26 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="5" class="text-end fw-bold align-middle">{{ __('Grand Total') }}:</td>
+                <td colspan="6" class="text-end fw-bold align-middle">{{ __('Grand Total') }}:</td>
                 <td class="fw-bold align-middle"><span
                         id="grand_total_display">{{ number_format($order->po->grand_total ?? 0, 2) }}</span></td>
-                <td>
-                    <button type="button" class="btn btn-primary btn-sm add-item" title="{{ __('Add Row') }}"><i
-                            class="ti ti-plus"></i></button>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm add-item" title="{{ __('Add Row') }}"
+                        style="background-color: #6fd943; border-color: #6fd943; color: white;">
+                        <i class="ti ti-plus"></i>
+                    </button>
                     <input type="hidden" name="grand_total" id="grand_total" value="{{ $order->po->grand_total ?? 0 }}">
                 </td>
             </tr>
         </tfoot>
     </table>
+</div>
+
+<div class="col-md-12 mt-4">
+    <div class="form-group">
+        {{ Form::label('terms_and_conditions', __('Terms and Conditions'), ['class' => 'form-label']) }}
+        {{ Form::textarea('terms_and_conditions', $order->po->terms_and_conditions ?? null, ['class' => 'form-control', 'rows' => 4, 'placeholder' => __('Enter terms and conditions...')]) }}
+    </div>
 </div>
 
 <div class="d-flex justify-content-between align-items-center mt-3">
@@ -111,6 +153,10 @@
                     class="ti ti-download me-1"></i>{{ __('Download PDF') }}</a>
         @endif
     </div>
-    <button type="submit" class="btn btn-primary">{{ __('Save & Proceed to PI') }}</button>
+    <button type="submit" class="btn btn-success d-inline-flex align-items-center"
+        style="background-color: #6fd943; border-color: #6fd943; padding: 10px 25px; font-weight: 600;">
+        {{ __('Save & Proceed to PI') }}
+        <i class="ti ti-chevron-right ms-2"></i>
+    </button>
 </div>
 {{ Form::close() }}
