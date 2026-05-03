@@ -172,17 +172,15 @@
                                 var title = response.latestNotification.title;
                                 var message = response.latestNotification.message;
                                 
-                                // Show a more detailed toast if it's an expense
-                                if(response.latestNotification.related_model == 'ErpExpense') {
-                                    // Use the formatted HTML message if possible or just the basic text
-                                    message = response.latestNotification.message;
-                                }
-                                
                                 show_toastr(type, title + ': ' + message);
                             }
                             lastNotificationId = response.latestId;
                             localStorage.setItem('last_notification_id', lastNotificationId);
                         }
+                    },
+                    error: function(xhr) {
+                        console.error('Notification fetch failed', xhr);
+                        $('#notification-list').html('<div class="text-center p-3 text-danger">Failed to load notifications</div>');
                     }
                 });
             }

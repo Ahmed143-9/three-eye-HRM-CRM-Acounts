@@ -38,10 +38,12 @@ class Notification extends Model
                 $expense = ErpExpense::find($this->related_id);
                 if ($expense) {
                     $icon = 'ti ti-report-money';
+                    $empName = optional($expense->employee)->name ?? '-';
+                    $amount = optional(\Auth::user())->priceFormat($expense->amount) ?? $expense->amount;
                     $text = "<b>" . __($this->title) . "</b><br>" . 
                             __('Type') . ": " . ucfirst($expense->type) . "<br>" .
-                            __('Emp') . ": " . ($expense->employee->name ?? '-') . "<br>" .
-                            __('Amount') . ": " . \Auth::user()->priceFormat($expense->amount);
+                            __('Emp') . ": " . $empName . "<br>" .
+                            __('Amount') . ": " . $amount;
                 }
             } elseif ($this->related_model == 'ErpSalarySheet') {
                 $icon = 'ti ti-cash';
@@ -50,6 +52,10 @@ class Notification extends Model
             if ($this->type == 'expense_submitted') $icon_color = 'bg-warning';
             elseif ($this->type == 'expense_approved') $icon_color = 'bg-success';
             elseif ($this->type == 'expense_rejected') $icon_color = 'bg-danger';
+            elseif ($this->type == 'expense_on_hold') $icon_color = 'bg-secondary';
+            elseif ($this->type == 'expense_sent_back') $icon_color = 'bg-warning';
+            elseif ($this->type == 'expense_payment_ready') $icon_color = 'bg-info';
+            elseif ($this->type == 'expense_paid') $icon_color = 'bg-success';
 
             $date = $this->created_at->diffForHumans();
             return '<div class="list-group-item list-group-item-action border-0 mb-1 rounded ' . ($this->is_read ? '' : 'bg-light-primary') . '">

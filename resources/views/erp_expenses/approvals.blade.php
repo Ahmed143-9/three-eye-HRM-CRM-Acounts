@@ -15,7 +15,10 @@
             <div class="mt-2" id="multiCollapseExample1">
                 <div class="card">
                     <div class="card-body">
-                        {{ Form::open(['route' => ['erp-expenses.index', 'approvals'], 'method' => 'GET', 'id' => 'approval_filter']) }}
+                        {{ Form::open(['route' => ['expense-management.approvals'], 'method' => 'GET', 'id' => 'approval_filter']) }}
+                        @if(request()->boolean('show_all'))
+                            <input type="hidden" name="show_all" value="1">
+                        @endif
                         <div class="row align-items-center justify-content-end">
                             <div class="col-xl-10">
                                 <div class="row">
@@ -55,7 +58,7 @@
                                 <a href="#" class="btn btn-sm btn-primary" onclick="document.getElementById('approval_filter').submit(); return false;" data-bs-toggle="tooltip" title="{{ __('Apply') }}">
                                     <span class="btn-inner--icon"><i class="ti ti-search"></i></span>
                                 </a>
-                                <a href="{{ route('erp-expenses.index', 'approvals') }}" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="{{ __('Reset') }}">
+                                <a href="{{ route('expense-management.approvals') }}" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="{{ __('Reset') }}">
                                     <span class="btn-inner--icon"><i class="ti ti-trash-off text-white"></i></span>
                                 </a>
                             </div>
@@ -70,12 +73,22 @@
     <div class="row" id="approval-queue-content">
         <div class="col-md-12">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
                     <h5 class="h4 d-inline-block font-weight-400 mb-0">{{ __('General Expenses Queue') }}</h5>
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        @if(!request()->boolean('show_all'))
+                            <span class="badge bg-info text-white">{{ __('Showing items awaiting action') }}</span>
+                        @endif
+                        <a href="{{ request()->url() }}?{{ http_build_query(array_merge(request()->except(['expense_page']), ['show_all' => 1])) }}" class="btn btn-sm btn-outline-secondary">{{ __('Show all statuses') }}</a>
+                        @if(request()->boolean('show_all'))
+                            @php $qOnly = request()->except(['show_all', 'expense_page']); @endphp
+                            <a href="{{ request()->url() }}{{ count($qOnly) ? '?' . http_build_query($qOnly) : '' }}" class="btn btn-sm btn-outline-primary">{{ __('Queue only') }}</a>
+                        @endif
+                    </div>
                 </div>
                 <div class="card-body table-border-style">
                     <div class="table-responsive">
-                        <table class="table datatable">
+                        <table class="table table-striped table-hover mb-0">
                             <thead>
                                 <tr>
                                     <th>{{ __('Serial No') }}</th>
@@ -103,9 +116,11 @@
                                             @php
                                                 $statusClass = 'bg-warning';
                                                 if($expense->status == 'Approved') $statusClass = 'bg-info';
+                                                elseif($expense->status == 'Processing Payment') $statusClass = 'bg-primary';
                                                 elseif($expense->status == 'Paid') $statusClass = 'bg-success';
                                                 elseif($expense->status == 'Rejected') $statusClass = 'bg-danger';
                                                 elseif($expense->status == 'Hold') $statusClass = 'bg-secondary';
+                                                elseif($expense->status == 'Sent Back') $statusClass = 'bg-dark';
                                             @endphp
                                             <span class="badge {{ $statusClass }} p-2 px-3 rounded">{{ __($expense->status) }}</span>
                                         </td>
@@ -125,11 +140,14 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="mt-3">
+                        {{ $expenses->links() }}
+                    </div>
                 </div>
             </div>
         </div>
 
-        @if(count($salarySheets) > 0 || isset($_GET['status']))
+        @if($salarySheets->total() > 0 || isset($_GET['status']))
         <div class="col-md-12 mt-4">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -137,7 +155,7 @@
                 </div>
                 <div class="card-body table-border-style">
                     <div class="table-responsive">
-                        <table class="table datatable">
+                        <table class="table table-striped table-hover mb-0">
                             <thead>
                                 <tr>
                                     <th>{{ __('Employee') }}</th>
@@ -183,6 +201,9 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="mt-3">
+                        {{ $salarySheets->links() }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -192,22 +213,31 @@
 
 @push('script-page')
     <script>
+        window.refreshExpenseApprovalQueue = function () {
+            var params = new URLSearchParams(window.location.search);
+            params.set('_', Date.now().toString());
+            $.get(window.location.pathname + '?' + params.toString(), function (html) {
+                var doc = new DOMParser().parseFromString(html, 'text/html');
+                var next = doc.querySelector('#approval-queue-content');
+                var cur = document.querySelector('#approval-queue-content');
+                if (next && cur) {
+                    cur.innerHTML = next.innerHTML;
+                } else {
+                    window.location.reload();
+                }
+            }).fail(function () {
+                window.location.reload();
+            });
+        };
+
         $(document).ready(function() {
-            // Auto-open logic for notifications
-            const urlParams = new URLSearchParams(window.location.search);
-            const openId = urlParams.get('open_id');
+            var urlParams = new URLSearchParams(window.location.search);
+            var openId = urlParams.get('open_id');
             if (openId) {
                 setTimeout(function() {
                     $('#view-btn-' + openId).trigger('click');
                 }, 500);
             }
-
-            // Optional: Auto-refresh every 5 minutes instead of 1 minute to avoid interrupting filters
-            setInterval(function() {
-                if (!$('.modal.show').length && !urlParams.has('status')) {
-                    // location.reload();
-                }
-            }, 300000);
         });
     </script>
 @endpush

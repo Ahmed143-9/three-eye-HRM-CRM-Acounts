@@ -23,6 +23,10 @@
                 {{ Form::text('reference', '', array('class' => 'form-control', 'placeholder' => __('Enter Reference'))) }}
 
             </div>
+            <div class="form-group col-md-6">
+                {{ Form::label('payment_method', __('Payment Method'),['class'=>'form-label']) }}
+                {{ Form::select('payment_method', ['Bank' => __('Bank'), 'Cash' => __('Cash'), 'Mobile Banking' => __('Mobile Banking'), 'Cheque' => __('Cheque')], 'Bank', array('class' => 'form-control')) }}
+            </div>
             <div class="form-group  col-md-12">
                 {{ Form::label('description', __('Description'),['class'=>'form-label']) }}
                 {{ Form::textarea('description', '', array('class' => 'form-control','rows'=>3, 'placeholder' => __('Enter Description'))) }}
@@ -43,7 +47,7 @@
         <div class="modal-footer">
 
             <input type="button" value="{{__('Cancel')}}" class="btn btn-secondary" data-bs-dismiss="modal">
-            <input type="submit" value="{{__('Add')}}" class="btn  btn-primary">
+            <input type="submit" value="{{ __('Mark As Paid') }}" class="btn  btn-primary">
         </div>
 
     </div>

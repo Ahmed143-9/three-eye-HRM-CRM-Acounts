@@ -194,6 +194,59 @@
             </div>
         </div>
 
+        <div class="col-xxl-12">
+            <div class="row gy-4 mb-4">
+                <div class="col-lg-2 col-md-4 col-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body py-3">
+                            <div class="text-muted small">{{ __('Pending Approvals') }}</div>
+                            <h4 class="mb-0">{{ $pendingApprovals ?? 0 }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body py-3">
+                            <div class="text-muted small">{{ __('Bills Waiting Payment') }}</div>
+                            <h4 class="mb-0">{{ $waitingForPayment ?? 0 }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body py-3">
+                            <div class="text-muted small">{{ __('Paid Expenses') }}</div>
+                            <h4 class="mb-0">{{ $paidExpensesCount ?? 0 }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body py-3">
+                            <div class="text-muted small">{{ __('Monthly Expense') }}</div>
+                            <h6 class="mb-0">{{ \Auth::user()->priceFormat($monthlyExpense ?? 0) }}</h6>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body py-3">
+                            <div class="text-muted small">{{ __('Utility Expense') }}</div>
+                            <h6 class="mb-0">{{ \Auth::user()->priceFormat($utilityExpense ?? 0) }}</h6>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body py-3">
+                            <div class="text-muted small">{{ __('Salary Expense') }}</div>
+                            <h6 class="mb-0">{{ \Auth::user()->priceFormat($salaryExpense ?? 0) }}</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Content Row -->
         <div class="col-xxl-8">
             <div class="card shadow-sm border-0">

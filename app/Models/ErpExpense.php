@@ -11,6 +11,12 @@ class ErpExpense extends Model
 
     protected $table = 'erp_expenses';
 
+    protected $casts = [
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
+        'paid_at' => 'datetime',
+    ];
+
     protected $fillable = [
         'serial_no',
         'type',
@@ -33,9 +39,19 @@ class ErpExpense extends Model
         'remarks',
         'approved_by',
         'approved_at',
+        'rejected_by',
+        'rejected_at',
+        'rejection_reason',
+        'hold_reason',
+        'send_back_reason',
         'accounting_bill_id',
         'accountant_note',
         'payment_status',
+        'payment_method',
+        'payment_reference',
+        'voucher_no',
+        'paid_by',
+        'paid_at',
         'is_paid',
         'erp_salary_sheet_id',
         'workspace_id',
@@ -80,6 +96,21 @@ class ErpExpense extends Model
     public function approver()
     {
         return $this->belongsTo(User::class, 'approved_by', 'id');
+    }
+
+    public function rejector()
+    {
+        return $this->belongsTo(User::class, 'rejected_by', 'id');
+    }
+
+    public function payer()
+    {
+        return $this->belongsTo(User::class, 'paid_by', 'id');
+    }
+
+    public function accountingBill()
+    {
+        return $this->belongsTo(Bill::class, 'accounting_bill_id', 'id');
     }
 
     public function items()

@@ -6,6 +6,7 @@ use App\Exports\BillExport;
 use App\Models\AddTransactionLine;
 use App\Models\BankAccount;
 use App\Models\Bill;
+use App\Models\ErpExpense;
 use App\Models\BillPayment;
 use App\Models\BillProduct;
 use App\Models\ChartOfAccount;
@@ -19,6 +20,8 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Utility;
 use App\Models\Vender;
+use App\Models\Notification;
+use App\Models\ErpExpenseStatusLog;
 use App\Traits\updateNotesStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -40,7 +43,19 @@ class BillController extends Controller
 
             $status = Bill::$statues;
 
-            $query = Bill::where('type', '=', 'Bill')->where('created_by', '=', \Auth::user()->creatorId());
+            $tenantId = \Auth::user()->creatorId();
+            $approvedExpenseBillIds = ErpExpense::where('status', 'Approved')
+                ->whereNotNull('accounting_bill_id')
+                ->pluck('accounting_bill_id');
+
+            $query = Bill::where('type', '=', 'Bill')
+                ->where('created_by', '=', $tenantId)
+                ->where(function ($q) use ($approvedExpenseBillIds) {
+                    $q->where('user_type', '!=', 'employee');
+                    if ($approvedExpenseBillIds->isNotEmpty()) {
+                        $q->orWhereIn('id', $approvedExpenseBillIds);
+                    }
+                });
             if(!empty($request->vender))
             {
                 $query->where('vender_id', '=', $request->vender);
@@ -74,6 +89,35 @@ class BillController extends Controller
         {
             return redirect()->back()->with('error', __('Permission Denied.'));
         }
+    }
+
+    public function expenseBills(Request $request)
+    {
+        if (!\Auth::user()->can('manage bill')) {
+            return redirect()->back()->with('error', __('Permission Denied.'));
+        }
+
+        $tenantId = \Auth::user()->creatorId();
+        $query = ErpExpense::with(['employee', 'department', 'approver', 'accountingBill'])
+            ->where('workspace_id', \Auth::user()->currentWorkspace ?? 1)
+            ->whereIn('status', ['Approved', 'Processing Payment', 'Paid'])
+            ->whereNotNull('accounting_bill_id')
+            ->whereNotNull('approved_at');
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+        if ($request->filled('payment_status')) {
+            $query->where('payment_status', $request->payment_status);
+        }
+        if ($request->filled('employee')) {
+            $query->where('employee_id', $request->employee);
+        }
+
+        $expenses = $query->latest('approved_at')->paginate(25);
+        $employees = \App\Models\Employee::where('created_by', $tenantId)->pluck('name', 'id');
+
+        return view('bill.expense_bills', compact('expenses', 'employees'));
     }
 
     public function create($vendorId = 0)
@@ -721,7 +765,7 @@ class BillController extends Controller
             $billPayment->date           = $request->date;
             $billPayment->amount         = $request->amount;
             $billPayment->account_id     = $request->account_id;
-            $billPayment->payment_method = 0;
+            $billPayment->payment_method = $request->payment_method ?? 'Bank';
             $billPayment->reference      = $request->reference;
             $billPayment->description    = $request->description;
 
@@ -786,7 +830,7 @@ class BillController extends Controller
 
             $payment         = new BillPayment();
             $payment->name   = $vender['name'];
-            $payment->method = '-';
+            $payment->method = $billPayment->payment_method ?: '-';
             $payment->date   = \Auth::user()->dateFormat($request->date);
             $payment->amount = \Auth::user()->priceFormat($request->amount);
             $payment->bill   = 'bill ' . \Auth::user()->billNumberFormat($billPayment->bill_id);
@@ -806,6 +850,14 @@ class BillController extends Controller
                 'date'               => $billPayment->date,
             ];
             Utility::addTransactionLines($data);
+
+            // Sync ERP Expense payment lifecycle with accounting payment.
+            $expense = ErpExpense::where('accounting_bill_id', $bill->id)->first();
+            if ($expense) {
+                $remainingDue = $bill->getDue();
+                $isFullyPaid = $remainingDue <= 0;
+                $this->syncExpensePaymentStatus($expense, $billPayment, $isFullyPaid);
+            }
 
             $account = ChartOfAccount::where('name','Accounts Payable')->where('created_by' , \Auth::user()->creatorId())->first();
             $data    = [
@@ -849,6 +901,81 @@ class BillController extends Controller
 
         }
 
+    }
+
+    private function syncExpensePaymentStatus(ErpExpense $expense, BillPayment $billPayment, bool $isFullyPaid): void
+    {
+        $expense->payment_status = $isFullyPaid ? 'Paid' : 'Processing Payment';
+        $expense->payment_method = (string)($billPayment->payment_method ?? 'Bank');
+        $expense->payment_reference = $billPayment->reference;
+        $expense->voucher_no = 'EXP-PAY-' . $billPayment->id;
+
+        if ($isFullyPaid) {
+            $expense->status = 'Paid';
+            $expense->is_paid = 1;
+            $expense->paid_by = \Auth::id();
+            $expense->paid_at = now();
+        } else {
+            if ($expense->status !== 'Paid') {
+                $expense->status = 'Processing Payment';
+            }
+            $expense->is_paid = 0;
+        }
+        $expense->save();
+
+        ErpExpenseStatusLog::create([
+            'erp_expense_id' => $expense->id,
+            'status' => $isFullyPaid ? 'Paid' : 'Processing Payment',
+            'comments' => $isFullyPaid
+                ? __('Expense paid by Accounts. Voucher: :voucher', ['voucher' => $expense->voucher_no])
+                : __('Payment processing started by Accounts. Reference: :reference', ['reference' => $billPayment->reference ?: '-']),
+            'user_id' => \Auth::id(),
+        ]);
+
+        if ($isFullyPaid) {
+            $this->notifyExpensePaid($expense, $billPayment);
+        }
+    }
+
+    private function notifyExpensePaid(ErpExpense $expense, BillPayment $billPayment): void
+    {
+        $amountText = \Auth::user()->priceFormat($billPayment->amount);
+        $message = __('Expense :serial has been paid by Accounts. Amount: :amount. Voucher: :voucher.', [
+            'serial' => $expense->serial_no,
+            'amount' => $amountText,
+            'voucher' => $expense->voucher_no ?: ('EXP-PAY-' . $billPayment->id),
+        ]);
+
+        // Notify creator.
+        Notification::create([
+            'user_id' => $expense->created_by,
+            'type' => 'expense_paid',
+            'title' => __('Expense Payment Completed'),
+            'message' => $message,
+            'related_model' => 'ErpExpense',
+            'related_id' => $expense->id,
+            'created_by' => \Auth::id(),
+            'is_read' => 0,
+        ]);
+
+        // Notify approver/admin.
+        $adminIds = User::where('type', 'company')->pluck('id')->toArray();
+        if ($expense->approved_by) {
+            $adminIds[] = (int)$expense->approved_by;
+        }
+        $adminIds = array_values(array_unique($adminIds));
+        foreach ($adminIds as $adminId) {
+            Notification::create([
+                'user_id' => $adminId,
+                'type' => 'expense_paid',
+                'title' => __('Expense Payment Completed'),
+                'message' => $message,
+                'related_model' => 'ErpExpense',
+                'related_id' => $expense->id,
+                'created_by' => \Auth::id(),
+                'is_read' => 0,
+            ]);
+        }
     }
 
     public function paymentDestroy(Request $request, $bill_id, $payment_id)

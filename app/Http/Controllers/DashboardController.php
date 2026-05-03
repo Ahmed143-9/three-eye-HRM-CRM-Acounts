@@ -42,6 +42,7 @@ use App\Models\Termination;
 use App\Models\Resignation;
 use App\Models\User;
 use App\Models\Utility;
+use App\Models\ErpExpense;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -122,6 +123,17 @@ class DashboardController extends Controller
             }
             $pendingPayments = $invoiceDue + $billDue;
 
+            // ERP Expense billing/payment cards
+            $pendingApprovals = ErpExpense::where('created_by', $user_id)->where('status', 'Pending Approval')->count();
+            $waitingForPayment = ErpExpense::where('created_by', $user_id)->whereIn('status', ['Approved'])->count();
+            $paidExpensesCount = ErpExpense::where('created_by', $user_id)->where('status', 'Paid')->count();
+            $monthlyExpense = ErpExpense::where('created_by', $user_id)
+                ->whereMonth('date', now()->month)
+                ->whereYear('date', now()->year)
+                ->sum('amount');
+            $utilityExpense = ErpExpense::where('created_by', $user_id)->where('type', 'utility')->sum('amount');
+            $salaryExpense = ErpExpense::where('created_by', $user_id)->where('type', 'salary')->sum('amount');
+
             // HRM Insights
             $totalEmployees = Employee::where('created_by', $user_id)->count();
             $activeEmployees = Employee::where('created_by', $user_id)->where('is_active', 1)->count();
@@ -144,7 +156,9 @@ class DashboardController extends Controller
             return view('dashboard.owner-dashboard', compact(
                 'income', 'expense', 'profit', 'pendingPayments', 
                 'totalEmployees', 'activeEmployees', 'inactiveEmployees', 
-                'incExpBarChartData', 'status', 'statusColor'
+                'incExpBarChartData', 'status', 'statusColor',
+                'pendingApprovals', 'waitingForPayment', 'paidExpensesCount',
+                'monthlyExpense', 'utilityExpense', 'salaryExpense'
             ));
         }
     }

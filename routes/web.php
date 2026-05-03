@@ -638,6 +638,7 @@ Route::group(['middleware' => ['verified']], function () {
             Route::get('bill/{id}/payments', [BillController::class, 'payment'])->name('bill.payments');
             Route::post('bill/{id}/payment', [BillController::class, 'createPayment'])->name('bill.payment');
             Route::post('bill/{id}/payment/{pid}/destroy', [BillController::class, 'paymentDestroy'])->name('bill.payment.destroy');
+            Route::get('expense-bills', [BillController::class, 'expenseBills'])->name('expense-bills.index');
             Route::get('bill/items', [BillController::class, 'items'])->name('bill.items');
             Route::resource('bill', BillController::class);
         }
@@ -1911,6 +1912,8 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
         Route::post('{id}/reject', [ErpExpenseController::class, 'reject'])->name('erp-expenses.reject');
         Route::post('{id}/hold', [ErpExpenseController::class, 'hold'])->name('erp-expenses.hold');
         Route::post('{id}/send-back', [ErpExpenseController::class, 'sendBack'])->name('erp-expenses.send-back');
+        Route::post('{id}/mark-as-paid', [ErpExpenseController::class, 'markAsPaid'])->name('erp-expenses.mark-as-paid');
+        Route::post('{id}/accountant-reject', [ErpExpenseController::class, 'accountantReject'])->name('erp-expenses.accountant-reject');
         Route::get('employee-info', [ErpExpenseController::class, 'getEmployeeInfo'])->name('erp-expenses.employee-info');
         
         // Salary Management (Detailed)
@@ -1940,7 +1943,6 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
         Route::delete('{type}/{id}', [ErpExpenseController::class, 'destroy'])->name('erp-expenses.destroy');
         Route::get('{type}/{id}', [ErpExpenseController::class, 'show'])->name('erp-expenses.show');
         Route::get('{type}/{id}/print', [ErpExpenseController::class, 'print'])->name('erp-expenses.print');
-        Route::post('{type}/{id}/status', [ErpExpenseController::class, 'updateStatus'])->name('erp-expenses.status');
     });
 });
 

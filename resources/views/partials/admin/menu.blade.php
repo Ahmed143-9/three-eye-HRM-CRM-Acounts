@@ -290,7 +290,7 @@
                                         Request::segment(1) == 'chart-of-account' || Request::segment(1) == 'journal-entry' ||
                                         Request::segment(2) == 'ledger' || Request::segment(2) == 'balance-sheet' ||
                                         Request::segment(2) == 'trial-balance' || Request::segment(2) == 'profit-loss' ||
-                                        Request::segment(1) == 'bill' || Request::segment(1) == 'expense' || Request::segment(1) == 'billing' ||
+                                        Request::segment(1) == 'bill' || Request::segment(1) == 'expense' || Request::segment(1) == 'billing' || Request::segment(1) == 'expense-bills' ||
                                         Request::segment(1) == 'payment' || Request::segment(1) == 'debit-note' || (Request::route()->getName() == 'report.balance.sheet') || (Request::route()->getName() == 'trial-balance-report') ? ' active'
                                             : '' }}">
                             <a href="#!" class="dash-link"><span class="dash-micon"><i
@@ -312,6 +312,18 @@
                                         <span class="dash-mtext">{{ __('Receivable') }}</span>
                                     </a>
                                 </li>
+                                <li class="dash-item {{ Request::routeIs('expense-bills.index') ? 'active' : '' }}">
+                                    <a class="dash-link" href="{{ route('expense-bills.index') }}">
+                                        <span class="dash-mtext">{{ __('Approved Bills') }}</span>
+                                    </a>
+                                </li>
+                                @if (Gate::check('expense summary report') || \Auth::user()->type == 'company')
+                                    <li class="dash-item {{ Request::routeIs('report.expense.summary') ? 'active' : '' }}">
+                                        <a class="dash-link" href="{{ route('report.expense.summary') }}">
+                                            <span class="dash-mtext">{{ __('Expense Ledger') }}</span>
+                                        </a>
+                                    </li>
+                                @endif
 
                                 @if (Gate::check('manage bank account') || Gate::check('manage bank transfer'))
                                     <li
@@ -344,7 +356,7 @@
                                         Gate::check('manage payment') ||
                                         Gate::check('manage debit note'))
                                     <li
-                                        class="dash-item dash-hasmenu {{ Request::segment(1) == 'bill' || Request::segment(1) == 'vender' || Request::segment(1) == 'expense' || Request::segment(1) == 'payment' || Request::segment(1) == 'debit-note' ? 'active dash-trigger' : '' }}">
+                                        class="dash-item dash-hasmenu {{ Request::segment(1) == 'bill' || Request::segment(1) == 'vender' || Request::segment(1) == 'expense' || Request::segment(1) == 'payment' || Request::segment(1) == 'debit-note' || Request::routeIs('expense-bills.index') ? 'active dash-trigger' : '' }}">
                                         <a class="dash-link" href="#">{{ __('Purchases') }}<span
                                                 class="dash-arrow"><i data-feather="chevron-right"></i></span></a>
                                         <ul class="dash-submenu">
@@ -374,6 +386,7 @@
                                                         href="{{ route('payment.index') }}">{{ __('Payment') }}</a>
                                                 </li>
                                             @endcan
+
                                             @can('manage debit note')
                                                 <li
                                                     class="dash-item  {{ Request::route()->getName() == 'debit.note' ? ' active' : '' }}">

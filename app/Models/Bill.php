@@ -145,4 +145,9 @@ class Bill extends Model
     {
         return $this->hasOne('App\Models\Tax', 'id', 'tax');
     }
+
+    public function linkedExpense()
+    {
+        return $this->hasOne(ErpExpense::class, 'accounting_bill_id', 'id');
+    }
 }

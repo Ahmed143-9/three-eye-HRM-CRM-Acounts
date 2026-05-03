@@ -19,34 +19,51 @@ class NotificationController extends Controller
 
     public function getLatest()
     {
-        $notifications = Notification::where('user_id', Auth::user()->id)
-            ->orderBy('id', 'desc')
-            ->take(5)
-            ->get();
+        try {
+            $notifications = Notification::where('user_id', Auth::user()->id)
+                ->orderBy('id', 'desc')
+                ->take(5)
+                ->get();
 
-        $unreadCount = Notification::where('user_id', Auth::user()->id)
-            ->where('is_read', 0)
-            ->count();
+            $unreadCount = Notification::where('user_id', Auth::user()->id)
+                ->where('is_read', 0)
+                ->count();
 
-        $latestNotification = Notification::where('user_id', Auth::user()->id)
-            ->orderBy('id', 'desc')
-            ->first();
+            $latestNotification = Notification::where('user_id', Auth::user()->id)
+                ->orderBy('id', 'desc')
+                ->first();
 
-        $html = '';
-        foreach ($notifications as $notification) {
-            $html .= $notification->toHtml();
+            $html = '';
+            foreach ($notifications as $notification) {
+                try {
+                    $html .= $notification->toHtml();
+                } catch (\Throwable $e) {
+                    \Log::error('Notification toHtml error: ' . $e->getMessage());
+                    continue;
+                }
+            }
+
+            if (empty($html)) {
+                $html = '<div class="text-center p-3 text-muted">' . __('No notifications found') . '</div>';
+            }
+
+            return response()->json([
+                'success' => true,
+                'html' => $html,
+                'unreadCount' => $unreadCount,
+                'latestId' => $latestNotification ? $latestNotification->id : 0,
+                'latestNotification' => $latestNotification
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('Notification getLatest error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'html' => '<div class="text-center p-3 text-danger">' . __('Error loading notifications') . '</div>',
+                'unreadCount' => 0,
+                'latestId' => 0
+            ], 500);
         }
-
-        if (empty($html)) {
-            $html = '<div class="text-center p-3 text-muted">' . __('No notifications found') . '</div>';
-        }
-
-        return response()->json([
-            'html' => $html,
-            'unreadCount' => $unreadCount,
-            'latestId' => $latestNotification ? $latestNotification->id : 0,
-            'latestNotification' => $latestNotification
-        ]);
     }
 
     public function markAsRead($id)
@@ -83,10 +100,14 @@ class NotificationController extends Controller
             if ($notification->related_model == 'ErpExpense') {
                 $expense = \App\Models\ErpExpense::find($notification->related_id);
                 if ($expense) {
-                    $url = route('erp-expenses.index', 'approvals') . '?open_id=' . $expense->id;
+                    $url = route('expense-management.approvals') . '?open_id=' . $expense->id;
                 }
+            } elseif ($notification->related_model == 'Bill' && $notification->type === 'expense_payment_ready') {
+                $url = route('expense-bills.index');
+            } elseif ($notification->related_model == 'ErpExpense' && $notification->type === 'expense_paid') {
+                $url = route('expense-management.history');
             } elseif ($notification->related_model == 'ErpSalarySheet') {
-                $url = route('erp-expenses.index', 'approvals') . '?open_salary_id=' . $notification->related_id;
+                $url = route('expense-management.approvals') . '?open_salary_id=' . $notification->related_id;
             } elseif (isset($data->deal_id)) {
                 $url = route('deals.show', [$data->deal_id]);
             } elseif (isset($data->lead_id)) {
