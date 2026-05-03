@@ -15,6 +15,7 @@
 
     $unseenCounter = App\Models\ChMessage::where('to_id', Auth::user()->id)->where('seen', 0)->count();
 @endphp
+<link rel="stylesheet" href="{{ asset('css/notifications.css') }}">
 @if (isset($setting['cust_theme_bg']) && $setting['cust_theme_bg'] == 'on')
     <header class="dash-header transprent-bg">
 @else
@@ -150,13 +151,27 @@
     <script>
         $(document).ready(function() {
             var lastNotificationId = localStorage.getItem('last_notification_id') || 0;
+            var isDropdownOpen = false;
+
+            $('.drp-notification').on('shown.bs.dropdown', function () {
+                isDropdownOpen = true;
+            });
+
+            $('.drp-notification').on('hidden.bs.dropdown', function () {
+                isDropdownOpen = false;
+            });
 
             function fetchNotifications() {
                 $.ajax({
                     url: '{{ route('notifications.latest') }}',
                     type: 'GET',
                     success: function(response) {
-                        $('#notification-list').html(response.html);
+                        // Update list only if there's new data or dropdown is open
+                        // To avoid flickering, we only update if content changed or it's first load
+                        var currentHtml = $('#notification-list').html();
+                        if (response.html != currentHtml) {
+                            $('#notification-list').html(response.html);
+                        }
                         
                         // Badge count
                         if (response.unreadCount > 0) {
@@ -168,11 +183,19 @@
                         // Popup Logic for new notifications
                         if (response.latestId > lastNotificationId) {
                             if (lastNotificationId != 0 && response.latestNotification) {
-                                var type = response.latestNotification.type == 'expense_rejected' ? 'error' : 'success';
-                                var title = response.latestNotification.title;
-                                var message = response.latestNotification.message;
+                                var n = response.latestNotification;
+                                var type = 'success';
+                                if(n.type.includes('rejected') || n.type.includes('reject')) type = 'error';
                                 
-                                show_toastr(type, title + ': ' + message);
+                                var title = n.title;
+                                var message = n.message;
+                                var redirectUrl = '{{ url('notifications/read-redirect') }}/' + n.id;
+                                
+                                // Show toast with View button
+                                var toastHtml = '<div>' + message + '</div>' + 
+                                               '<a href="' + redirectUrl + '" class="btn btn-sm btn-primary mt-2 text-white toast-action-btn">View Details</a>';
+                                
+                                show_toastr(type, title, type, toastHtml);
                             }
                             lastNotificationId = response.latestId;
                             localStorage.setItem('last_notification_id', lastNotificationId);
@@ -180,7 +203,6 @@
                     },
                     error: function(xhr) {
                         console.error('Notification fetch failed', xhr);
-                        $('#notification-list').html('<div class="text-center p-3 text-danger">Failed to load notifications</div>');
                     }
                 });
             }
@@ -188,8 +210,10 @@
             // Fetch on load
             fetchNotifications();
 
-            // Refresh every 30 seconds
-            setInterval(fetchNotifications, 30000);
+            // Refresh every 10 seconds for "real-time" feel
+            setInterval(function() {
+                fetchNotifications();
+            }, 10000);
 
             // Fetch when dropdown is opened
             $('#notification-btn').on('click', function() {

@@ -23,58 +23,77 @@ class Notification extends Model
 
     public function toHtml()
     {
-        $data       = json_decode($this->data);
-        $link       = '#';
+        $link       = route('notifications.readAndRedirect', $this->id);
         $icon       = 'ti ti-bell';
         $icon_color = 'bg-primary';
         $text       = '';
+        $subtext    = '';
 
-        if (!empty($this->title)) {
-            $text = "<b>" . __($this->title) . "</b><br>" . __($this->message);
-            
-            // Determine link based on related_model
-            $link = route('notifications.readAndRedirect', $this->id);
-            if ($this->related_model == 'ErpExpense') {
-                $expense = ErpExpense::find($this->related_id);
-                if ($expense) {
-                    $icon = 'ti ti-report-money';
-                    $empName = optional($expense->employee)->name ?? '-';
-                    $amount = optional(\Auth::user())->priceFormat($expense->amount) ?? $expense->amount;
-                    $text = "<b>" . __($this->title) . "</b><br>" . 
-                            __('Type') . ": " . ucfirst($expense->type) . "<br>" .
-                            __('Emp') . ": " . $empName . "<br>" .
-                            __('Amount') . ": " . $amount;
-                }
-            } elseif ($this->related_model == 'ErpSalarySheet') {
-                $icon = 'ti ti-cash';
+        if ($this->related_model == 'ErpExpense') {
+            $expense = ErpExpense::find($this->related_id);
+            if ($expense) {
+                $icon = 'ti ti-report-money';
+                $empName = optional($expense->employee)->name ?? '-';
+                $amount = optional(\Auth::user())->priceFormat($expense->amount) ?? $expense->amount;
+                $text = "<b>" . __($this->title) . "</b>";
+                $subtext = __('Type') . ": " . ucfirst($expense->type) . " | " .
+                           __('Emp') . ": " . $empName . " | " .
+                           __('Amount') . ": " . $amount;
             }
+        } elseif ($this->related_model == 'ErpSalarySheet') {
+            $sheet = ErpSalarySheet::find($this->related_id);
+            $icon = 'ti ti-cash';
+            $text = "<b>" . __($this->title) . "</b>";
+            if ($sheet) {
+                $subtext = __('Month') . ": " . $sheet->month . " | " . 
+                           __('Net') . ": " . optional(\Auth::user())->priceFormat($sheet->net_salary);
+            } else {
+                $subtext = __($this->message);
+            }
+        } else {
+            $text = "<b>" . __($this->title) . "</b>";
+            $subtext = __($this->message);
+        }
 
-            if ($this->type == 'expense_submitted') $icon_color = 'bg-warning';
-            elseif ($this->type == 'expense_approved') $icon_color = 'bg-success';
-            elseif ($this->type == 'expense_rejected') $icon_color = 'bg-danger';
-            elseif ($this->type == 'expense_on_hold') $icon_color = 'bg-secondary';
-            elseif ($this->type == 'expense_sent_back') $icon_color = 'bg-warning';
-            elseif ($this->type == 'expense_payment_ready') $icon_color = 'bg-info';
-            elseif ($this->type == 'expense_paid') $icon_color = 'bg-success';
+        // Color mapping
+        $typeColors = [
+            'expense_submitted' => 'bg-warning',
+            'expense_approved' => 'bg-success',
+            'expense_rejected' => 'bg-danger',
+            'expense_on_hold' => 'bg-secondary',
+            'expense_sent_back' => 'bg-warning',
+            'expense_payment_ready' => 'bg-info',
+            'expense_paid' => 'bg-success',
+            'salary_sheet_submitted' => 'bg-warning',
+            'salary_approved' => 'bg-success',
+            'salary_rejected' => 'bg-danger',
+        ];
+        $icon_color = $typeColors[$this->type] ?? 'bg-primary';
 
-            $date = $this->created_at->diffForHumans();
-            return '<div class="list-group-item list-group-item-action border-0 mb-1 rounded ' . ($this->is_read ? '' : 'bg-light-primary') . '">
-                        <div class="d-flex align-items-start">
-                            <div class="notification-icon me-2 mt-1">
-                                <span class="avatar avatar-sm ' . $icon_color . ' text-white rounded-circle" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="' . $icon . ' fs-6"></i>
-                                </span>
+        $unreadClass = $this->is_read ? '' : 'notification-unread';
+        $dot = $this->is_read ? '' : '<span class="notification-dot"></span>';
+        $date = $this->created_at->diffForHumans();
+
+        return '<div class="list-group-item list-group-item-action border-0 mb-1 rounded notification-item ' . $unreadClass . '">
+                    <div class="d-flex align-items-start">
+                        <div class="notification-icon-container me-3 mt-1">
+                            <span class="avatar avatar-sm ' . $icon_color . ' text-white rounded-circle">
+                                <i class="' . $icon . ' fs-6"></i>
+                            </span>
+                        </div>
+                        <div class="flex-fill">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-sm">' . $text . $dot . '</div>
+                                <small class="text-muted text-xs">' . $date . '</small>
                             </div>
-                            <div class="flex-fill">
-                                <div class="text-sm lh-140">' . $text . '</div>
-                                <div class="d-flex justify-content-between align-items-center mt-1">
-                                    <small class="text-muted text-xs">' . $date . '</small>
-                                    <a href="' . $link . '" class="text-xs text-primary font-weight-bold">' . __('View') . '</a>
-                                </div>
+                            <div class="text-xs text-muted mt-1">' . $subtext . '</div>
+                            <div class="d-flex justify-content-end mt-2">
+                                <a href="' . $link . '" class="noti-view-btn text-primary border border-primary px-2 py-1">' . __('View Details') . '</a>
                             </div>
                         </div>
-                    </div>';
-        }
+                    </div>
+                </div>';
+    }
 
         if(isset($data->updated_by) && !empty($data->updated_by))
         {
