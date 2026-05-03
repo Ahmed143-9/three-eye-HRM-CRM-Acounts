@@ -22,7 +22,7 @@ class NotificationController extends Controller
         try {
             $notifications = Notification::where('user_id', Auth::user()->id)
                 ->orderBy('id', 'desc')
-                ->take(5)
+                ->take(10)
                 ->get();
 
             $unreadCount = Notification::where('user_id', Auth::user()->id)
@@ -95,25 +95,23 @@ class NotificationController extends Controller
 
             // Determine redirect URL
             $url = route('dashboard');
-            $data = json_decode($notification->data);
 
             if ($notification->related_model == 'ErpExpense') {
-                $expense = \App\Models\ErpExpense::find($notification->related_id);
-                if ($expense) {
-                    $url = route('expense-management.approvals') . '?open_id=' . $expense->id;
+                if (in_array($notification->type, ['expense_submitted'])) {
+                    $url = route('expense-management.approvals') . '?open_id=' . $notification->related_id;
+                } elseif (in_array($notification->type, ['expense_approved', 'expense_payment_ready'])) {
+                    $url = route('expense-bills.index');
+                } else {
+                    $url = route('expense-management.history');
                 }
-            } elseif ($notification->related_model == 'Bill' && $notification->type === 'expense_payment_ready') {
-                $url = route('expense-bills.index');
-            } elseif ($notification->related_model == 'ErpExpense' && $notification->type === 'expense_paid') {
-                $url = route('expense-management.history');
             } elseif ($notification->related_model == 'ErpSalarySheet') {
-                $url = route('expense-management.approvals') . '?open_salary_id=' . $notification->related_id;
-            } elseif (isset($data->deal_id)) {
-                $url = route('deals.show', [$data->deal_id]);
-            } elseif (isset($data->lead_id)) {
-                $url = route('leads.show', [$data->lead_id]);
-            } elseif (isset($data->estimation_id)) {
-                $url = route('estimations.show', [$data->estimation_id]);
+                if ($notification->type == 'salary_sheet_submitted') {
+                    $url = route('salary-management.index'); // Admin view for approval
+                } else {
+                    $url = route('salary-management.index');
+                }
+            } elseif ($notification->related_model == 'Bill') {
+                $url = route('bill.index');
             } elseif ($notification->type == 'late_attendance_update') {
                 $url = route('attendance.late.log');
             }

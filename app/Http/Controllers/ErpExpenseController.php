@@ -183,9 +183,14 @@ class ErpExpenseController extends Controller
 
     public function show($type, $id)
     {
-        if (Auth::user()->can('manage expense') || Auth::user()->type == 'company') {
-            $expense = ErpExpense::with(['category', 'employee', 'items.unit', 'statusLogs.user'])->find($id);
-            if ($expense) {
+        try {
+            if (Auth::user()->can('manage expense') || Auth::user()->type == 'company') {
+                $expense = ErpExpense::with(['category', 'employee', 'items.unit', 'statusLogs.user'])->find($id);
+                
+                if (!$expense) {
+                    return $this->approvalErrorResponse(request(), __('Expense not found.'), 404);
+                }
+
                 // Mark related notifications as read
                 Notification::where('user_id', Auth::user()->id)
                     ->where('related_model', 'ErpExpense')
@@ -195,9 +200,17 @@ class ErpExpenseController extends Controller
 
                 return view('erp_expenses.show', compact('expense', 'type'));
             }
-            return redirect()->back()->with('error', __('Expense not found.'));
+
+            return $this->approvalErrorResponse(request(), __('Permission denied.'), 403);
+            
+        } catch (\Throwable $e) {
+            \Log::error('Expense Show Error: ' . $e->getMessage(), [
+                'id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return $this->approvalErrorResponse(request(), __('Unable to load expense details: ') . $e->getMessage());
         }
-        return redirect()->back()->with('error', __('Permission denied.'));
     }
 
     public function edit($type, $id)
@@ -1008,7 +1021,7 @@ class ErpExpenseController extends Controller
 
         DB::beginTransaction();
         try {
-            $reason = $request->input('reason') ?: __('Rejected by Accounts team');
+            $reason = $request->input('comments') ?: __('Rejected by Accounts team');
 
             $this->updateExpenseFields($expense, [
                 'status' => 'Rejected by Accounts',

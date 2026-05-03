@@ -52,7 +52,7 @@
                                         </td>
                                         <td class="Action">
                                             <div class="action-btn bg-info ms-2">
-                                                <a href="#" class="mx-3 btn btn-sm align-items-center" data-url="{{ route('erp-expenses.show', [$expense->type, $expense->id]) }}" data-ajax-popup="true" data-size="lg" data-bs-toggle="tooltip" title="{{ __('View') }}" data-title="{{ __('Expense Detail') }}">
+                                                <a href="#" class="mx-3 btn btn-sm align-items-center" data-url="{{ route('erp-expenses.show', [$expense->type ?? 'purchase', $expense->id]) }}" data-ajax-popup="true" data-size="lg" data-bs-toggle="tooltip" title="{{ __('View') }}" data-title="{{ __('Expense Detail') }}">
                                                     <i class="ti ti-eye text-white"></i>
                                                 </a>
                                             </div>

@@ -1920,6 +1920,7 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
         Route::get('salary-management', [ErpSalarySheetController::class, 'index'])->name('salary-management.index');
         Route::post('salary-management/generate', [ErpSalarySheetController::class, 'generate'])->name('salary-management.generate');
         Route::post('salary-management/{id}/approve', [ErpSalarySheetController::class, 'approve'])->name('salary-management.approve');
+        Route::post('salary-management/{id}/reject', [ErpSalarySheetController::class, 'reject'])->name('salary-management.reject');
         Route::delete('salary-management/{id}', [ErpSalarySheetController::class, 'destroy'])->name('salary-management.destroy');
 
         // Notifications

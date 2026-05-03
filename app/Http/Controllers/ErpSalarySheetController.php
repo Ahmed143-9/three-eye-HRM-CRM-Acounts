@@ -83,6 +83,7 @@ class ErpSalarySheetController extends Controller
                 $sheet->approved_by = Auth::user()->id;
                 $sheet->save();
 
+                // Notify Creator
                 \App\Models\Notification::create([
                     'user_id' => $sheet->created_by,
                     'type' => 'salary_approved',
@@ -94,7 +95,52 @@ class ErpSalarySheetController extends Controller
                     'is_read' => 0,
                 ]);
 
+                // Notify Accounts (Users who can manage bills)
+                $accountants = \App\Models\User::whereHas('roles.permissions', function($q) {
+                    $q->where('name', 'manage bill');
+                })->orWhere('type', 'company')->pluck('id');
+
+                foreach ($accountants as $accId) {
+                    if ($accId == Auth::user()->id) continue;
+                    \App\Models\Notification::create([
+                        'user_id' => $accId,
+                        'type' => 'salary_approved',
+                        'title' => 'Salary Ready For Payment',
+                        'message' => 'New approved salary sheet for ' . $sheet->month . ' is ready for payment.',
+                        'related_model' => 'ErpSalarySheet',
+                        'related_id' => $sheet->id,
+                        'created_by' => Auth::user()->id,
+                        'is_read' => 0,
+                    ]);
+                }
+
                 return redirect()->back()->with('success', __('Salary sheet approved.'));
+            }
+            return redirect()->back()->with('error', __('Not found.'));
+        }
+        return redirect()->back()->with('error', __('Permission denied.'));
+    }
+
+    public function reject(Request $request, $id)
+    {
+        if (Auth::user()->can('approve expense') || Auth::user()->type == 'company') {
+            $sheet = ErpSalarySheet::find($id);
+            if ($sheet) {
+                $sheet->approval_status = 'Rejected';
+                $sheet->save();
+
+                \App\Models\Notification::create([
+                    'user_id' => $sheet->created_by,
+                    'type' => 'salary_rejected',
+                    'title' => 'Salary Rejected',
+                    'message' => 'Your salary sheet for ' . $sheet->month . ' has been rejected by Admin.',
+                    'related_model' => 'ErpSalarySheet',
+                    'related_id' => $sheet->id,
+                    'created_by' => Auth::user()->id,
+                    'is_read' => 0,
+                ]);
+
+                return redirect()->back()->with('success', __('Salary sheet rejected.'));
             }
             return redirect()->back()->with('error', __('Not found.'));
         }

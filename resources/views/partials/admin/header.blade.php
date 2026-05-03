@@ -192,10 +192,10 @@
                                 var redirectUrl = '{{ url('notifications/read-redirect') }}/' + n.id;
                                 
                                 // Show toast with View button
-                                var toastHtml = '<div>' + message + '</div>' + 
+                                var toastHtml = '<b>' + title + '</b><br>' + message + '<br>' + 
                                                '<a href="' + redirectUrl + '" class="btn btn-sm btn-primary mt-2 text-white toast-action-btn">View Details</a>';
                                 
-                                show_toastr(type, title, type, toastHtml);
+                                show_toastr(type, toastHtml);
                             }
                             lastNotificationId = response.latestId;
                             localStorage.setItem('last_notification_id', lastNotificationId);
