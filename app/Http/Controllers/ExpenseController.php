@@ -93,6 +93,7 @@ class ExpenseController extends Controller
             $status = Bill::$statues;
 
             $query = Bill::where('type', '=', 'Expense')
+                ->where('status', '!=', 0) // Hide Draft bills from Accounting
                 ->where('created_by', '=', \Auth::user()->creatorId());
             if (!empty($request->vender)) {
                 $query->where('vender_id', '=', $request->vender);

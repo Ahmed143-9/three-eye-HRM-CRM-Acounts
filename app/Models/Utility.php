@@ -745,6 +745,13 @@ class Utility extends Model
         return $settings["bill_prefix"] . sprintf("%05d", $number);
     }
 
+    public static function expenseNumberFormat($number)
+    {
+        $settings = Utility::settings();
+
+        return $settings["expense_prefix"] . sprintf("%05d", $number);
+    }
+
     public static function clientNumberFormat($number)
     {
         $settings = Utility::settings();

@@ -89,6 +89,32 @@
                     </li>
                     @endif --}}
 
+                    <li class="dropdown dash-h-item drp-notification">
+                        <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown" href="#"
+                            role="button" aria-haspopup="false" aria-expanded="false" id="notification-btn">
+                            <i class="ti ti-bell"></i>
+                            <span class="bg-danger dash-h-badge notification-count d-none" id="notification-badge">0</span>
+                        </a>
+                        <div class="dropdown-menu dash-h-dropdown dropdown-menu-end notification-dropdown-menu" style="min-width: 350px;">
+                            <div class="noti-header d-flex justify-content-between align-items-center p-3 border-bottom">
+                                <h6 class="m-0">{{__('Notifications')}}</h6>
+                                <a href="#" class="text-xs text-primary" onclick="event.preventDefault(); document.getElementById('mark-all-read-form').submit();">{{__('Mark all as read')}}</a>
+                                <form id="mark-all-read-form" action="{{ route('notifications.markAllRead') }}" method="POST" class="d-none">
+                                    @csrf
+                                </form>
+                            </div>
+                            <div class="list-group list-group-flush notification-list-items" id="notification-list" style="max-height: 400px; overflow-y: auto;">
+                                <!-- Notifications will be loaded here via AJAX -->
+                                <div class="text-center p-3">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                                </div>
+                            </div>
+                            <div class="noti-footer p-2 text-center border-top">
+                                <a href="{{ route('notifications.index') }}" class="text-primary text-sm">{{__('View All Notifications')}}</a>
+                            </div>
+                        </div>
+                    </li>
+
                     <li class="dropdown dash-h-item drp-language">
                         <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown" href="#"
                             role="button" aria-haspopup="false" aria-expanded="false">
@@ -120,3 +146,56 @@
             </div>
         </div>
     </header>
+
+    <script>
+        $(document).ready(function() {
+            var lastNotificationId = localStorage.getItem('last_notification_id') || 0;
+
+            function fetchNotifications() {
+                $.ajax({
+                    url: '{{ route('notifications.latest') }}',
+                    type: 'GET',
+                    success: function(response) {
+                        $('#notification-list').html(response.html);
+                        
+                        // Badge count
+                        if (response.unreadCount > 0) {
+                            $('#notification-badge').text(response.unreadCount).removeClass('d-none');
+                        } else {
+                            $('#notification-badge').addClass('d-none');
+                        }
+
+                        // Popup Logic for new notifications
+                        if (response.latestId > lastNotificationId) {
+                            if (lastNotificationId != 0 && response.latestNotification) {
+                                var type = response.latestNotification.type == 'expense_rejected' ? 'error' : 'success';
+                                var title = response.latestNotification.title;
+                                var message = response.latestNotification.message;
+                                
+                                // Show a more detailed toast if it's an expense
+                                if(response.latestNotification.related_model == 'ErpExpense') {
+                                    // Use the formatted HTML message if possible or just the basic text
+                                    message = response.latestNotification.message;
+                                }
+                                
+                                show_toastr(type, title + ': ' + message);
+                            }
+                            lastNotificationId = response.latestId;
+                            localStorage.setItem('last_notification_id', lastNotificationId);
+                        }
+                    }
+                });
+            }
+
+            // Fetch on load
+            fetchNotifications();
+
+            // Refresh every 30 seconds
+            setInterval(fetchNotifications, 30000);
+
+            // Fetch when dropdown is opened
+            $('#notification-btn').on('click', function() {
+                fetchNotifications();
+            });
+        });
+    </script>

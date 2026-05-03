@@ -15,8 +15,20 @@ return new class extends Migration
             if (!Schema::hasColumn('sales_pis', 'incoterm')) {
                 $table->string('incoterm')->nullable()->after('buyer_email');
             }
+            if (!Schema::hasColumn('sales_pis', 'shipment_date')) {
+                $table->date('shipment_date')->nullable()->after('incoterm');
+            }
+            if (!Schema::hasColumn('sales_pis', 'port_of_discharge')) {
+                $table->string('port_of_discharge')->nullable()->after('shipment_date');
+            }
+            if (!Schema::hasColumn('sales_pis', 'payment_terms')) {
+                $table->text('payment_terms')->nullable()->after('port_of_discharge');
+            }
+            if (!Schema::hasColumn('sales_pis', 'bank_details')) {
+                $table->text('bank_details')->nullable()->after('payment_terms');
+            }
             if (!Schema::hasColumn('sales_pis', 'bank_name')) {
-                $table->string('bank_name')->nullable()->after('incoterm');
+                $table->string('bank_name')->nullable()->after('bank_details');
             }
             if (!Schema::hasColumn('sales_pis', 'account_name')) {
                 $table->string('account_name')->nullable()->after('bank_name');

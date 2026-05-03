@@ -98,6 +98,8 @@ use App\Http\Controllers\PaytabController;
 use App\Http\Controllers\PaytmPaymentController;
 use App\Http\Controllers\PaytrController;
 use App\Http\Controllers\YooKassaController;
+use App\Http\Controllers\ErpExpenseController;
+use App\Http\Controllers\ErpSalarySheetController;
 use App\Http\Controllers\PerformanceTypeController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PayableController;
@@ -1901,6 +1903,45 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
     Route::post('sales-orders/add-currency', [App\Http\Controllers\SalesOrderWorkflowController::class, 'addCurrency'])->name('sales-orders.add-currency');
     Route::get('sales-orders/customer-detail', [SalesOrderController::class, 'customerDetail'])->name('sales-orders.customer.detail');
 
+    // Expense Management Module
+    Route::group(['prefix' => 'expense-management'], function () {
+        Route::get('history', [ErpExpenseController::class, 'history'])->name('expense-management.history');
+        Route::get('approvals', [ErpExpenseController::class, 'approvals'])->name('expense-management.approvals');
+        Route::post('{id}/approve', [ErpExpenseController::class, 'approve'])->name('erp-expenses.approve');
+        Route::post('{id}/reject', [ErpExpenseController::class, 'reject'])->name('erp-expenses.reject');
+        Route::post('{id}/hold', [ErpExpenseController::class, 'hold'])->name('erp-expenses.hold');
+        Route::post('{id}/send-back', [ErpExpenseController::class, 'sendBack'])->name('erp-expenses.send-back');
+        Route::get('employee-info', [ErpExpenseController::class, 'getEmployeeInfo'])->name('erp-expenses.employee-info');
+        
+        // Salary Management (Detailed)
+        Route::get('salary-management', [ErpSalarySheetController::class, 'index'])->name('salary-management.index');
+        Route::post('salary-management/generate', [ErpSalarySheetController::class, 'generate'])->name('salary-management.generate');
+        Route::post('salary-management/{id}/approve', [ErpSalarySheetController::class, 'approve'])->name('salary-management.approve');
+        Route::delete('salary-management/{id}', [ErpSalarySheetController::class, 'destroy'])->name('salary-management.destroy');
+
+        // Notifications
+        Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::get('notifications/latest', [NotificationController::class, 'getLatest'])->name('notifications.latest');
+        Route::get('notifications/{id}/read-and-redirect', [NotificationController::class, 'readAndRedirect'])->name('notifications.readAndRedirect');
+        Route::post('notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+        Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllRead');
+
+        // Quick Creation Routes for Expenses
+        Route::get('expense-category/create/{type}', [ErpExpenseController::class, 'categoryCreate'])->name('erp-expense-category.quick-create');
+        Route::post('expense-category/store/{type}', [ErpExpenseController::class, 'categoryStore'])->name('erp-expense-category.quick-store');
+        Route::get('expense-unit/create', [ErpExpenseController::class, 'unitCreate'])->name('erp-expense-unit.quick-create');
+        Route::post('expense-unit/store', [ErpExpenseController::class, 'unitStore'])->name('erp-expense-unit.quick-store');
+
+        Route::get('{type}', [ErpExpenseController::class, 'index'])->name('erp-expenses.index');
+        Route::get('{type}/create', [ErpExpenseController::class, 'create'])->name('erp-expenses.create');
+        Route::post('{type}', [ErpExpenseController::class, 'store'])->name('erp-expenses.store');
+        Route::get('{type}/{id}/edit', [ErpExpenseController::class, 'edit'])->name('erp-expenses.edit');
+        Route::put('{type}/{id}', [ErpExpenseController::class, 'update'])->name('erp-expenses.update');
+        Route::delete('{type}/{id}', [ErpExpenseController::class, 'destroy'])->name('erp-expenses.destroy');
+        Route::get('{type}/{id}', [ErpExpenseController::class, 'show'])->name('erp-expenses.show');
+        Route::get('{type}/{id}/print', [ErpExpenseController::class, 'print'])->name('erp-expenses.print');
+        Route::post('{type}/{id}/status', [ErpExpenseController::class, 'updateStatus'])->name('erp-expenses.status');
+    });
 });
 
 Route::any('/cookie-consent', [SystemController::class, 'CookieConsent'])->name('cookie-consent');

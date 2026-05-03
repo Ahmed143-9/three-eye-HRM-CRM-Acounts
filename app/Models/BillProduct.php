@@ -9,11 +9,11 @@ class BillProduct extends Model
     protected $fillable = [
         'product_id',
         'bill_id',
-        'chart_account_id',
         'quantity',
         'tax',
         'discount',
-        'total',
+        'price',
+        'description',
     ];
 
     public function product()
