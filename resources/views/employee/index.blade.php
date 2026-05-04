@@ -36,7 +36,6 @@
                                 <th>{{__('Employee ID')}}</th>
                                 <th>{{__('Name')}}</th>
                                 <th>{{__('Email')}}</th>
-                                <th>{{__('Branch') }}</th>
                                 <th>{{__('Department') }}</th>
                                 <th>{{__('Designation') }}</th>
                                 <th>{{__('Date Of Joining') }}</th>
@@ -57,11 +56,6 @@
                                     </td>
                                     <td class="font-style">{{ $employee->name }}</td>
                                     <td>{{ $employee->email }}</td>
-                                    @if($employee->branch_id)
-                                        <td class="font-style">{{$employee->branch  ? $employee->branch->name:''}}</td>
-                                    @else
-                                        <td>-</td>
-                                    @endif
                                     @if($employee->department_id)
                                         <td class="font-style">{{$employee->department ? $employee->department->name:''}}</td>
                                     @else

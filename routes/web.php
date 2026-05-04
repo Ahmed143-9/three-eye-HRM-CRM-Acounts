@@ -100,6 +100,8 @@ use App\Http\Controllers\PaytrController;
 use App\Http\Controllers\YooKassaController;
 use App\Http\Controllers\ErpExpenseController;
 use App\Http\Controllers\ErpSalarySheetController;
+use App\Http\Controllers\EmployeePerformanceController;
+use App\Http\Controllers\HrmSetupController;
 use App\Http\Controllers\PerformanceTypeController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PayableController;
@@ -1919,9 +1921,19 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
         // Salary Management (Detailed)
         Route::get('salary-management', [ErpSalarySheetController::class, 'index'])->name('salary-management.index');
         Route::post('salary-management/generate', [ErpSalarySheetController::class, 'generate'])->name('salary-management.generate');
+        Route::post('salary-management/bulk-approve', [ErpSalarySheetController::class, 'bulkApprove'])->name('salary-management.bulk-approve');
+        Route::post('salary-management/{id}/submit-for-approval', [ErpSalarySheetController::class, 'submitForApproval'])->name('salary-management.submit-for-approval');
         Route::post('salary-management/{id}/approve', [ErpSalarySheetController::class, 'approve'])->name('salary-management.approve');
         Route::post('salary-management/{id}/reject', [ErpSalarySheetController::class, 'reject'])->name('salary-management.reject');
+        Route::post('salary-management/{id}/mark-as-paid', [ErpSalarySheetController::class, 'markAsPaid'])->name('salary-management.mark-as-paid');
+        Route::post('salary-management/{id}/update-row', [ErpSalarySheetController::class, 'updateRow'])->name('salary-management.update-row');
+        Route::get('salary-management/accounting/approved-bills', [ErpSalarySheetController::class, 'accountingApprovedBills'])->name('salary-management.accounting.approved-bills');
         Route::delete('salary-management/{id}', [ErpSalarySheetController::class, 'destroy'])->name('salary-management.destroy');
+
+        // Employee Performance
+        Route::get('employee-performance', [EmployeePerformanceController::class, 'index'])->name('employee-performance.index');
+        Route::post('employee-performance/generate', [EmployeePerformanceController::class, 'generate'])->name('employee-performance.generate');
+        Route::post('employee-performance/{id}/update', [EmployeePerformanceController::class, 'update'])->name('employee-performance.update');
 
         // Notifications
         Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
@@ -1946,6 +1958,21 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
         Route::get('{type}/{id}/print', [ErpExpenseController::class, 'print'])->name('erp-expenses.print');
     });
 });
+
+// HRM Setup (outside expense group, top-level)
+Route::group(['middleware' => ['auth']], function () {
+    Route::post('hrm-setup/quick-create', [HrmSetupController::class, 'quickCreate'])->name('hrm-setup.quick-create');
+    Route::get('hrm-setup/designations-by-department', [HrmSetupController::class, 'designationsByDepartment'])->name('hrm-setup.designations-by-department');
+    Route::get('hrm-setup/departments', [HrmSetupController::class, 'departmentsIndex'])->name('hrm-setup.departments.index');
+    Route::post('hrm-setup/departments', [HrmSetupController::class, 'departmentsStore'])->name('hrm-setup.departments.store');
+    Route::put('hrm-setup/departments/{id}', [HrmSetupController::class, 'departmentsUpdate'])->name('hrm-setup.departments.update');
+    Route::delete('hrm-setup/departments/{id}', [HrmSetupController::class, 'departmentsDestroy'])->name('hrm-setup.departments.destroy');
+    Route::get('hrm-setup/designations', [HrmSetupController::class, 'designationsIndex'])->name('hrm-setup.designations.index');
+    Route::post('hrm-setup/designations', [HrmSetupController::class, 'designationsStore'])->name('hrm-setup.designations.store');
+    Route::put('hrm-setup/designations/{id}', [HrmSetupController::class, 'designationsUpdate'])->name('hrm-setup.designations.update');
+    Route::delete('hrm-setup/designations/{id}', [HrmSetupController::class, 'designationsDestroy'])->name('hrm-setup.designations.destroy');
+});
+
 
 Route::any('/cookie-consent', [SystemController::class, 'CookieConsent'])->name('cookie-consent');
 Route::get('payslip/payslipPdf/{id}/{month}', [PaySlipController::class, 'payslipPdf'])->name('payslip.payslipPdf')->middleware(['XSS']);

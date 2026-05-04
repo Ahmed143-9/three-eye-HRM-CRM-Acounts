@@ -5,39 +5,26 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ErpSalarySheet extends Model
+class EmployeePerformance extends Model
 {
     use HasFactory;
 
-    protected $table = 'erp_salary_sheets';
+    protected $table = 'employee_performances';
 
     protected $fillable = [
-        'serial_no',
-        'status',
         'employee_id',
+        'performance_month',
         'department_id',
         'designation_id',
-        'salary_month',
         'present_days',
         'absent_days',
         'late_count',
         'leave_count',
-        'working_hours',
+        'total_working_hours',
         'overtime_hours',
         'payable_amount',
         'receivable_amount',
-        'net_salary',
-        'deduction_amount',
-        'cause_of_deduction',
-        'final_salary',
-        'approval_status',
-        'payment_status',
-        'remarks',
-        'need_approval_at',
-        'approved_by',
-        'approved_at',
-        'paid_by',
-        'paid_at',
+        'notes',
         'workspace_id',
         'created_by',
     ];
@@ -56,15 +43,4 @@ class ErpSalarySheet extends Model
     {
         return $this->belongsTo(Designation::class, 'designation_id', 'id');
     }
-
-    public function approvedBy()
-    {
-        return $this->belongsTo(User::class, 'approved_by', 'id');
-    }
-
-    public function paidBy()
-    {
-        return $this->belongsTo(User::class, 'paid_by', 'id');
-    }
 }
-

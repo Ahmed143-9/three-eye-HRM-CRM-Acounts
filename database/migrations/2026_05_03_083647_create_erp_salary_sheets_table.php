@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('erp_salary_sheets', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('employee_id');
-            $table->string('month');
+            $table->string('salary_month');
             $table->decimal('net_salary', 15, 2)->default(0);
             $table->decimal('deduction_amount', 15, 2)->default(0);
             $table->decimal('final_salary', 15, 2)->default(0);
