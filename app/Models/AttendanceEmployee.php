@@ -8,10 +8,12 @@ class AttendanceEmployee extends Model
 {
     protected $fillable = [
         'employee_id',
+        'department_id',
         'date',
         'status',
         'clock_in',
         'clock_out',
+        'working_hours',
         'late',
         'early_leaving',
         'overtime',

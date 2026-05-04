@@ -1090,8 +1090,23 @@ Route::group(['middleware' => ['verified']], function () {
     Route::post('attendanceemployee/attendance', [AttendanceEmployeeController::class, 'attendance'])->name('attendanceemployee.attendance')->middleware(['auth', 'XSS']);
     Route::get('attendance/late-log', [AttendanceEmployeeController::class, 'lateAttendanceLog'])->name('attendance.late.log')->middleware(['auth', 'XSS']);
     
+    Route::get('attendance-history', [AttendanceEmployeeController::class, 'history'])->name('attendanceemployee.history');
     Route::resource('attendanceemployee', AttendanceEmployeeController::class)->middleware(['auth', 'XSS']);
     Route::resource('leavetype', LeaveTypeController::class)->middleware(['auth', 'XSS']);
+    
+    // Professional Salary Management
+    Route::get('salary-management', [ErpSalarySheetController::class, 'index'])->name('salary-management.index');
+    Route::get('salary-management/create', [ErpSalarySheetController::class, 'create'])->name('salary-management.create');
+    Route::post('salary-management/store', [ErpSalarySheetController::class, 'store'])->name('salary-management.store');
+    Route::get('salary-management/show/{id}', [ErpSalarySheetController::class, 'show'])->name('salary-management.show');
+    Route::get('salary-management/approval-queue', [ErpSalarySheetController::class, 'expenseApprovalQueue'])->name('salary-management.approval-queue');
+    Route::get('salary-management/approved-bills', [ErpSalarySheetController::class, 'approvedBills'])->name('salary-management.approved-bills');
+    Route::get('salary-management/submit/{id}', [ErpSalarySheetController::class, 'submitForApproval'])->name('salary-management.submit');
+    Route::get('salary-management/approve/{id}', [ErpSalarySheetController::class, 'approve'])->name('salary-management.approve');
+    Route::get('salary-management/pay/{id}', [ErpSalarySheetController::class, 'pay'])->name('salary-management.pay');
+    Route::post('salary-management/update-row/{id}', [ErpSalarySheetController::class, 'updateRow'])->name('salary-management.update-row');
+    Route::delete('salary-management/destroy/{id}', [ErpSalarySheetController::class, 'destroy'])->name('salary-management.destroy');
+
     Route::get('report-leave', [ReportController::class, 'leave'])->name('report.leave')->middleware(['auth', 'XSS']);
     Route::get('employee/{id}/leave/{status}/{type}/{month}/{year}', [ReportController::class, 'employeeLeave'])->name('report.employee.leave')->middleware(['auth', 'XSS']);
     Route::get('leave/{id}/action', [LeaveController::class, 'action'])->name('leave.action')->middleware(['auth', 'XSS']);
