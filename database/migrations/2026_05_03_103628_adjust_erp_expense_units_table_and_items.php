@@ -13,8 +13,14 @@ return new class extends Migration
     {
         if (Schema::hasTable('erp_expense_units')) {
             Schema::table('erp_expense_units', function (Blueprint $table) {
+                if (!Schema::hasColumn('erp_expense_units', 'name')) {
+                    $table->string('name')->after('id');
+                }
                 if (!Schema::hasColumn('erp_expense_units', 'slug')) {
                     $table->string('slug')->nullable()->after('name');
+                }
+                if (!Schema::hasColumn('erp_expense_units', 'created_by')) {
+                    $table->unsignedBigInteger('created_by')->nullable()->after('slug');
                 }
                 if (!Schema::hasColumn('erp_expense_units', 'status')) {
                     $table->integer('status')->default(1)->after('created_by');

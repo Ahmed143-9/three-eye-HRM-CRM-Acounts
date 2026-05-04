@@ -13,6 +13,7 @@ class SalesCI extends Model
         'pi_id',
         'lc_id',
         'ci_number',
+        'client_ci_number',
         'ci_date',
         'lc_validity_date',
         'latest_shipment_date',

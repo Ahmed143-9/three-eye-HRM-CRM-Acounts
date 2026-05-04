@@ -35,28 +35,53 @@
                             </thead>
                             <tbody>
                             @foreach ($orders as $order)
+                            @php
+                                $totalOrdered = $order->po ? $order->po->items->sum('quantity') : 0;
+                                $totalDelivered = $order->cis->flatMap->tankers->sum('quantity_mt');
+                                $remaining = max(0, $totalOrdered - $totalDelivered);
+                                $progress = $totalOrdered > 0 ? ($totalDelivered / $totalOrdered) * 100 : 0;
+                            @endphp
                             <tr>
                                 <td>{{ $order->order_number }}</td>
                                 <td>{{ $order->pi ? $order->pi->pi_number : 'N/A' }}</td>
-                                <td>{{ $order->customer->name ?? 'N/A' }}</td>                                    <td><span class="badge bg-info p-2 px-3 rounded">{{ $order->current_step }}</span></td>
-                                    <td>
-                                        @if($order->status == 'pending')
-                                            <span class="badge bg-warning p-2 px-3 rounded">{{ ucfirst($order->status) }}</span>
-                                        @else
-                                            <span class="badge bg-success p-2 px-3 rounded">{{ ucfirst($order->status) }}</span>
-                                        @endif
-                                    </td>
-                                    <td>{{ Utility::dateFormat(Utility::settings(), $order->created_at) }}</td>
-                                    <td class="Action">
-                                        <span>
-                                            <div class="action-btn bg-primary ms-2">
-                                                <a href="{{ route('sales-orders.show',$order->id) }}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('View Workflow')}}">
-                                                    <i class="ti ti-eye text-white"></i>
-                                                </a>
-                                            </div>
-                                        </span>
-                                    </td>
-                                </tr>
+                                <td>{{ $order->customer->name ?? 'N/A' }}</td>
+                                <td>
+                                    <span class="badge bg-info p-2 px-3 rounded">{{ $order->current_step }}</span>
+                                    <div class="mt-1 small text-muted">
+                                        {{ number_format($totalDelivered, 2) }} / {{ number_format($totalOrdered, 2) }} MT
+                                    </div>
+                                    <div class="progress mt-1" style="height: 5px;">
+                                        <div class="progress-bar bg-{{ $progress >= 100 ? 'success' : 'primary' }}" role="progressbar" style="width: {{ $progress }}%;"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if($order->status == 'pending')
+                                        <span class="badge bg-warning p-2 px-3 rounded">{{ ucfirst($order->status) }}</span>
+                                    @elseif($order->status == 'finalized')
+                                        <span class="badge bg-primary p-2 px-3 rounded">{{ ucfirst($order->status) }}</span>
+                                    @else
+                                        <span class="badge bg-success p-2 px-3 rounded">{{ ucfirst($order->status) }}</span>
+                                    @endif
+                                    @if($remaining > 0 && $totalDelivered > 0)
+                                        <div class="mt-1 small text-warning fw-bold">{{ __('Partial Delivery') }}</div>
+                                    @endif
+                                </td>
+                                <td>{{ Utility::dateFormat(Utility::settings(), $order->created_at) }}</td>
+                                <td class="Action">
+                                    <span>
+                                        <div class="action-btn bg-primary ms-2">
+                                            <a href="{{ route('sales-orders.show',$order->id) }}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('View Workflow')}}">
+                                                <i class="ti ti-eye text-white"></i>
+                                            </a>
+                                        </div>
+                                        <div class="action-btn bg-info ms-2">
+                                            <a href="{{ route('sales-orders.full-report', $order->id) }}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Full Report')}}">
+                                                <i class="ti ti-file-description text-white"></i>
+                                            </a>
+                                        </div>
+                                    </span>
+                                </td>
+                            </tr>
                             @endforeach
                             </tbody>
                         </table>

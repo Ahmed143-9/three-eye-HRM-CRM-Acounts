@@ -1,3 +1,9 @@
+@if(empty($order->po))
+    <div class="alert alert-warning">DEBUG: $order->po is empty. Data not loaded in controller?</div>
+@else
+    <div class="alert alert-success">DEBUG: $order->po exists (ID: {{ $order->po->id }}). Rendering...</div>
+@endif
+
 <h5>{{ __('Step 2: Proforma Invoice (PI)') }}</h5>
 <p class="text-muted mb-0">{{ __('Step 2 of 7') }}</p>
 <hr>
@@ -75,12 +81,9 @@
             {{ Form::label('incoterm', __('Incoterms'), ['class' => 'form-label']) }}
             @php
                 $incoterms = [
-
-
                     'CFR' => 'CFR - Cost and Freight',
                     'FOB' => 'FOB - Free On Board',
                     'CIF' => 'CIF - Cost, Insurance, and Freight',
-
                 ];
             @endphp
             {{ Form::select('incoterm', ['' => __('Select Incoterms')] + $incoterms, $order->pi->incoterm ?? null, ['class' => 'form-control select2']) }}

@@ -6,8 +6,14 @@
 <div class="row">
     <div class="col-md-3">
         <div class="form-group">
-            {{ Form::label('ci_number', __('CI Number'), ['class' => 'form-label']) }}
-            {{ Form::text('ci_number', $active_ci->ci_number ?? 'CI-' . ($order->cis->count() + 1), ['class' => 'form-control form-control-sm', 'required' => 'required']) }}
+            {{ Form::label('ci_number', __('CI Reference Number'), ['class' => 'form-label']) }}
+            {{ Form::text('ci_number', $active_ci->ci_number ?? 'CI-TE' . str_pad(($order->cis->count() + 1), 9, '0', STR_PAD_LEFT), ['class' => 'form-control form-control-sm', 'required' => 'required', 'readonly' => 'readonly']) }}
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            {{ Form::label('client_ci_number', __('Client CI Number'), ['class' => 'form-label']) }}
+            {{ Form::text('client_ci_number', $active_ci->client_ci_number ?? '', ['class' => 'form-control form-control-sm', 'placeholder' => __('Enter Client CI Number')]) }}
         </div>
     </div>
     <div class="col-md-3">

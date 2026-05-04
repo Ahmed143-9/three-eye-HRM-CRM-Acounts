@@ -18,10 +18,13 @@ class Receivable extends Model
         'date',
         'billing_direction',
         'entity_id',
+        'sales_order_id',
+        'ci_id',
+        'transport_id',
         'billing_address',
         'total_amount',
         'status',
-        'next_due_date',
+        'approval_status',
         'created_by',
     ];
 

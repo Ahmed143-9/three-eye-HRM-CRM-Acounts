@@ -31,6 +31,11 @@ class SalesOrder extends Model
         return $this->hasOne(SalesPO::class, 'order_id');
     }
 
+    public function buying()
+    {
+        return $this->hasOne(SalesBuyingDetail::class, 'order_id');
+    }
+
     public function pi()
     {
         return $this->hasOne(SalesPI::class, 'order_id');

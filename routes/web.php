@@ -1873,6 +1873,8 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
     Route::post('transport-bills/{id}/seen', [App\Http\Controllers\TransportController::class, 'markSeen'])->name('transport.bill.seen');
 
     Route::resource('sales-orders', SalesOrderController::class);
+    Route::get('sales-orders/{id}/full-report', [SalesOrderController::class, 'fullReport'])->name('sales-orders.full-report');
+    Route::post('sales-orders/{id}/buying', [SalesOrderController::class, 'buyingStore'])->name('sales-orders.buying.store');
     Route::post('sales-orders/{id}/po', [SalesOrderController::class, 'poStore'])->name('sales-orders.po.store');
     Route::get('sales-orders/{id}/po/print', [SalesOrderController::class, 'poPrint'])->name('sales-orders.po.print');
     Route::get('sales-orders/{id}/po/download', [SalesOrderController::class, 'poDownload'])->name('sales-orders.po.download');

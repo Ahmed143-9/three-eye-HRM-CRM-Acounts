@@ -14,6 +14,12 @@ class SalesDelivery extends Model
         'total_quantity_mt',
         'total_quantity_kg',
         'required_units',
+        'drum_qty',
+        'drum_unit',
+        'drum_buying_price',
+        'drum_buying_total',
+        'drum_selling_price',
+        'drum_selling_total',
         'created_by'
     ];
 

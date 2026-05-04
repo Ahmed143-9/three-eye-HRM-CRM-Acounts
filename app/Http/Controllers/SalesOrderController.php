@@ -8,6 +8,13 @@ use App\Models\SalesCITanker;
 use App\Models\SalesConsignmentNote;
 use App\Models\SalesLC;
 use App\Models\SalesOrder;
+use App\Models\SalesBuyingDetail;
+use App\Models\SalesBuyingItem;
+use App\Models\Payable;
+use App\Models\PayableItem;
+use App\Models\Receivable;
+use App\Models\ReceivableItem;
+use App\Models\Supplier;
 use App\Models\SalesPI;
 use App\Models\SalesPO;
 use App\Models\SalesPOItem;
@@ -23,8 +30,25 @@ class SalesOrderController extends Controller
 {
     public function index()
     {
-        $orders = SalesOrder::where('created_by', Auth::user()->creatorId())->with('customer')->get();
+        $orders = SalesOrder::where('created_by', Auth::user()->creatorId())->with('customer')->orderBy('id', 'desc')->get();
         return view('sales_orders.index', compact('orders'));
+    }
+
+    public function fullReport($id)
+    {
+        $order = SalesOrder::where('id', $id)->with([
+            'buying.items', 
+            'po.items', 
+            'pi', 
+            'lc', 
+            'cis.tankers', 
+            'cis.packingList', 
+            'cis.consignmentNote.weightSlips', 
+            'cis.delivery', 
+            'customer'
+        ])->first();
+
+        return view('sales_orders.print.full_report', compact('order'));
     }
 
     public function create()
@@ -44,7 +68,7 @@ class SalesOrderController extends Controller
         $order = new SalesOrder();
         $order->order_number = 'ORD-' . time();
         $order->customer_id = $request->customer_id;
-        $order->current_step = 'PO';
+        $order->current_step = 'Buying';
         $order->status = 'pending';
         $order->created_by = Auth::user()->creatorId();
         $order->save();
@@ -60,11 +84,12 @@ class SalesOrderController extends Controller
 
     public function show($id)
     {
-        $order = SalesOrder::where('id', $id)->with(['po.items', 'pi', 'lc', 'ci.tankers', 'cis.tankers', 'cis.packingList.items', 'cis.consignmentNote.weightSlips', 'cis.delivery', 'customer'])->first();
+        $order = SalesOrder::where('id', $id)->with(['buying.items', 'po.items', 'pi', 'lc', 'ci.tankers', 'cis.tankers', 'cis.packingList.items', 'cis.consignmentNote.weightSlips', 'cis.delivery', 'customer'])->first();
         
         $units = \App\Models\ProductServiceUnit::where('created_by', Auth::user()->creatorId())->get()->pluck('name', 'name')->toArray();
         $currencies = \App\Models\SalesCurrency::where('created_by', Auth::user()->creatorId())->get()->pluck('code', 'code')->toArray();
-        
+        $suppliers = Supplier::where('created_by', Auth::user()->creatorId())->get()->pluck('name', 'id')->toArray();
+
         // Add default if empty or ensure Pc/D. are available
         if(empty($units)) $units = ['MT' => 'MT', 'KG' => 'KG', 'Ltr' => 'Ltr', 'Pc' => 'Pc'];
         else $units['Pc'] = 'Pc';
@@ -72,7 +97,44 @@ class SalesOrderController extends Controller
         if(empty($currencies)) $currencies = ['USD' => 'USD', 'BDT' => 'BDT', 'EUR' => 'EUR', 'D.' => 'D.'];
         else $currencies['D.'] = 'D.';
 
-        return view('sales_orders.show', compact('order', 'units', 'currencies'));
+        return view('sales_orders.show', compact('order', 'units', 'currencies', 'suppliers'));
+    }
+
+    public function buyingStore(Request $request, $id)
+    {
+        $order = SalesOrder::find($id);
+        DB::transaction(function () use ($request, $order) {
+            $buying = SalesBuyingDetail::updateOrCreate(
+                ['order_id' => $order->id],
+                [
+                    'supplier_id' => $request->supplier_id,
+                    'supplier_name' => $request->supplier_name,
+                    'total_amount' => $request->total_amount,
+                    'created_by' => Auth::user()->creatorId(),
+                ]
+            );
+
+            $buying->items()->delete();
+            foreach ($request->items as $item) {
+                SalesBuyingItem::create([
+                    'buying_id' => $buying->id,
+                    'item_name' => $item['item'],
+                    'description' => $item['description'],
+                    'quantity' => $item['qty'],
+                    'unit' => $item['unit'],
+                    'price' => $item['price'],
+                    'total' => $item['total'],
+                ]);
+            }
+
+            // Generate Payable Bill (Pending Approval)
+            $this->generateSalesPayable($order, $buying, 'Product Purchase');
+
+            $order->current_step = 'PO';
+            $order->save();
+        });
+
+        return redirect()->back()->with('success', __('Buying details saved and Payable bill generated.'));
     }
 
     public function poStore(Request $request, $id)
@@ -209,13 +271,14 @@ class SalesOrderController extends Controller
     public function ciStore(Request $request, $id)
     {
         $order = SalesOrder::find($id);
-        DB::transaction(function () use ($request, $order) {
+        $transactionResult = DB::transaction(function () use ($request, $order) {
             $ci = SalesCI::updateOrCreate(
                 ['id' => $request->ci_id, 'order_id' => $order->id],
                 [
                     'pi_id' => $order->pi->id,
                     'lc_id' => $order->lc->id,
                     'ci_number' => $request->ci_number,
+                    'client_ci_number' => $request->client_ci_number,
                     'ci_date' => $request->ci_date,
                     'lc_validity_date' => $request->lc_validity_date,
                     'latest_shipment_date' => $request->latest_shipment_date,
@@ -253,9 +316,10 @@ class SalesOrderController extends Controller
             
             // Store CI ID in session for the next steps
             session(['active_ci_id' => $ci->id]);
+            return $ci;
         });
 
-        return redirect()->back()->with('success', __('CI saved successfully.'))->with('jump_to_pl', true);
+        return redirect()->route('sales-orders.show', [$id, 'ci_id' => $transactionResult->id])->with('success', __('CI saved successfully.'))->with('jump_to_pl', true);
     }
 
     public function plStore(Request $request, $id)
@@ -359,7 +423,7 @@ class SalesOrderController extends Controller
         $order = SalesOrder::find($id);
         $ci_id = $request->ci_id ?? session('active_ci_id');
         
-        \App\Models\SalesDelivery::updateOrCreate(
+        $delivery = \App\Models\SalesDelivery::updateOrCreate(
             ['ci_id' => $ci_id, 'order_id' => $order->id],
             [
                 'delivery_mode' => $request->delivery_mode,
@@ -367,9 +431,27 @@ class SalesOrderController extends Controller
                 'total_quantity_mt' => $request->total_quantity_mt,
                 'total_quantity_kg' => $request->total_quantity_kg,
                 'required_units' => $request->required_units,
+                'drum_qty' => $request->drum_qty ?? 0,
+                'drum_unit' => $request->drum_unit,
+                'drum_buying_price' => $request->drum_buying_price ?? 0,
+                'drum_buying_total' => $request->drum_buying_total ?? 0,
+                'drum_selling_price' => $request->drum_selling_price ?? 0,
+                'drum_selling_total' => $request->drum_selling_total ?? 0,
                 'created_by' => \Auth::user()->creatorId(),
             ]
         );
+
+        // Generate Billing for Drums if any
+        if ($delivery->drum_qty > 0) {
+            $this->generateSalesPayable($order, $delivery, 'Drum Purchase', $ci_id);
+            $this->generateSalesReceivable($order, $delivery, 'Drum Sale', $ci_id);
+        }
+
+        // Also generate Product Receivable if first time
+        $existingReceivable = \App\Models\Receivable::where('sales_order_id', $order->id)->where('ci_id', null)->first();
+        if (!$existingReceivable && $order->po) {
+            $this->generateSalesReceivable($order, $order->po, 'Product Sale');
+        }
 
         // Transition order status so HRM/Transport can see it
         $order->status = 'finalized';
@@ -442,6 +524,90 @@ class SalesOrderController extends Controller
     public function cnDownload($id) {
         $order = SalesOrder::with(['consignmentNote.weightSlips.tanker'])->find($id);
         return view('sales_orders.print.cn', compact('order'));
+    }
+
+    private function generateSalesPayable($order, $source, $type, $ci_id = null)
+    {
+        $unique_id = 'PAY-ORD-' . $order->id . '-' . time();
+        $payable = Payable::create([
+            'unique_id' => $unique_id,
+            'invoice_number' => $order->order_number,
+            'date' => date('Y-m-d'),
+            'billing_direction' => ($type == 'Product Purchase') ? 'supplier' : 'consultant',
+            'entity_id' => ($type == 'Product Purchase') ? ($source->supplier_id ?? 0) : 0,
+            'sales_order_id' => $order->id,
+            'ci_id' => $ci_id,
+            'total_amount' => ($type == 'Product Purchase') ? $source->total_amount : $source->drum_buying_total,
+            'status' => 'unpaid',
+            'approval_status' => 'Pending Approval',
+            'created_by' => Auth::user()->creatorId(),
+        ]);
+
+        if ($type == 'Product Purchase') {
+            foreach ($source->items as $item) {
+                PayableItem::create([
+                    'payable_id' => $payable->id,
+                    'serial' => $item->item_name,
+                    'order_details' => $item->description,
+                    'qty' => $item->quantity,
+                    'rate' => $item->price,
+                    'amount' => $item->total,
+                ]);
+            }
+        } else {
+            PayableItem::create([
+                'payable_id' => $payable->id,
+                'serial' => 'Drums',
+                'order_details' => 'Drums for delivery ' . ($ci_id ?? ''),
+                'qty' => $source->drum_qty,
+                'rate' => $source->drum_buying_price,
+                'amount' => $source->drum_buying_total,
+            ]);
+        }
+
+        return $payable;
+    }
+
+    private function generateSalesReceivable($order, $source, $type, $ci_id = null)
+    {
+        $unique_id = 'REC-ORD-' . $order->id . '-' . time();
+        $receivable = Receivable::create([
+            'unique_id' => $unique_id,
+            'invoice_number' => $order->order_number,
+            'date' => date('Y-m-d'),
+            'billing_direction' => 'client',
+            'entity_id' => $order->customer_id,
+            'sales_order_id' => $order->id,
+            'ci_id' => $ci_id,
+            'total_amount' => ($type == 'Product Sale') ? $source->grand_total : $source->drum_selling_total,
+            'status' => 'unpaid',
+            'approval_status' => 'Pending Approval',
+            'created_by' => Auth::user()->creatorId(),
+        ]);
+
+        if ($type == 'Product Sale') {
+            foreach ($source->items as $item) {
+                ReceivableItem::create([
+                    'receivable_id' => $receivable->id,
+                    'serial' => $item->item_name,
+                    'order_details' => $item->description,
+                    'qty' => $item->quantity,
+                    'rate' => $item->price,
+                    'amount' => $item->total,
+                ]);
+            }
+        } else {
+            ReceivableItem::create([
+                'receivable_id' => $receivable->id,
+                'serial' => 'Drums',
+                'order_details' => 'Drums for delivery ' . ($ci_id ?? ''),
+                'qty' => $source->drum_qty,
+                'rate' => $source->drum_selling_price,
+                'amount' => $source->drum_selling_total,
+            ]);
+        }
+
+        return $receivable;
     }
 
     private function numberToWords($number)

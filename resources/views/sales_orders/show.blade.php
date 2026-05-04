@@ -39,28 +39,36 @@
                 <div class="card-body">
                     <ul class="nav nav-pills mb-3 justify-content-center" id="pills-tab" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ ($order->current_step == 'PO' && !request()->ci_id && !request()->new_ci) ? 'active' : '' }} {{ $order->po ? 'text-success' : '' }}" id="pills-po-tab" data-bs-toggle="pill" data-bs-target="#pills-po" type="button" role="tab">
-                                @if($order->po) <i class="ti ti-circle-check me-1"></i> @endif {{ __('1. PO') }}
+                            <button class="nav-link {{ ($order->current_step == 'Buying' && !request()->ci_id && !request()->new_ci) ? 'active' : '' }} {{ $order->buying ? 'text-success' : '' }}" id="pills-buying-tab" data-bs-toggle="pill" data-bs-target="#pills-buying" type="button" role="tab">
+                                @if($order->buying) <i class="ti ti-circle-check me-1"></i> @endif {{ __('1. Buying') }}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link {{ ($order->current_step == 'PO' && !request()->ci_id && !request()->new_ci) ? 'active' : '' }} {{ !$order->buying ? 'disabled' : ($order->po ? 'text-success' : '') }}" id="pills-po-tab" data-bs-toggle="pill" data-bs-target="#pills-po" type="button" role="tab">
+                                @if($order->po) <i class="ti ti-circle-check me-1"></i> @endif {{ __('2. PO') }}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link {{ ($order->current_step == 'PI' && !request()->ci_id && !request()->new_ci) ? 'active' : '' }} {{ !$order->po ? 'disabled' : ($order->pi ? 'text-success' : '') }}" id="pills-pi-tab" data-bs-toggle="pill" data-bs-target="#pills-pi" type="button" role="tab">
-                                @if($order->pi) <i class="ti ti-circle-check me-1"></i> @endif {{ __('2. PI') }}
+                                @if($order->pi) <i class="ti ti-circle-check me-1"></i> @endif {{ __('3. PI') }}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link {{ ($order->current_step == 'LC' && !request()->ci_id && !request()->new_ci) ? 'active' : '' }} {{ !$order->pi ? 'disabled' : ($order->lc ? 'text-success' : '') }}" id="pills-lc-tab" data-bs-toggle="pill" data-bs-target="#pills-lc" type="button" role="tab">
-                                @if($order->lc) <i class="ti ti-circle-check me-1"></i> @endif {{ __('3. LC') }}
+                                @if($order->lc) <i class="ti ti-circle-check me-1"></i> @endif {{ __('4. LC') }}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link {{ (in_array($order->current_step, ['CI', 'Packing List', 'Consignment Note', 'Received Details', 'Delivery']) || request()->ci_id || request()->new_ci) ? 'active' : '' }} {{ !$order->lc ? 'disabled' : ($order->cis->count() > 0 ? 'text-success' : '') }}" id="pills-shipments-tab" data-bs-toggle="pill" data-bs-target="#pills-shipments" type="button" role="tab">
-                                @if($order->cis->count() > 0) <i class="ti ti-package me-1"></i> @endif {{ __('4. Shipments (Partial Deliveries)') }}
+                                @if($order->cis->count() > 0) <i class="ti ti-package me-1"></i> @endif {{ __('5. Shipments') }}
                             </button>
                         </li>
                     </ul>
 
                     <div class="tab-content" id="pills-tabContent">
+                        <div class="tab-pane fade {{ ($order->current_step == 'Buying' && !request()->ci_id && !request()->new_ci) ? 'show active' : '' }}" id="pills-buying" role="tabpanel">
+                            @include('sales_orders.steps.buying')
+                        </div>
                         <div class="tab-pane fade {{ ($order->current_step == 'PO' && !request()->ci_id && !request()->new_ci) ? 'show active' : '' }}" id="pills-po" role="tabpanel">
                             @include('sales_orders.steps.po')
                         </div>
@@ -74,7 +82,6 @@
                             @include('sales_orders.shipments.index')
                         </div>
                     </div>
-                </div>
             </div>
         </div>
     </div>

@@ -102,18 +102,40 @@ class TransportController extends Controller
         $transport->workspace        = 0; // Fixed null error
         $transport->save();
 
-        // 🚀 AUTO-CREATE PAYABLE FOR ACCOUNTANT
-        $payable = Payable::create([
-            'unique_id'         => 'BILL-' . time(),
+        // 🚀 AUTO-CREATE BILLING FOR ACCOUNTANT (Payable & Receivable)
+        $billing_date = $transport->starting_date ?? date('Y-m-d');
+        
+        // 1. Payable (To Transporter/Provider)
+        $payable = \App\Models\Payable::create([
+            'unique_id'         => 'BILL-PAY-' . time(),
             'invoice_number'    => 'TR-' . $transport->id,
-            'date'              => $transport->starting_date ?? date('Y-m-d'),
+            'date'              => $billing_date,
+            'billing_direction' => 'consultant', // Transport provider is often a consultant/vendor
+            'entity_id'         => 0, // Accountant will fill provider
+            'sales_order_id'    => $transport->sales_order_id,
+            'ci_id'             => $transport->ci_id,
+            'transport_id'      => $transport->id,
+            'billing_address'   => $transport->location_address,
+            'total_amount'      => 0, // Accountant will fill this
+            'status'            => 'due',
+            'approval_status'   => 'Pending Approval',
+            'created_by'        => Auth::user()->creatorId(),
+        ]);
+
+        // 2. Receivable (From Client)
+        $receivable = \App\Models\Receivable::create([
+            'unique_id'         => 'BILL-REC-' . time(),
+            'invoice_number'    => 'TR-' . $transport->id,
+            'date'              => $billing_date,
             'billing_direction' => 'client',
             'entity_id'         => $transport->client_id > 0 ? $transport->client_id : 0,
             'sales_order_id'    => $transport->sales_order_id,
             'ci_id'             => $transport->ci_id,
+            'transport_id'      => $transport->id,
             'billing_address'   => $transport->location_address,
             'total_amount'      => 0, // Accountant will fill this
             'status'            => 'due',
+            'approval_status'   => 'Pending Approval',
             'created_by'        => Auth::user()->creatorId(),
         ]);
 
