@@ -31,6 +31,18 @@
     flex-shrink: 0;
 }
 
+.notification-count {
+    padding: 2px 5px;
+    font-size: 10px;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
 .notification-badge-erp {
     position: absolute;
     top: -5px;

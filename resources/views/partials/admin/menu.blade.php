@@ -151,54 +151,63 @@
                                     </li>
                                 @endcan
 
-
-
-                                @if (Gate::check('manage leave') || Gate::check('manage attendance'))
-                                    <li
-                                        class="dash-item dash-hasmenu  {{ Request::segment(1) == 'leave' || Request::segment(1) == 'attendanceemployee' ? 'active dash-trigger' : '' }}">
-                                        <a class="dash-link" href="#">{{ __('Leave Management Setup') }}<span
-                                                class="dash-arrow"><i data-feather="chevron-right"></i></span></a>
+                                {{-- Professional Attendance Module --}}
+                                @can('manage attendance')
+                                    <li class="dash-item dash-hasmenu {{ Request::segment(1) == 'attendanceemployee' || Request::segment(1) == 'attendance-history' ? 'active dash-trigger' : '' }}">
+                                        <a href="#!" class="dash-link">
+                                            <span class="dash-micon"><i class="ti ti-calendar-event"></i></span>
+                                            <span class="dash-mtext">{{ __('Attendance') }}</span>
+                                            <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
+                                        </a>
                                         <ul class="dash-submenu">
-                                            @can('manage leave')
-                                                <li
-                                                    class="dash-item {{ Request::route()->getName() == 'leave.index' ? 'active' : '' }}">
-                                                    <a class="dash-link"
-                                                        href="{{ route('leave.index') }}">{{ __('Manage Leave') }}</a>
+                                            <li class="dash-item {{ Request::route()->getName() == 'attendanceemployee.bulkattendance' ? 'active' : '' }}">
+                                                <a class="dash-link" href="{{ route('attendanceemployee.bulkattendance') }}">{{ __('Daily Worksheet') }}</a>
+                                            </li>
+                                            <li class="dash-item {{ Request::route()->getName() == 'attendanceemployee.history' ? 'active' : '' }}">
+                                                <a class="dash-link" href="{{ route('attendanceemployee.history') }}">{{ __('Attendance History') }}</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                @endcan
+
+                                {{-- Professional Salary Management Module --}}
+                                @if (Gate::check('manage set salary') || Gate::check('manage pay slip') || \Auth::user()->type == 'company')
+                                    <li class="dash-item dash-hasmenu {{ Request::segment(1) == 'salary-management' ? 'active dash-trigger' : '' }}">
+                                        <a href="#!" class="dash-link">
+                                            <span class="dash-micon"><i class="ti ti-report-money"></i></span>
+                                            <span class="dash-mtext">{{ __('Salary Management') }}</span>
+                                            <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
+                                        </a>
+                                        <ul class="dash-submenu">
+                                            <li class="dash-item {{ Request::routeIs('salary-management.index') ? 'active' : '' }}">
+                                                <a class="dash-link" href="{{ route('salary-management.index') }}">{{ __('Salary Sheet') }}</a>
+                                            </li>
+                                            @if(\Auth::user()->type == 'company' || \Auth::user()->can('approve expense'))
+                                                <li class="dash-item {{ Request::routeIs('salary-management.approval-queue') ? 'active' : '' }}">
+                                                    <a class="dash-link" href="{{ route('salary-management.approval-queue') }}">{{ __('Expense Approval Queue') }}</a>
                                                 </li>
-                                            @endcan
-                                            @can('manage attendance')
-                                                <li class="dash-item dash-hasmenu {{ Request::segment(1) == 'attendanceemployee' ? 'active dash-trigger' : '' }}"
-                                                    href="#navbar-attendance" data-toggle="collapse" role="button"
-                                                    aria-expanded="{{ Request::segment(1) == 'attendanceemployee' ? 'true' : 'false' }}">
-                                                    <a class="dash-link" href="#">{{ __('Attendance') }}<span
-                                                            class="dash-arrow"><i
-                                                                data-feather="chevron-right"></i></span></a>
-                                                    <ul class="dash-submenu">
-                                                        <li
-                                                            class="dash-item {{ Request::route()->getName() == 'attendanceemployee.index' ? 'active' : '' }}">
-                                                            <a class="dash-link"
-                                                                href="{{ route('attendanceemployee.index') }}">{{ __('Mark Attendance') }}</a>
-                                                        </li>
-                                                        @can('create attendance')
-                                                            <li
-                                                                class="dash-item {{ Request::route()->getName() == 'attendanceemployee.bulkattendance' ? 'active' : '' }}">
-                                                                <a class="dash-link"
-                                                                    href="{{ route('attendanceemployee.bulkattendance') }}">{{ __('Bulk Attendance') }}</a>
-                                                            </li>
-                                                        @endcan
-                                                        @can('manage attendance')
-                                                            <li
-                                                                class="dash-item {{ Request::route()->getName() == 'attendance.late.log' ? 'active' : '' }}">
-                                                                <a class="dash-link"
-                                                                    href="{{ route('attendance.late.log') }}">{{ __('Late Updates') }}</a>
-                                                            </li>
-                                                        @endcan
-                                                    </ul>
+                                            @endif
+                                            @if(\Auth::user()->type == 'company' || \Auth::user()->can('manage bill'))
+                                                <li class="dash-item {{ Request::routeIs('salary-management.approved-bills') ? 'active' : '' }}">
+                                                    <a class="dash-link" href="{{ route('salary-management.approved-bills') }}">{{ __('Approved Bills') }}</a>
                                                 </li>
-                                            @endcan
+                                            @endif
+                                            <li class="dash-item">
+                                                <a class="dash-link" href="#">{{ __('Payroll Reports') }}</a>
+                                            </li>
                                         </ul>
                                     </li>
                                 @endif
+
+
+                                @if (Gate::check('manage leave'))
+                                    <li
+                                        class="dash-item {{ Request::segment(1) == 'leave' ? 'active' : '' }}">
+                                        <a class="dash-link"
+                                            href="{{ route('leave.index') }}">{{ __('Leave Management') }}</a>
+                                    </li>
+                                @endif
+
 
 
 
@@ -443,9 +452,6 @@
                                 </li>
                                 <li class="dash-item {{ Request::is('expense-management/utility*') ? 'active' : '' }}">
                                     <a class="dash-link" href="{{ route('erp-expenses.index', 'utility') }}">{{ __('Utility') }}</a>
-                                </li>
-                                <li class="dash-item {{ Request::routeIs('salary-management.index') ? 'active' : '' }}">
-                                    <a class="dash-link" href="{{ route('salary-management.index') }}">{{ __('Salary Management') }}</a>
                                 </li>
                             @endif
                             @if (Gate::check('view office expense history') || \Auth::user()->type == 'company')

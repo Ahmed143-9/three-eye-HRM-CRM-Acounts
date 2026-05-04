@@ -135,6 +135,7 @@
     </script>
 
     <link rel="stylesheet" href="{{ asset('css/custom-color.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/erp-premium.css') }}">
     @stack('css-page')
 
 

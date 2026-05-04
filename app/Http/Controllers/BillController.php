@@ -796,6 +796,45 @@ class BillController extends Controller
 
             }
             $billPayment->save();
+            
+            // Notification for Payment Completed
+            $bill = Bill::find($bill_id);
+            if ($bill) {
+                // Notify Admin
+                $admins = User::where('type', 'company')->pluck('id');
+                foreach ($admins as $adminId) {
+                    Notification::create([
+                        'user_id' => $adminId,
+                        'type' => 'bill_payment_completed',
+                        'title' => __('Payment Completed: ') . $bill->bill_id,
+                        'message' => __('A payment of :amount has been recorded for Bill :bill.', [
+                            'amount' => Auth::user()->priceFormat($request->amount),
+                            'bill' => $bill->bill_id,
+                        ]),
+                        'related_model' => 'Bill',
+                        'related_id' => $bill->id,
+                        'created_by' => Auth::user()->id,
+                        'is_read' => 0,
+                    ]);
+                }
+
+                // Notify Bill Creator if different from Admin
+                if ($bill->created_by && !User::where('id', $bill->created_by)->where('type', 'company')->exists()) {
+                    Notification::create([
+                        'user_id' => $bill->created_by,
+                        'type' => 'bill_payment_completed',
+                        'title' => __('Payment Received for Bill'),
+                        'message' => __('Your bill :bill has received a payment of :amount.', [
+                            'bill' => $bill->bill_id,
+                            'amount' => Auth::user()->priceFormat($request->amount),
+                        ]),
+                        'related_model' => 'Bill',
+                        'related_id' => $bill->id,
+                        'created_by' => Auth::user()->id,
+                        'is_read' => 0,
+                    ]);
+                }
+            }
 
             $bill  = Bill::where('id', $bill_id)->first();
             $due   = $bill->getDue();

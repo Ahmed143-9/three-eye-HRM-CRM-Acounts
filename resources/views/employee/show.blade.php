@@ -145,12 +145,6 @@
                     <div class="row gy-2">
                         <div class="col-sm-6 col-12">
                             <div class="info">
-                                <strong class="font-bold">{{ __('Branch') }} : </strong>
-                                <span>{{ !empty($employee->branch) ? $employee->branch->name : '' }}</span>
-                            </div>
-                        </div>
-                        <div class="col-sm-6 col-12">
-                            <div class="info">
                                 <strong class="font-bold">{{ __('Department') }} :</strong>
                                 <span>{{ !empty($employee->department) ? $employee->department->name : '' }}</span>
                             </div>
@@ -167,6 +161,12 @@
                             <div class="info">
                                 <strong class="font-bold">{{ __('Date Of Joining') }} :</strong>
                                 <span>{{ \Auth::user()->dateFormat(!empty($employee) ? $employee->company_doj : '') }}</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-12">
+                            <div class="info">
+                                <strong class="font-bold">{{ __('Joining Salary') }} :</strong>
+                                <span>{{ \Auth::user()->priceFormat(!empty($employee) ? $employee->joining_salary : 0) }}</span>
                             </div>
                         </div>
                         <div class="col-sm-6 col-12">

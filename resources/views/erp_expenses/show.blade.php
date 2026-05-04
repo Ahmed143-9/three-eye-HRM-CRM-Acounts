@@ -123,8 +123,8 @@
     @if(in_array($expense->status, ['Pending Approval', 'Hold', 'Sent Back'], true))
         <div class="modal-footer d-block border-top bg-light sticky-bottom">
             <div class="form-group mb-3 text-start">
-                <label for="review_comments" class="form-label">{{ __('Review comments / reason') }}</label>
-                <textarea id="review_comments" name="comments" class="form-control" rows="2" placeholder="{{ __('Required for reject, hold, or send back; optional for approve') }}"></textarea>
+                <label for="review_comments_admin" class="form-label">{{ __('Review comments / reason') }}</label>
+                <textarea id="review_comments_admin" name="comments" class="form-control review-comments-input" rows="2" placeholder="{{ __('Required for reject, hold, or send back; optional for approve') }}"></textarea>
             </div>
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <div class="d-flex flex-wrap gap-2">
@@ -154,55 +154,87 @@
                 </div>
             </div>
         </div>
-        <script>
-            $(document).off('keyup.expAppr', '#review_comments').on('keyup.expAppr', '#review_comments', function () {
-                $(this).closest('.modal').find('.comments-mirror').val($(this).val());
-            });
-            $(document).off('submit.expAppr', '.expense-approval-action-form').on('submit.expAppr', '.expense-approval-action-form', function (e) {
-                e.preventDefault();
-                var form = $(this);
-                var msg = form.data('confirm');
-                if (msg && !window.confirm(msg)) {
-                    return false;
-                }
-                var comments = form.closest('.modal').find('#review_comments').val() || '';
-                var act = form.attr('action') || '';
-                if (act.indexOf('reject') !== -1 || act.indexOf('hold') !== -1 || act.indexOf('send-back') !== -1) {
-                    if (!comments.trim()) {
-                        show_toastr('{{ __('Error') }}', '{{ __('Please enter a comment or reason for this action.') }}', 'error');
-                        return false;
-                    }
-                }
-                form.find('.comments-mirror').val(comments);
-                var btn = form.find('button[type="submit"]').prop('disabled', true);
-                $.ajax({
-                    url: form.attr('action'),
-                    method: 'POST',
-                    data: form.serialize(),
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
-                }).done(function (data) {
-                    if (data.success) {
-                        show_toastr('{{ __('Success') }}', data.message, 'success');
-                        $('.modal.show').modal('hide');
-                        if (typeof window.refreshExpenseApprovalQueue === 'function') {
-                            window.refreshExpenseApprovalQueue();
-                        } else {
-                            window.location.reload();
-                        }
-                    } else {
-                        show_toastr('{{ __('Error') }}', data.message || '{{ __('Status update failed') }}', 'error');
-                    }
-                }).fail(function (xhr) {
-                    var m = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : '{{ __('Approval transaction failed') }}';
-                    show_toastr('{{ __('Error') }}', m, 'error');
-                }).always(function () {
-                    btn.prop('disabled', false);
-                });
-                return false;
-            });
-        </script>
     @endif
 @endif
+
+@if(Auth::user()->can('manage bill') || Auth::user()->type == 'company')
+    @if(in_array($expense->status, ['Approved', 'Processing Payment'], true))
+        <div class="modal-footer d-block border-top bg-light sticky-bottom">
+            <div class="form-group mb-3 text-start">
+                <label for="review_comments_accountant" class="form-label">{{ __('Accountant Notes / Rejection Reason') }}</label>
+                <textarea id="review_comments_accountant" name="comments" class="form-control review-comments-input" rows="2" placeholder="{{ __('Required for reject; optional for payment confirmation') }}"></textarea>
+            </div>
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div class="d-flex flex-wrap gap-2">
+                    <form action="{{ route('erp-expenses.accountant-reject', $expense->id) }}" method="POST" class="d-inline expense-approval-action-form" data-confirm="{{ __('Reject this bill from accounting?') }}">
+                        @csrf
+                        <input type="hidden" name="comments" class="comments-mirror" value="">
+                        <button type="submit" class="btn btn-danger btn-sm">{{ __('Reject Bill') }}</button>
+                    </form>
+                </div>
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">{{ __('Close') }}</button>
+                    <form action="{{ route('erp-expenses.mark-as-paid', $expense->id) }}" method="POST" class="d-inline expense-approval-action-form" data-confirm="{{ __('Mark this expense as fully paid?') }}">
+                        @csrf
+                        <input type="hidden" name="comments" class="comments-mirror" value="">
+                        <button type="submit" class="btn btn-success btn-sm">{{ __('Mark as Paid') }}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
+@endif
+
+<script>
+    $(document).off('keyup.expAppr', '.review-comments-input').on('keyup.expAppr', '.review-comments-input', function () {
+        $(this).closest('.modal').find('.comments-mirror').val($(this).val());
+    });
+    $(document).off('submit.expAppr', '.expense-approval-action-form').on('submit.expAppr', '.expense-approval-action-form', function (e) {
+        e.preventDefault();
+        var form = $(this);
+        var msg = form.data('confirm');
+        if (msg && !window.confirm(msg)) {
+            return false;
+        }
+        var comments = form.closest('.modal').find('.review-comments-input:visible').val() || '';
+        var act = form.attr('action') || '';
+        
+        // Requirement check for rejection
+        if (act.indexOf('reject') !== -1) {
+            if (!comments.trim()) {
+                show_toastr('{{ __('Error') }}', '{{ __('Please enter a reason for rejection.') }}', 'error');
+                return false;
+            }
+        }
+        
+        form.find('.comments-mirror').val(comments);
+        var btn = form.find('button[type="submit"]').prop('disabled', true);
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: form.serialize(),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        }).done(function (data) {
+            if (data.success) {
+                show_toastr('{{ __('Success') }}', data.message, 'success');
+                $('.modal.show').modal('hide');
+                if (typeof window.refreshExpenseApprovalQueue === 'function') {
+                    window.refreshExpenseApprovalQueue();
+                } else {
+                    window.location.reload();
+                }
+            } else {
+                show_toastr('{{ __('Error') }}', data.message || '{{ __('Status update failed') }}', 'error');
+            }
+        }).fail(function (xhr) {
+            var m = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : '{{ __('Transaction failed') }}';
+            show_toastr('{{ __('Error') }}', m, 'error');
+        }).always(function () {
+            btn.prop('disabled', false);
+        });
+        return false;
+    });
+</script>

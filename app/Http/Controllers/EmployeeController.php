@@ -90,27 +90,19 @@ class EmployeeController extends Controller
                                    'phone' => 'required',
                                    'address' => 'required',
                                    'email' => 'required|unique:users',
-                                   'branch_id' => 'required',
                                    'department_id' => 'required',
                                    'designation_id' => 'required',
-                                //    'biometric_emp_id' => 'required',
+                                   'joining_salary' => 'required|numeric',
                                    'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-                                   // Emergency Contact 1 (Required)
-                                   'emergency_contacts.0.full_name' => 'required|string|max:255',
-                                   'emergency_contacts.0.relationship' => 'required|string|max:255',
-                                   'emergency_contacts.0.contact_number' => 'required|string|max:255',
-                                   'emergency_contacts.0.email' => 'nullable|email',
-                                   'emergency_contacts.0.address' => 'required|string',
-                                   'emergency_contacts.0.nid' => 'required|array|min:1',
-                                   'emergency_contacts.0.nid.*' => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
-                                   // Emergency Contact 2 (Optional)
-                                   'emergency_contacts.1.full_name' => 'nullable|required_with:emergency_contacts.1.relationship,emergency_contacts.1.contact_number,emergency_contacts.1.address|string|max:255',
-                                   'emergency_contacts.1.relationship' => 'nullable|required_with:emergency_contacts.1.full_name|string|max:255',
-                                   'emergency_contacts.1.contact_number' => 'nullable|required_with:emergency_contacts.1.full_name|string|max:255',
-                                   'emergency_contacts.1.email' => 'nullable|email',
-                                   'emergency_contacts.1.address' => 'nullable|required_with:emergency_contacts.1.full_name|string',
-                                   'emergency_contacts.1.nid' => 'nullable|required_with:emergency_contacts.1.full_name|array|min:1',
-                                   'emergency_contacts.1.nid.*' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
+                                   // Emergency Contact Validation
+                                   'emergency_contacts' => 'required|array|min:1',
+                                   'emergency_contacts.*.full_name' => 'required|string|max:255',
+                                   'emergency_contacts.*.relationship' => 'required|string|max:255',
+                                   'emergency_contacts.*.contact_number' => 'required|string|max:255',
+                                   'emergency_contacts.*.email' => 'nullable|email',
+                                   'emergency_contacts.*.address' => 'required|string',
+                                   'nid_files' => 'required|array|min:1',
+                                   'nid_files.*.*' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
                                ]
             );
             if($validator->fails())
@@ -131,7 +123,6 @@ class EmployeeController extends Controller
                     [
                         'name' => $request['name'],
                         'email' => $request['email'],
-                        // 'gender'=>$request['gender'],
                         'password' => Hash::make(!empty($request['password']) ? $request['password'] : \Str::random(16)),
                         'type' => 'employee',
                         'lang' => 'en',
@@ -185,19 +176,12 @@ class EmployeeController extends Controller
                     'email' => $request['email'],
                     'password' => Hash::make(!empty($request['password']) ? $request['password'] : \Str::random(16)),
                     'employee_id' => $this->employeeNumber(),
-                    // 'biometric_emp_id' => !empty($request['biometric_emp_id']) ? $request['biometric_emp_id'] : '',
                     'biometric_emp_id' => '-',
-                    'branch_id' => $request['branch_id'],
                     'department_id' => $request['department_id'],
                     'designation_id' => $request['designation_id'],
                     'company_doj' => $request['company_doj'],
+                    'joining_salary' => $request['joining_salary'],
                     'documents' => $document_implode,
-                    'account_holder_name' => $request['account_holder_name'],
-                    'account_number' => $request['account_number'],
-                    'bank_name' => $request['bank_name'],
-                    'bank_identifier_code' => $request['bank_identifier_code'],
-                    'branch_location' => $request['branch_location'],
-                    'tax_payer_id' => $request['tax_payer_id'],
                     'profile_image' => $profileImageName,
                     'facebook' => $request['facebook'] ?? null,
                     'linkedin' => $request['linkedin'] ?? null,
@@ -269,14 +253,12 @@ class EmployeeController extends Controller
                     ]);
                     
                     // Handle multiple NID file uploads for this contact
-                    if($request->hasFile("emergency_contacts.{$index}.nid")) {
-                        $nidFiles = $request->file("emergency_contacts.{$index}.nid");
-                        
-                        if(!is_array($nidFiles)) {
-                            $nidFiles = [$nidFiles];
-                        }
+                    if($request->hasFile("nid_files.{$index}")) {
+                        $nidFiles = $request->file("nid_files.{$index}");
                         
                         foreach($nidFiles as $fileIndex => $nidFile) {
+                            if(!$nidFile) continue;
+                            
                             $filenameWithExt = $nidFile->getClientOriginalName();
                             $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
                             $extension = $nidFile->getClientOriginalExtension();
@@ -362,7 +344,6 @@ class EmployeeController extends Controller
 
     public function update(Request $request, $id)
     {
-
         if(\Auth::user()->can('edit employee'))
         {
             $validator = \Validator::make(
@@ -370,25 +351,21 @@ class EmployeeController extends Controller
                                    'name' => 'required',
                                    'dob' => 'required',
                                    'gender' => 'required',
-                                   'phone' => 'required|numeric',
+                                   'phone' => 'required',
+                                   'department_id' => 'required',
+                                   'designation_id' => 'required',
+                                   'joining_salary' => 'required|numeric',
                                    'address' => 'required',
                                    'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-                                   // Emergency Contact 1 (Required)
-                                   'emergency_contacts.0.full_name' => 'required|string|max:255',
-                                   'emergency_contacts.0.relationship' => 'required|string|max:255',
-                                   'emergency_contacts.0.contact_number' => 'required|string|max:255',
-                                   'emergency_contacts.0.email' => 'nullable|email',
-                                   'emergency_contacts.0.address' => 'required|string',
-                                   'emergency_contacts.0.nid' => 'nullable|array',
-                                   'emergency_contacts.0.nid.*' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
-                                   // Emergency Contact 2 (Optional)
-                                   'emergency_contacts.1.full_name' => 'nullable|required_with:emergency_contacts.1.relationship,emergency_contacts.1.contact_number,emergency_contacts.1.address|string|max:255',
-                                   'emergency_contacts.1.relationship' => 'nullable|required_with:emergency_contacts.1.full_name|string|max:255',
-                                   'emergency_contacts.1.contact_number' => 'nullable|required_with:emergency_contacts.1.full_name|string|max:255',
-                                   'emergency_contacts.1.email' => 'nullable|email',
-                                   'emergency_contacts.1.address' => 'nullable|required_with:emergency_contacts.1.full_name|string',
-                                   'emergency_contacts.1.nid' => 'nullable|array',
-                                   'emergency_contacts.1.nid.*' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
+                                   // Emergency Contact Validation
+                                   'emergency_contacts' => 'required|array|min:1',
+                                   'emergency_contacts.*.full_name' => 'required|string|max:255',
+                                   'emergency_contacts.*.relationship' => 'required|string|max:255',
+                                   'emergency_contacts.*.contact_number' => 'required|string|max:255',
+                                   'emergency_contacts.*.email' => 'nullable|email',
+                                   'emergency_contacts.*.address' => 'required|string',
+                                   'nid_files' => 'nullable|array',
+                                   'nid_files.*.*' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
                                ]
             );
             if($validator->fails())
@@ -400,41 +377,22 @@ class EmployeeController extends Controller
 
             $employee = Employee::findOrFail($id);
 
-            // Custom validation: Check if NID files exist for emergency contact 1 (either existing or new)
-            $primaryContact = EmployeeEmergencyContact::where('employee_id', $employee->id)
-                ->where('is_primary', true)
-                ->with('files')
-                ->first();
-            
-            $hasExistingPrimaryFiles = $primaryContact && $primaryContact->files->count() > 0;
-            $hasNewPrimaryFiles = $request->hasFile('emergency_contacts.0.nid');
-            $removedPrimaryFiles = $request->input('emergency_contacts.0.remove_files', []);
-            
-            // Calculate remaining files after removal
-            $remainingExistingFiles = $primaryContact ? $primaryContact->files->count() - count($removedPrimaryFiles) : 0;
-            
-            if ($remainingExistingFiles == 0 && !$hasNewPrimaryFiles) {
-                return redirect()->back()->withInput()->with('error', __('NID files are required for Emergency Contact 1.'));
-            }
-
-            // Custom validation: Check if NID files exist for emergency contact 2 if secondary contact is provided
-            $secondaryContactData = $request->input('emergency_contacts.1', []);
-            if (!empty($secondaryContactData['full_name'])) {
-                $secondaryContact = EmployeeEmergencyContact::where('employee_id', $employee->id)
-                    ->where('is_primary', false)
-                    ->with('files')
-                    ->first();
+            // Custom validation for NID files (at least one file must exist for each contact, either existing or new)
+            foreach($request->emergency_contacts as $index => $contactData) {
+                $contactId = $contactData['id'] ?? null;
+                $hasNewFiles = $request->hasFile("emergency_contacts.{$index}.nid");
                 
-                $hasExistingSecondaryFiles = $secondaryContact && $secondaryContact->files->count() > 0;
-                $hasNewSecondaryFiles = $request->hasFile('emergency_contacts.1.nid');
-                $removedSecondaryFiles = $request->input('emergency_contacts.1.remove_files', []);
-                $removeAllSecondary = $request->input('emergency_contacts.1.remove_all');
-                
-                // Calculate remaining files after removal
-                $remainingExistingSecondaryFiles = $secondaryContact ? $secondaryContact->files->count() - count($removedSecondaryFiles) : 0;
-                
-                if (($removeAllSecondary || $remainingExistingSecondaryFiles == 0) && !$hasNewSecondaryFiles) {
-                    return redirect()->back()->withInput()->with('error', __('NID files are required for Emergency Contact 2 when contact details are provided.'));
+                if($contactId) {
+                    $existingContact = EmployeeEmergencyContact::with('files')->find($contactId);
+                    if($existingContact) {
+                        $removedFilesCount = isset($contactData['remove_files']) ? count($contactData['remove_files']) : 0;
+                        $remainingFiles = $existingContact->files->count() - $removedFilesCount;
+                        if($remainingFiles <= 0 && !$hasNewFiles) {
+                            return redirect()->back()->withInput()->with('error', __("NID files are required for Emergency Contact") . " " . ($index + 1));
+                        }
+                    }
+                } elseif (!$hasNewFiles) {
+                    return redirect()->back()->withInput()->with('error', __("NID files are required for Emergency Contact") . " " . ($index + 1));
                 }
             }
 
@@ -448,7 +406,6 @@ class EmployeeController extends Controller
                         $filename        = pathinfo($filenameWithExt, PATHINFO_FILENAME);
                         $extension       = $request->file('document')[$key]->getClientOriginalExtension();
                         $fileNameToStore = $filename . '_' . time() . '.' . $extension;
-//                        $dir        = storage_path('uploads/document/');
                         $dir             = 'uploads/document/';
 
                         $image_path = $dir . $filenameWithExt;
@@ -457,11 +414,6 @@ class EmployeeController extends Controller
                         {
                             File::delete($image_path);
                         }
-//                        if(!file_exists($dir))
-//                        {
-//                            mkdir($dir, 0777, true);
-//                        }
-//                        $path = $request->file('document')[$key]->storeAs('uploads/document/', $fileNameToStore);
 
                         $path = \Utility::upload_coustom_file($request,'document',$fileNameToStore,$dir,$key,[]);
 
@@ -492,8 +444,13 @@ class EmployeeController extends Controller
                     }
                 }
             }
-            $employee = Employee::findOrFail($id);
-            $input    = $request->all();
+
+            $input = $request->only([
+                'name', 'dob', 'gender', 'phone', 'address', 
+                'department_id', 'designation_id', 'company_doj', 'joining_salary',
+                'facebook', 'linkedin', 'twitter', 'instagram',
+                'probation_period', 'notice_period'
+            ]);
 
             // Handle profile image upload
             if ($request->hasFile('profile_image')) {
@@ -510,13 +467,10 @@ class EmployeeController extends Controller
                 $profileImageName = 'emp_' . time() . '_' . uniqid() . '.' . $imgExt;
                 $imgFile->storeAs('uploads/employee/', $profileImageName);
                 $input['profile_image'] = $profileImageName;
-            } else {
-                // Keep existing image
-                unset($input['profile_image']);
             }
 
             $employee->fill($input)->save();
-            $employee = Employee::find($id);
+            
             $user = User::where('id',$employee->user_id)->first();
             if(!empty($user)){
                 $user->name = $employee->name;
@@ -525,112 +479,80 @@ class EmployeeController extends Controller
             }
 
             // Sync Emergency Contacts
-            if($request->has('emergency_contacts')) {
-                $emergencyDir = storage_path('uploads/emergency_contacts/');
-                $existingContactIds = [];
-                
-                foreach($request->emergency_contacts as $index => $contactData) {
-                    // Skip if this is the second contact and no name is provided
-                    if($index == 1 && empty($contactData['full_name'])) {
-                        // If there's an existing second contact, delete it and its files
-                        $existingSecondary = EmployeeEmergencyContact::where('employee_id', $employee->id)
-                            ->where('is_primary', false)
-                            ->first();
-                        if($existingSecondary) {
-                            // Delete all associated files
-                            $existingSecondary->files()->each(function($file) use ($emergencyDir) {
-                                if(!empty($file->file_name) && file_exists($emergencyDir . $file->file_name)) {
-                                    unlink($emergencyDir . $file->file_name);
-                                }
-                                $file->delete();
-                            });
-                            $existingSecondary->delete();
-                        }
-                        continue;
-                    }
-                    
-                    $contactId = $contactData['id'] ?? null;
-                    
-                    $contactDataToSave = [
-                        'employee_id' => $employee->id,
-                        'full_name' => $contactData['full_name'],
-                        'relationship' => $contactData['relationship'],
-                        'contact_number' => $contactData['contact_number'],
-                        'email' => $contactData['email'] ?? null,
-                        'address' => $contactData['address'],
-                        'is_primary' => ($index == 0),
-                        'created_by' => \Auth::user()->creatorId(),
-                    ];
-                    
-                    if($contactId) {
-                        // Update existing contact
-                        $contact = EmployeeEmergencyContact::findOrFail($contactId);
-                        $contact->update($contactDataToSave);
-                    } else {
-                        // Create new contact
-                        $contact = EmployeeEmergencyContact::create($contactDataToSave);
-                    }
-                    $existingContactIds[] = $contact->id;
-                    
-                    // Handle removal of specific existing files
-                    if(isset($contactData['remove_files']) && is_array($contactData['remove_files'])) {
-                        foreach($contactData['remove_files'] as $fileId) {
-                            $file = EmergencyContactFile::find($fileId);
-                            if($file && $file->emergency_contact_id == $contact->id) {
-                                if(!empty($file->file_name) && file_exists($emergencyDir . $file->file_name)) {
-                                    unlink($emergencyDir . $file->file_name);
-                                }
-                                $file->delete();
-                            }
-                        }
-                    }
-                    
-                    // Handle new NID file uploads for this contact
-                    if($request->hasFile("emergency_contacts.{$index}.nid")) {
-                        $nidFiles = $request->file("emergency_contacts.{$index}.nid");
-                        
-                        if(!is_array($nidFiles)) {
-                            $nidFiles = [$nidFiles];
-                        }
-                        
-                        foreach($nidFiles as $fileIndex => $nidFile) {
-                            $filenameWithExt = $nidFile->getClientOriginalName();
-                            $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
-                            $extension = $nidFile->getClientOriginalExtension();
-                            $nidFileName = $filename . '_' . time() . '_' . $index . '_' . $fileIndex . '.' . $extension;
-                            
-                            if(!file_exists($emergencyDir)) {
-                                mkdir($emergencyDir, 0777, true);
-                            }
-                            
-                            $nidFile->storeAs('uploads/emergency_contacts/', $nidFileName);
-                            
-                            // Save file record
-                            EmergencyContactFile::create([
-                                'emergency_contact_id' => $contact->id,
-                                'file_name' => $nidFileName,
-                                'original_name' => $filenameWithExt,
-                                'file_type' => $extension,
-                                'file_size' => $nidFile->getSize(),
-                                'created_by' => \Auth::user()->creatorId(),
-                            ]);
-                        }
-                    }
-                }
-                
-                // Delete any contacts that weren't in the request (orphaned)
-                EmployeeEmergencyContact::where('employee_id', $employee->id)
-                    ->whereNotIn('id', $existingContactIds)
-                    ->each(function($contact) use ($emergencyDir) {
-                        // Delete all associated files
-                        $contact->files()->each(function($file) use ($emergencyDir) {
-                            if(!empty($file->file_name) && file_exists($emergencyDir . $file->file_name)) {
+            $emergencyDir = storage_path('uploads/emergency_contacts/');
+            if (!file_exists($emergencyDir)) {
+                mkdir($emergencyDir, 0777, true);
+            }
+
+            // 1. Remove contacts marked for deletion
+            if ($request->has('remove_contacts')) {
+                foreach ($request->remove_contacts as $removeId) {
+                    $c = EmployeeEmergencyContact::where('id', $removeId)->where('employee_id', $employee->id)->first();
+                    if ($c) {
+                        $c->files()->each(function($file) use ($emergencyDir) {
+                            if (!empty($file->file_name) && file_exists($emergencyDir . $file->file_name)) {
                                 unlink($emergencyDir . $file->file_name);
                             }
                             $file->delete();
                         });
-                        $contact->delete();
-                    });
+                        $c->delete();
+                    }
+                }
+            }
+
+            // 2. Update existing or Create new contacts
+            foreach ($request->emergency_contacts as $index => $contactData) {
+                $contactId = $contactData['id'] ?? null;
+                $isPrimary = ($index == 0); // First one is primary
+                
+                if ($contactId) {
+                    $contact = EmployeeEmergencyContact::where('id', $contactId)->where('employee_id', $employee->id)->first();
+                } else {
+                    $contact = new EmployeeEmergencyContact();
+                    $contact->employee_id = $employee->id;
+                }
+
+                if ($contact) {
+                    $contact->full_name = $contactData['full_name'];
+                    $contact->relationship = $contactData['relationship'];
+                    $contact->contact_number = $contactData['contact_number'];
+                    $contact->email = $contactData['email'] ?? null;
+                    $contact->address = $contactData['address'];
+                    $contact->is_primary = $isPrimary;
+                    $contact->save();
+
+                    // Remove specific files if requested
+                    if (isset($contactData['remove_files'])) {
+                        foreach ($contactData['remove_files'] as $fileId) {
+                            $file = EmergencyContactFile::where('id', $fileId)->where('emergency_contact_id', $contact->id)->first();
+                            if ($file) {
+                                if (!empty($file->file_name) && file_exists($emergencyDir . $file->file_name)) {
+                                    unlink($emergencyDir . $file->file_name);
+                                }
+                                $file->delete();
+                            }
+                        }
+                    }
+
+                    // Upload new NID files
+                    if ($request->hasFile("nid_files.{$index}")) {
+                        foreach ($request->file("nid_files.{$index}") as $file) {
+                            if(!$file) continue;
+                            $originalName = $file->getClientOriginalName();
+                            $ext = $file->getClientOriginalExtension();
+                            $fileNameToStore = 'contact_' . $contact->id . '_' . time() . '_' . uniqid() . '.' . $ext;
+                            
+                            $file->storeAs('uploads/emergency_contacts/', $fileNameToStore);
+
+                            $contactFile = new EmergencyContactFile();
+                            $contactFile->emergency_contact_id = $contact->id;
+                            $contactFile->file_name = $fileNameToStore;
+                            $contactFile->original_name = $originalName;
+                            $contactFile->file_size = $file->getSize();
+                            $contactFile->save();
+                        }
+                    }
+                }
             }
 
             if($request->salary)

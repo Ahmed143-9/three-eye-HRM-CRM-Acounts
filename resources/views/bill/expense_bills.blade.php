@@ -143,25 +143,27 @@
             e.preventDefault();
             var url = $(this).data('url');
             
-            if (confirm('Are you sure you want to mark this expense as PAID? This will update the ledger and notify the team.')) {
+            var comments = prompt('Any payment notes? (Optional):');
+            if (comments !== null) {
                 $.ajax({
                     url: url,
                     type: 'POST',
                     data: {
-                        _token: '{{ csrf_token() }}'
+                        _token: '{{ csrf_token() }}',
+                        comments: comments
                     },
                     success: function(data) {
                         if (data.success) {
-                            show_toastr('Success', data.message, 'success');
+                            show_toastr('{{ __('Success') }}', data.message, 'success');
                             setTimeout(function() {
                                 location.reload();
                             }, 1000);
                         } else {
-                            show_toastr('Error', data.message, 'error');
+                            show_toastr('{{ __('Error') }}', data.message, 'error');
                         }
                     },
                     error: function(data) {
-                        show_toastr('Error', 'Something went wrong', 'error');
+                        show_toastr('{{ __('Error') }}', '{{ __('Something went wrong') }}', 'error');
                     }
                 });
             }
@@ -171,27 +173,27 @@
             e.preventDefault();
             var url = $(this).data('url');
             
-            var reason = prompt('Please enter rejection reason:');
-            if (reason) {
+            var comments = prompt('{{ __('Please enter rejection reason:') }}');
+            if (comments) {
                 $.ajax({
                     url: url,
                     type: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}',
-                        reason: reason
+                        comments: comments
                     },
                     success: function(data) {
                         if (data.success) {
-                            show_toastr('Success', data.message, 'success');
+                            show_toastr('{{ __('Success') }}', data.message, 'success');
                             setTimeout(function() {
                                 location.reload();
                             }, 1000);
                         } else {
-                            show_toastr('Error', data.message, 'error');
+                            show_toastr('{{ __('Error') }}', data.message, 'error');
                         }
                     },
                     error: function(data) {
-                        show_toastr('Error', 'Something went wrong', 'error');
+                        show_toastr('{{ __('Error') }}', '{{ __('Something went wrong') }}', 'error');
                     }
                 });
             }

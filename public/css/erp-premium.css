@@ -1,0 +1,132 @@
+/* ── ERP Premium Design System 2.0 ──────────────────────────── */
+
+:root {
+    --erp-p-indigo: #4f46e5;
+    --erp-p-indigo-light: #eef2ff;
+    --erp-p-indigo-dark: #3730a3;
+    --erp-p-slate: #1e293b;
+    --erp-p-slate-light: #f8fafc;
+    --erp-p-emerald: #10b981;
+    --erp-p-rose: #f43f5e;
+    --erp-p-amber: #f59e0b;
+    --erp-p-glass: rgba(255, 255, 255, 0.7);
+    --erp-p-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08);
+}
+
+/* Base Cards */
+.premium-card {
+    border: none;
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: var(--erp-p-shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+}
+
+.premium-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.12);
+}
+
+/* Glassmorphism Elements */
+.glass-panel {
+    background: var(--erp-p-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+}
+
+/* High-End Tables */
+.premium-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 12px;
+}
+
+.premium-table thead th {
+    background: var(--erp-p-slate);
+    color: #fff;
+    padding: 18px 24px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+}
+
+.premium-table thead th:first-child { border-radius: 16px 0 0 16px; }
+.premium-table thead th:last-child { border-radius: 0 16px 16px 0; }
+
+.premium-table tbody tr {
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    transition: all 0.3s;
+}
+
+.premium-table tbody tr:hover {
+    background: var(--erp-p-slate-light);
+    transform: scale(1.005);
+    z-index: 5;
+}
+
+.premium-table td {
+    padding: 16px 24px;
+    vertical-align: middle;
+    border-top: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.premium-table td:first-child { border-left: 1px solid #f1f5f9; border-radius: 16px 0 0 16px; }
+.premium-table td:last-child { border-right: 1px solid #f1f5f9; border-radius: 0 16px 16px 0; }
+
+/* Status Badges */
+.p-badge {
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-weight: 800;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.p-badge-indigo { background: var(--erp-p-indigo-light); color: var(--erp-p-indigo); }
+.p-badge-emerald { background: #d1fae5; color: var(--erp-p-emerald); }
+.p-badge-rose { background: #ffe4e6; color: var(--erp-p-rose); }
+.p-badge-amber { background: #fef3c7; color: var(--erp-p-amber); }
+
+/* Premium Inputs */
+.p-input {
+    background: var(--erp-p-slate-light);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-weight: 600;
+    color: var(--erp-p-slate);
+    transition: all 0.2s;
+}
+
+.p-input:focus {
+    background: #fff;
+    border-color: var(--erp-p-indigo);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    outline: none;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
