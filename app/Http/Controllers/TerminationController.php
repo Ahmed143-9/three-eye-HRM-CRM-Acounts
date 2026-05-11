@@ -14,7 +14,7 @@ class TerminationController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage termination'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             if(Auth::user()->type == 'Employee')
             {

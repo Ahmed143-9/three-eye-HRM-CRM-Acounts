@@ -23,7 +23,7 @@ class BudgetController extends Controller
      */
     public function index()
     {
-        if(\Auth::user()->can('manage budget plan'))
+        if(\Auth::user()->can('Manage Payables & Receivables'))
         {
             $budgets = Budget::where('created_by', '=', \Auth::user()->creatorId())->get();
             $periods = Budget::$period;

@@ -15,7 +15,7 @@ class AwardController extends Controller
     public function index()
     {
         $usr = \Auth::user();
-        if($usr->can('manage award'))
+        if($usr->can('Manage Employees'))
         {
             $employees  = Employee::where('created_by', '=', \Auth::user()->creatorId())->get();
             $awardtypes = AwardType::where('created_by', '=', \Auth::user()->creatorId())->get();

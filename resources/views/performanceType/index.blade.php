@@ -2,7 +2,7 @@
 @push('script-page')
 @endpush
 @section('page-title')
-    {{ __('manage performance type') }}
+    {{ __('Manage HR Setup') }}
 @endsection
 @section('title')
     <div class="d-inline-block">

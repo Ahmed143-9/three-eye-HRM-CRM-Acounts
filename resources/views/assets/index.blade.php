@@ -9,7 +9,7 @@
 
 @section('action-btn')
     <div class="float-end">
-        @can('create assets')
+        @can('Manage Assets')
             <a href="{{ route('company-assets.create') }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="{{__('Create')}}">
                 <i class="ti ti-plus"></i> {{__('Add Asset')}}
             </a>
@@ -52,14 +52,14 @@
                                     </td>
                                     <td class="Action">
                                         <span>
-                                            @can('edit assets')
+                                            @can('Manage Assets')
                                                 <div class="action-btn bg-info ms-2">
                                                     <a href="{{ route('company-assets.edit',$asset->id) }}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}">
                                                         <i class="ti ti-pencil text-white"></i>
                                                     </a>
                                                 </div>
                                             @endcan
-                                            @can('delete assets')
+                                            @can('Manage Assets')
                                                 <div class="action-btn bg-danger ms-2">
                                                     {!! Form::open(['method' => 'DELETE', 'route' => ['company-assets.destroy', $asset->id],'id'=>'delete-form-'.$asset->id]) !!}
                                                         <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$asset->id}}').submit();">

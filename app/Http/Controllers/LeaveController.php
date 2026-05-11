@@ -19,7 +19,7 @@ class LeaveController extends Controller
     public function index()
     {
 
-        if(\Auth::user()->can('manage leave'))
+        if(\Auth::user()->can('Manage Leaves'))
         {
             if(\Auth::user()->type =='company' || \Auth::user()->type =='HR')
             {
@@ -49,7 +49,7 @@ class LeaveController extends Controller
 
     public function create()
     {
-        if(\Auth::user()->can('create leave'))
+        if(\Auth::user()->can('Manage Leaves'))
         {
             $employee_id = null;
             if(\Auth::user()->type =='company' || \Auth::user()->type =='HR')
@@ -75,7 +75,7 @@ class LeaveController extends Controller
     public function store(Request $request)
     {
 
-        if(\Auth::user()->can('create leave'))
+        if(\Auth::user()->can('Manage Leaves'))
         {
             $leave_type = LeaveType::find($request->leave_type_id);
 
@@ -183,7 +183,7 @@ class LeaveController extends Controller
 
     public function show(Leave $leave)
     {
-        if(\Auth::user()->can('manage leave'))
+        if(\Auth::user()->can('Manage Leaves'))
         {
             $leave->load(['leaveType', 'employees', 'attachments']);
             return view('leave.show', compact('leave'));
@@ -193,7 +193,7 @@ class LeaveController extends Controller
 
     public function edit(Leave $leave)
     {
-        if(\Auth::user()->can('edit leave'))
+        if(\Auth::user()->can('Manage Leaves'))
         {
             if($leave->created_by == \Auth::user()->creatorId())
             {
@@ -228,7 +228,7 @@ class LeaveController extends Controller
     {
 
         $leave = Leave::find($leave);
-        if(\Auth::user()->can('edit leave'))
+        if(\Auth::user()->can('Manage Leaves'))
         {
             if($leave->created_by == Auth::user()->creatorId())
             {
@@ -317,7 +317,7 @@ class LeaveController extends Controller
 
     public function destroy(Leave $leave)
     {
-        if(\Auth::user()->can('delete leave'))
+        if(\Auth::user()->can('Manage Leaves'))
         {
             if($leave->created_by == \Auth::user()->creatorId())
             {
@@ -352,7 +352,7 @@ class LeaveController extends Controller
 
     public function changeaction(Request $request)
     {
-        if (!\Auth::user()->can('manage leave')) {
+        if (!\Auth::user()->can('Manage Leaves')) {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
 

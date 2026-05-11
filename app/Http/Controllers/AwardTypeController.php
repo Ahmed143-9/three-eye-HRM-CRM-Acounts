@@ -9,7 +9,7 @@ class AwardTypeController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage award type'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
             $awardtypes = AwardType::where('created_by', '=', \Auth::user()->creatorId())->get();
 

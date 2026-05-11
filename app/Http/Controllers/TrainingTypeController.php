@@ -10,7 +10,7 @@ class TrainingTypeController extends Controller
 
     public function index()
     {
-        if(\Auth::user()->can('manage training type'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
             $trainingtypes = TrainingType::where('created_by', '=', \Auth::user()->creatorId())->get();
 

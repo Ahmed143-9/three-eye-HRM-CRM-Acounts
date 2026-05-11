@@ -18,7 +18,7 @@
                 </button>
             </form>
         @endif
-        @can('manage assets')
+        @can('Manage Assets')
             <a href="{{ route('asset-categories.create') }}" class="btn btn-sm btn-primary">
                 <i class="ti ti-plus"></i> {{__('Add Category')}}
             </a>
@@ -121,13 +121,13 @@
                                         </td>
                                         <td class="Action">
                                             <span>
-                                                @can('manage assets')
+                                                @can('Manage Assets')
                                                     <a href="{{ route('asset-categories.edit', $category->id) }}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="{{__('Edit')}}">
                                                         <i class="ti ti-pencil"></i>
                                                     </a>
                                                 @endcan
                                                 
-                                                @can('manage assets')
+                                                @can('Manage Assets')
                                                     @if($category->assets_count == 0)
                                                         {!! Form::open(['method' => 'DELETE', 'route' => ['asset-categories.destroy', $category->id],'id'=>'delete-form-'.$category->id, 'style'=>'display:inline']) !!}
                                                         <a href="#" class="btn btn-sm btn-danger bs-pass-para" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$category->id}}').submit();">

@@ -32,7 +32,7 @@ class JobApplicationController extends Controller
     public function index(Request $request)
     {
 
-        if(\Auth::user()->can('manage job application'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $stages = JobStage::where('created_by', '=', \Auth::user()->creatorId())->orderBy('order', 'asc')->get();
 
@@ -365,7 +365,7 @@ class JobApplicationController extends Controller
 
     public function candidate()
     {
-        if(\Auth::user()->can('manage job onBoard'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $archive_application = JobApplication::where('created_by', \Auth::user()->creatorId())->where('is_archive', 1)->get();
 
@@ -393,7 +393,7 @@ class JobApplicationController extends Controller
 
     public function jobOnBoard()
     {
-        if(\Auth::user()->can('manage job onBoard'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $jobOnBoards = JobOnBoard::where('created_by', \Auth::user()->creatorId())->with('applications')->get();
 

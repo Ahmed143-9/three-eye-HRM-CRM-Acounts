@@ -13,7 +13,7 @@ class HolidayController extends Controller
 
     public function index(Request $request)
     {
-        if(\Auth::user()->can('manage holiday'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $holidays = Holiday::where('created_by', '=', \Auth::user()->creatorId());
             if(!empty($request->start_date))
@@ -203,7 +203,7 @@ class HolidayController extends Controller
     public function calender(Request $request)
     {
 
-        if(\Auth::user()->can('manage holiday'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $transdate = date('Y-m-d', time());
 

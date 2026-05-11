@@ -9,7 +9,7 @@ class AllowanceOptionController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage allowance option'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
             $allowanceoptions = AllowanceOption::where('created_by', '=', \Auth::user()->creatorId())->get();
 

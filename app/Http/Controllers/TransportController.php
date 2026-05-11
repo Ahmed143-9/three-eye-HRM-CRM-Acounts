@@ -12,12 +12,14 @@ use App\Models\SalesOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Notification;
+use App\Models\User;
 
 class TransportController extends Controller
 {
     public function index()
     {
-        if (Auth::user()->can('manage employee')) {
+        if (Auth::user()->can('Manage Employees')) {
             $transports = Transport::where('created_by', '=', Auth::user()->creatorId())->get();
             
             // Fetch finalized sales orders that haven't been linked to a transport yet
@@ -141,6 +143,9 @@ class TransportController extends Controller
 
         $transport->payable_id = $payable->id;
         $transport->save();
+
+        // Notify Accounts
+        $this->notifyAccountsTransportCreated($transport);
 
         return redirect()->route('transports.index')->with('success', __('Transport record created successfully.'));
     }
@@ -297,5 +302,36 @@ class TransportController extends Controller
     {
         $transport->delete();
         return redirect()->route('transports.index')->with('success', __('Transport record deleted successfully.'));
+    }
+
+    private function notifyAccountsTransportCreated($transport)
+    {
+        $recipientIds = User::where('type', 'company')->pluck('id');
+        try {
+            // Find users who can manage purchases (accounts users)
+            $recipientIds = $recipientIds->merge(User::permission('Manage Purchases & Suppliers')->pluck('id'))->unique()->values();
+        } catch (\Throwable $e) {
+            \Log::warning('notifyAccountsTransportCreated permission lookup failed: ' . $e->getMessage());
+        }
+
+        foreach ($recipientIds as $userId) {
+            try {
+                Notification::create([
+                    'user_id' => $userId,
+                    'type' => 'transport_created',
+                    'title' => __('New Transport Bill Draft'),
+                    'message' => __('Transport :id for :client has been dispatched. Please finalize the bills.', [
+                        'id' => $transport->unique_id,
+                        'client' => $transport->manual_client_name ?: (optional($transport->client)->name ?? '-')
+                    ]),
+                    'related_model' => 'Transport',
+                    'related_id' => $transport->id,
+                    'created_by' => Auth::user()->id,
+                    'is_read' => 0,
+                ]);
+            } catch (\Throwable $e) {
+                \Log::error('Notification not sent (transport_created): ' . $e->getMessage());
+            }
+        }
     }
 }

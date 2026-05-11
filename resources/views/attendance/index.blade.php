@@ -106,7 +106,7 @@
                                             <span class="btn-inner--icon"><i
                                                     class="ti ti-refresh text-white-off "></i></span>
                                         </a>
-                                        @can('create attendance')
+                                        @can('Manage Attendance')
                                         <a href="#" data-size="md" data-bs-toggle="tooltip"
                                             title="{{ __('Add Attendance') }}"
                                             data-url="{{ route('attendanceemployee.create') }}"
@@ -160,7 +160,7 @@
                                     <th>{{ __('Late') }}</th>
                                     <th>{{ __('Early Leaving') }}</th>
                                     <th>{{ __('Overtime') }}</th>
-                                    @if (Gate::check('edit attendance') || Gate::check('delete attendance'))
+                                    @if (Gate::check('Manage Attendance') || Gate::check('Manage Attendance'))
                                         <th>{{ __('Action') }}</th>
                                     @endif
                                 </tr>
@@ -181,9 +181,9 @@
                                         <td>{{ $attendance->late }}</td>
                                         <td>{{ $attendance->early_leaving }}</td>
                                         <td>{{ $attendance->overtime }}</td>
-                                        @if (Gate::check('edit attendance') || Gate::check('delete attendance'))
+                                        @if (Gate::check('Manage Attendance') || Gate::check('Manage Attendance'))
                                             <td>
-                                                @can('edit attendance')
+                                                @can('Manage Attendance')
                                                     <div class="action-btn me-2">
                                                         <a href="#"
                                                             data-url="{{ URL::to('attendanceemployee/' . $attendance->id . '/edit') }}"
@@ -195,7 +195,7 @@
                                                             <i class="ti ti-pencil text-white"></i></a>
                                                     </div>
                                                 @endcan
-                                                @can('delete attendance')
+                                                @can('Manage Attendance')
                                                     <div class="action-btn ">
                                                         {!! Form::open([
                                                             'method' => 'DELETE',

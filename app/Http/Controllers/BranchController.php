@@ -12,7 +12,7 @@ class BranchController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage branch'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
             $branches = Branch::where('created_by', '=', \Auth::user()->creatorId())->get();
 
@@ -26,7 +26,7 @@ class BranchController extends Controller
 
     public function create()
     {
-        if(\Auth::user()->can('create branch'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
             return view('branch.create');
         }
@@ -38,7 +38,7 @@ class BranchController extends Controller
 
     public function store(Request $request)
     {
-        if(\Auth::user()->can('create branch'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
 
             $validator = \Validator::make(
@@ -73,7 +73,7 @@ class BranchController extends Controller
 
     public function edit(Branch $branch)
     {
-        if(\Auth::user()->can('edit branch'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
             if($branch->created_by == \Auth::user()->creatorId())
             {
@@ -93,7 +93,7 @@ class BranchController extends Controller
 
     public function update(Request $request, Branch $branch)
     {
-        if(\Auth::user()->can('edit branch'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
             if($branch->created_by == \Auth::user()->creatorId())
             {
@@ -127,7 +127,7 @@ class BranchController extends Controller
 
     public function destroy(Branch $branch)
     {
-        if(\Auth::user()->can('delete branch'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
             if($branch->created_by == \Auth::user()->creatorId())
             {

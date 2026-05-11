@@ -119,7 +119,7 @@
     </div>
 </div>
 
-@if(Auth::user()->can('approve expense') || Auth::user()->type == 'company')
+@if(Auth::user()->can('Approve Expenses') || Auth::user()->type == 'company')
     @if(in_array($expense->status, ['Pending Approval', 'Hold', 'Sent Back'], true))
         <div class="modal-footer d-block border-top bg-light sticky-bottom">
             <div class="form-group mb-3 text-start">
@@ -157,7 +157,7 @@
     @endif
 @endif
 
-@if(Auth::user()->can('manage bill') || Auth::user()->type == 'company')
+@if(Auth::user()->can('Manage Purchases & Suppliers') || Auth::user()->type == 'company')
     @if(in_array($expense->status, ['Approved', 'Processing Payment'], true))
         <div class="modal-footer d-block border-top bg-light sticky-bottom">
             <div class="form-group mb-3 text-start">

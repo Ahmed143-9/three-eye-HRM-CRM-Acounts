@@ -13,7 +13,7 @@ class BankTransferController extends Controller
     public function index(Request $request)
     {
 
-        if(\Auth::user()->can('manage bank transfer'))
+        if(\Auth::user()->can('Manage Banking & Billing'))
         {
             $account = BankAccount::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('holder_name', 'id');
             $account->prepend('Select Account', '');

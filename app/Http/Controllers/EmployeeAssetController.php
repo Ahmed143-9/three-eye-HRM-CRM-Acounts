@@ -13,7 +13,7 @@ class EmployeeAssetController extends Controller
 {
     public function index()
     {
-        if (\Auth::user()->can('manage assets')) {
+        if (\Auth::user()->can('Manage Assets')) {
             $assets = EmployeeAsset::where('created_by', \Auth::user()->creatorId())->with(['employee', 'asset'])->get();
             return view('employee_assets.index', compact('assets'));
         } else {
@@ -23,7 +23,7 @@ class EmployeeAssetController extends Controller
 
     public function create()
     {
-        if (\Auth::user()->can('create assets')) {
+        if (\Auth::user()->can('Manage Assets')) {
             $employees = Employee::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $company_assets = Asset::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $company_assets->prepend(__('Select Asset (Optional)'), '');
@@ -35,7 +35,7 @@ class EmployeeAssetController extends Controller
 
     public function store(Request $request)
     {
-        if (\Auth::user()->can('create assets')) {
+        if (\Auth::user()->can('Manage Assets')) {
             $validator = Validator::make(
                 $request->all(),
                 [
@@ -73,7 +73,7 @@ class EmployeeAssetController extends Controller
 
     public function edit(EmployeeAsset $employee_asset)
     {
-        if (\Auth::user()->can('edit assets')) {
+        if (\Auth::user()->can('Manage Assets')) {
             $employees = Employee::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $company_assets = Asset::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $company_assets->prepend(__('Select Asset (Optional)'), '');
@@ -85,7 +85,7 @@ class EmployeeAssetController extends Controller
 
     public function update(Request $request, EmployeeAsset $employee_asset)
     {
-        if (\Auth::user()->can('edit assets')) {
+        if (\Auth::user()->can('Manage Assets')) {
             $validator = Validator::make(
                 $request->all(),
                 [
@@ -125,7 +125,7 @@ class EmployeeAssetController extends Controller
 
     public function destroy(EmployeeAsset $employee_asset)
     {
-        if (\Auth::user()->can('delete assets')) {
+        if (\Auth::user()->can('Manage Assets')) {
             if ($employee_asset->image && file_exists(public_path('uploads/employee_assets/' . $employee_asset->image))) {
                 unlink(public_path('uploads/employee_assets/' . $employee_asset->image));
             }

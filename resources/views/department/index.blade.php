@@ -20,7 +20,7 @@
         </div>
         <div class="col-12">
             <div class="my-3 d-flex justify-content-end">
-                @can('create department')
+                @can('Manage HR Setup')
                     <a href="#" data-url="{{ route('department.create') }}" data-ajax-popup="true"
                         data-title="{{ __('Create New Department') }}" data-bs-toggle="tooltip" title="{{ __('Create') }}"
                         class="btn btn-sm btn-primary">
@@ -50,7 +50,7 @@
 
                                                 <td class="Action">
                                                     <span>
-                                                        @can('edit department')
+                                                        @can('Manage HR Setup')
                                                             <div class="action-btn me-2">
 
                                                                 <a href="#"
@@ -63,7 +63,7 @@
                                                                     <i class="ti ti-pencil text-white"></i></a>
                                                             </div>
                                                         @endcan
-                                                        @can('delete department')
+                                                        @can('Manage HR Setup')
                                                             <div class="action-btn ">
                                                                 {!! Form::open([
                                                                     'method' => 'DELETE',

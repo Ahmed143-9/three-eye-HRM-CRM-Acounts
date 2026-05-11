@@ -47,7 +47,7 @@
                                             </td>
                                             <td class="Action">
                                                 <span>
-                                                    @can('edit role')
+                                                    @can('Manage Roles')
                                                         <div class="action-btn me-2">
                                                             <a href="#"
                                                                 class="mx-3 btn btn-sm align-items-center bg-info"
@@ -61,7 +61,7 @@
                                                     @endcan
 
                                                     @if ($role->name != 'Employee')
-                                                        @can('delete role')
+                                                        @can('Manage Roles')
                                                             <div class="action-btn ">
                                                                 {!! Form::open([
                                                                     'method' => 'DELETE',

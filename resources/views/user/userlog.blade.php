@@ -101,7 +101,7 @@
                                                     <i class="ti ti-eye text-white"></i>
                                                 </a>
                                             </div>
-                                            @can('delete user')
+                                            @can('Manage Users')
                                                 <div class="action-btn ">
                                                     {!! Form::open(['method' => 'DELETE','route' => ['user.userlogdestroy', $user->id],'id' => 'delete-form-' . $user->id,]) !!}
                                                     <a href="#" class="mx-3 btn btn-sm  align-items-center bs-pass-para bg-danger" data-bs-toggle="tooltip" title="" data-bs-original-title="Delete" aria-label="Delete">

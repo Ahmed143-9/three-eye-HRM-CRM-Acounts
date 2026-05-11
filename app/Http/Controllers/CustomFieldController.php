@@ -14,7 +14,7 @@ class CustomFieldController extends Controller
 
     public function index()
     {
-        if(\Auth::user()->can('manage constant custom field'))
+        if(\Auth::user()->can('Manage Accounting Setup'))
         {
             $custom_fields = CustomField::where('created_by', '=', \Auth::user()->creatorId())->get();
 

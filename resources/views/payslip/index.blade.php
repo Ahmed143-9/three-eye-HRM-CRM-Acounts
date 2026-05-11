@@ -71,7 +71,7 @@
                         <input type="hidden" name="filter_year" class="filter_year">
                         <input type="submit" value="{{ __('Export') }}" class="btn btn-primary">
                         {{ Form::close() }}
-                        {{-- @can('create pay slip')
+                        {{-- @can('Manage Payroll')
                             <input type="button" value="{{ __('Bulk Payment') }}" class="btn btn-primary" id="bulk_payment">
                         @endcan --}}
                 </div>

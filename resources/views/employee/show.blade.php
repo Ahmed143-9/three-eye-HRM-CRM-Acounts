@@ -55,7 +55,7 @@
                         </div>
                     </li>
                 </ul>
-                @can('edit employee')
+                @can('Manage Employees')
                 <a href="{{route('employee.edit',\Illuminate\Support\Facades\Crypt::encrypt($employee->id))}}" data-bs-toggle="tooltip" title="{{__('Edit')}}"class="btn btn-sm btn-info">
                     <i class="ti ti-pencil"></i>
                 </a>
@@ -194,24 +194,31 @@
                     
                     <div class="row gy-2">
                         @php
-
-                            $employeedoc = !empty($employee)
-                                ? $employee->documents()->pluck('document_value', __('document_id'))
-                                : [];
+                            $employeedocs = !empty($employee) ? $employee->documents->groupBy('document_id') : [];
+                            $logo = \App\Models\Utility::get_file('uploads/document/');
                         @endphp
                         @if (!$documents->isEmpty())
                             @foreach ($documents as $key => $document)
-                                <div class="col-sm-6 col-12">
+                                <div class="col-12 border-bottom pb-2">
                                     <div class="info">
-                                        <strong class="font-bold">{{ $document->name }} : </strong>
-                                        <span><a href="{{ !empty($employeedoc[$document->id]) ? asset(Storage::url('uploads/document')) . '/' . $employeedoc[$document->id] : '' }}"
-                                                target="_blank">{{ !empty($employeedoc[$document->id]) ? $employeedoc[$document->id] : '' }}</a></span>
+                                        <strong class="font-bold d-block">{{ $document->name }} : </strong>
+                                        @if(isset($employeedocs[$document->id]))
+                                            @foreach($employeedocs[$document->id] as $doc)
+                                                <div class="mt-1">
+                                                    <a href="{{ $logo . '/' . $doc->document_value }}" target="_blank" class="text-primary">
+                                                        <i class="ti ti-file-description"></i> {{ $doc->document_value }}
+                                                    </a>
+                                                </div>
+                                            @endforeach
+                                        @else
+                                            <span class="text-muted small">{{ __('No document uploaded') }}</span>
+                                        @endif
                                     </div>
                                 </div>
                             @endforeach
                         @else
                             <div class="text-center">
-                                No Document Type Added.!
+                                {{ __('No Document Type Added.!') }}
                             </div>
                         @endif
 

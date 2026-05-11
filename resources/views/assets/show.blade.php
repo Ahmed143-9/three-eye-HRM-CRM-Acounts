@@ -27,7 +27,7 @@
                 </a>
             @endcan
         @endif
-        @can('edit assets')
+        @can('Manage Assets')
             <a href="{{ route('account-assets.edit', $asset->id) }}" class="btn btn-sm btn-info">
                 <i class="ti ti-pencil"></i> {{__('Edit')}}
             </a>

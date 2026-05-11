@@ -12,7 +12,7 @@ class DucumentUploadController extends Controller
 
     public function index()
     {
-        if(\Auth::user()->can('manage document'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             if(\Auth::user()->type == 'company')
             {

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\ErpExpense;
 use App\Models\ErpSalarySheet;
+use App\Models\Transport;
+use App\Models\SalesOrder;
 
 class Notification extends Model
 {
@@ -40,15 +42,22 @@ class Notification extends Model
                            __('Emp') . ": " . $empName . " | " .
                            __('Amount') . ": " . $amount;
             }
-        } elseif ($this->related_model == 'ErpSalarySheet') {
-            $sheet = ErpSalarySheet::find($this->related_id);
-            $icon = 'ti ti-cash';
-            $text = "<b>" . __($this->title) . "</b>";
-            if ($sheet) {
-                $subtext = __('Month') . ": " . $sheet->month . " | " . 
-                           __('Net') . ": " . optional(\Auth::user())->priceFormat($sheet->net_salary);
-            } else {
-                $subtext = __($this->message);
+        } elseif ($this->related_model == 'Transport') {
+            $transport = Transport::find($this->related_id);
+            if ($transport) {
+                $icon = 'ti ti-truck-delivery';
+                $text = "<b>" . __($this->title) . "</b>";
+                $subtext = __('ID') . ": " . $transport->unique_id . " | " .
+                           __('Truck') . ": " . ($transport->truck_number ?? '-') . " | " .
+                           __('Client') . ": " . ($transport->manual_client_name ?: (optional($transport->client)->name ?? '-'));
+            }
+        } elseif ($this->related_model == 'SalesOrder') {
+            $order = SalesOrder::find($this->related_id);
+            if ($order) {
+                $icon = 'ti ti-shopping-cart';
+                $text = "<b>" . __($this->title) . "</b>";
+                $subtext = __('Order') . ": " . $order->order_number . " | " .
+                           __('Customer') . ": " . (optional($order->customer)->name ?? '-');
             }
         } else {
             $text = "<b>" . __($this->title) . "</b>";
@@ -67,6 +76,8 @@ class Notification extends Model
             'salary_sheet_submitted' => 'bg-warning',
             'salary_approved' => 'bg-success',
             'salary_rejected' => 'bg-danger',
+            'transport_created' => 'bg-info',
+            'sales_order_finalized' => 'bg-primary',
         ];
         $icon_color = $typeColors[$this->type] ?? 'bg-primary';
 

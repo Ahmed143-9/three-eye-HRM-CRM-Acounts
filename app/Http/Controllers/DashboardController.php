@@ -84,6 +84,80 @@ class DashboardController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
+    public function index()
+    {
+        if (Auth::check()) {
+            $user = Auth::user();
+            
+            // Super Admin Dashboard
+            if ($user->type == 'super admin') {
+                return $this->super_admin_dashboard();
+            }
+
+            // Client Dashboard
+            if ($user->type == 'client') {
+                return $this->client_dashboard();
+            }
+
+            // Logic for all other roles based on permissions
+            // Prioritize Accounting Dashboard if they have any accounting permissions
+            if ($user->can('Manage Payables & Receivables') || 
+                $user->can('Manage Banking & Billing') || 
+                $user->can('Manage Sales Orders') || 
+                $user->can('Manage Purchases & Suppliers') || 
+                $user->can('Manage Accounting Setup') ||
+                $user->type == 'company') {
+                return $this->account_dashboard_index();
+            }
+
+            // If not accounting, but has HR permissions
+            if ($user->can('Manage Employees') || 
+                $user->can('Manage Attendance') || 
+                $user->can('Manage Payroll') || 
+                $user->can('Manage Leaves') || 
+                $user->can('Manage Transport') || 
+                $user->can('Manage Assets') || 
+                $user->can('Manage HR Setup')) {
+                return $this->hrm_dashboard_index();
+            }
+
+            // Default fallback
+            return $this->hrm_dashboard_index();
+        }
+
+        return redirect()->route('login');
+    }
+
+    private function super_admin_dashboard()
+    {
+        $user = Auth::user();
+        $user['total_user'] = $user->countCompany();
+        $user['total_paid_user'] = $user->countPaidCompany();
+        $user['total_orders'] = Order::total_orders();
+        $user['total_orders_price'] = Order::total_orders_price();
+        $user['total_plan'] = Plan::total_plan();
+        if(!empty(Plan::most_purchese_plan()))
+        {
+            $plan = Plan::find(Plan::most_purchese_plan()['plan']);
+            $user['most_purchese_plan'] = $plan ? $plan->name : '-';
+        }
+        else
+        {
+            $user['most_purchese_plan'] = '-';
+        }
+
+        $chartData = $this->getOrderChart(['duration' => 'week']);
+
+        return view('dashboard.super_admin', compact('user', 'chartData'));
+    }
+
+    private function client_dashboard()
+    {
+        // Existing client dashboard logic remains in clientView, 
+        // but we'll call it or move it here for consistency.
+        return $this->clientView();
+    }
+
     public function account_dashboard_index()
     {
         if (Auth::check()) {
@@ -263,8 +337,16 @@ class DashboardController extends Controller
     {
 
         if (Auth::check()) {
+            $user = Auth::user();
 
-            if (\Auth::user()->can('show hrm dashboard')) {
+            if ($user->can('Manage Employees') || 
+                $user->can('Manage Attendance') || 
+                $user->can('Manage Payroll') || 
+                $user->can('Manage Leaves') || 
+                $user->can('Manage Transport') || 
+                $user->can('Manage Assets') || 
+                $user->can('Manage HR Setup') ||
+                $user->type == 'company') {
 
                 $user = Auth::user();
 

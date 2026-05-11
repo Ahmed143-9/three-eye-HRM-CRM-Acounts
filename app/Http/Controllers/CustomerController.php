@@ -33,7 +33,7 @@ class CustomerController extends Controller
 
     public function index()
     {
-        if(\Auth::user()->can('manage customer'))
+        if(\Auth::user()->can('Manage Sales Orders'))
         {
             $customers = Customer::where('created_by', \Auth::user()->creatorId())->get();
 
@@ -600,7 +600,7 @@ class CustomerController extends Controller
 
     public function searchCustomers(Request $request)
     {
-        if (\Illuminate\Support\Facades\Auth::user()->can('manage customer')) {
+        if (\Illuminate\Support\Facades\Auth::user()->can('Manage Sales Orders')) {
             $customers = [];
             $search    = $request->search;
             if ($request->ajax() && isset($search) && !empty($search)) {

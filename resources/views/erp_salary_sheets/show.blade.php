@@ -28,19 +28,19 @@
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-3">
-                    @if($batch->status == 'Draft' && \Auth::user()->can('manage employee'))
+                    @if($batch->status == 'Draft' && \Auth::user()->can('Manage Employees'))
                         <a href="{{ route('salary-management.submit', $batch->id) }}" class="btn btn-warning px-4 py-2 rounded-pill fw-bold shadow-sm">
                             <i class="ti ti-send me-1"></i> {{ __('Request Approval') }}
                         </a>
                     @endif
 
-                    @if($batch->status == 'Pending Approval' && (\Auth::user()->type == 'company' || \Auth::user()->can('approve expense')))
+                    @if($batch->status == 'Pending Approval' && (\Auth::user()->type == 'company' || \Auth::user()->can('Approve Expenses')))
                         <a href="{{ route('salary-management.approve', $batch->id) }}" class="btn btn-success px-4 py-2 rounded-pill fw-bold shadow-sm">
                             <i class="ti ti-circle-check me-1"></i> {{ __('Final Approve') }}
                         </a>
                     @endif
 
-                    @if($batch->status == 'Approved' && (\Auth::user()->can('manage bill') || \Auth::user()->type == 'company'))
+                    @if($batch->status == 'Approved' && (\Auth::user()->can('Manage Purchases & Suppliers') || \Auth::user()->type == 'company'))
                         <a href="{{ route('salary-management.pay', $batch->id) }}" class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm" style="background:#4f46e5;">
                             <i class="ti ti-wallet me-1"></i> {{ __('Process Payment') }}
                         </a>

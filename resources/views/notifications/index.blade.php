@@ -26,32 +26,53 @@
                 <div class="card-body">
                     <div class="list-group list-group-flush">
                         @forelse($notifications as $notification)
-                            <div class="list-group-item list-group-item-action @if(!$notification->is_read) bg-light-primary @endif">
-                                <div class="d-flex align-items-center">
-                                    <div class="notification-icon me-3">
+                            <div class="list-group-item list-group-item-action @if(!$notification->is_read) bg-light-primary @endif border-0 mb-2 rounded shadow-sm">
+                                <div class="d-flex align-items-start">
+                                    <div class="notification-icon me-3 mt-1">
                                         @php
+                                            $typeColors = [
+                                                'expense_submitted' => 'bg-warning',
+                                                'expense_approved' => 'bg-success',
+                                                'expense_rejected' => 'bg-danger',
+                                                'expense_on_hold' => 'bg-secondary',
+                                                'expense_sent_back' => 'bg-warning',
+                                                'expense_payment_ready' => 'bg-info',
+                                                'expense_paid' => 'bg-success',
+                                                'salary_sheet_submitted' => 'bg-warning',
+                                                'salary_approved' => 'bg-success',
+                                                'salary_rejected' => 'bg-danger',
+                                                'transport_created' => 'bg-info',
+                                                'sales_order_finalized' => 'bg-primary',
+                                            ];
+                                            $icon_class = $typeColors[$notification->type] ?? 'bg-primary';
+                                            
                                             $icon = 'ti ti-bell';
-                                            $icon_class = 'bg-primary';
-                                            if($notification->type == 'expense_submitted') { $icon = 'ti ti-report-money'; $icon_class = 'bg-warning'; }
-                                            elseif($notification->type == 'expense_approved') { $icon = 'ti ti-check'; $icon_class = 'bg-success'; }
-                                            elseif($notification->type == 'expense_rejected') { $icon = 'ti ti-x'; $icon_class = 'bg-danger'; }
+                                            if($notification->related_model == 'ErpExpense') $icon = 'ti ti-report-money';
+                                            elseif($notification->related_model == 'ErpSalarySheet') $icon = 'ti ti-cash';
+                                            elseif($notification->related_model == 'Transport') $icon = 'ti ti-truck-delivery';
+                                            elseif($notification->related_model == 'SalesOrder') $icon = 'ti ti-shopping-cart';
                                         @endphp
-                                        <span class="avatar {{ $icon_class }} text-white rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                            <i class="{{ $icon }}"></i>
+                                        <span class="avatar {{ $icon_class }} text-white rounded-circle" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="{{ $icon }} fs-4"></i>
                                         </span>
                                     </div>
                                     <div class="flex-fill">
-                                        <div class="d-flex justify-content-between">
-                                            <h6 class="mb-1 text-sm">{!! __($notification->title) !!}</h6>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-1">{!! __($notification->title) !!}</h6>
                                             <small class="text-muted">{{ $notification->created_at->diffForHumans() }}</small>
                                         </div>
-                                        <p class="text-sm mb-0 text-muted">{{ __($notification->message) }}</p>
+                                        <p class="text-sm mb-2 text-muted">{{ __($notification->message) }}</p>
                                         
-                                        @if($notification->related_model == 'ErpExpense')
-                                            <div class="mt-2">
-                                                <a href="{{ route('erp-expenses.index', 'approvals') }}" class="btn btn-xs btn-primary text-xs py-1 px-2">{{ __('Go to Approvals') }}</a>
-                                            </div>
-                                        @endif
+                                        <div class="d-flex gap-2">
+                                            <a href="{{ route('notifications.readAndRedirect', $notification->id) }}" class="btn btn-xs btn-outline-primary text-xs py-1 px-2">
+                                                <i class="ti ti-eye"></i> {{ __('View Details') }}
+                                            </a>
+                                            @if(!$notification->is_read)
+                                                <button type="button" class="btn btn-xs btn-link text-muted text-xs p-0 ms-2 mark-read-btn" data-id="{{ $notification->id }}">
+                                                    {{ __('Mark as Read') }}
+                                                </button>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             </div>

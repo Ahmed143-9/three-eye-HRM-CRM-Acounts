@@ -61,32 +61,10 @@
                 <!--------------------- Start HRM ----------------------------------->
 
                 @if (!empty($userPlan) && $userPlan->hrm == 1 && \Auth::user()->type != 'accountant')
-                    @if (Gate::check('manage employee') ||
-                        Gate::check('manage set salary') || Gate::check('manage pay slip') ||
-                        Gate::check('manage leave') || Gate::check('manage attendance') ||
-                        Gate::check('create attendance') || Gate::check('manage indicator') ||
-                        Gate::check('manage appraisal') || Gate::check('manage goal tracking') ||
-                        Gate::check('manage training') || Gate::check('manage trainer') ||
-                        Gate::check('manage job') || Gate::check('create job') ||
-                        Gate::check('manage job application') || Gate::check('manage custom question') ||
-                        Gate::check('manage job onBoard') || Gate::check('show interview schedule') ||
-                        Gate::check('show career') || Gate::check('manage award') ||
-                        Gate::check('manage transfer') || Gate::check('manage resignation') ||
-                        Gate::check('manage travel') || Gate::check('manage promotion') ||
-                        Gate::check('manage complaint') || Gate::check('manage warning') ||
-                        Gate::check('manage termination') || Gate::check('manage announcement') ||
-                        Gate::check('manage holiday') || Gate::check('manage event') ||
-                        Gate::check('manage meeting') || Gate::check('manage assets') ||
-                        Gate::check('manage document') || Gate::check('manage company policy') ||
-                        Gate::check('manage branch') || Gate::check('manage department') ||
-                        Gate::check('manage designation') || Gate::check('manage leave type') ||
-                        Gate::check('manage document type') || Gate::check('manage payslip type') ||
-                        Gate::check('manage allowance option') || Gate::check('manage loan option') ||
-                        Gate::check('manage deduction option') || Gate::check('manage goal type') ||
-                        Gate::check('manage training type') || Gate::check('manage award type') ||
-                        Gate::check('manage termination type') || Gate::check('manage job category') ||
-                        Gate::check('manage job stage') || Gate::check('manage performance type') ||
-                        Gate::check('manage competencies'))
+                    @if (Gate::check('Manage Employees') || Gate::check('Manage Attendance') ||
+                        Gate::check('Manage Payroll') || Gate::check('Manage Leaves') ||
+                        Gate::check('Manage Transport') || Gate::check('Manage Assets') ||
+                        Gate::check('Manage HR Setup'))
 
                         <li
                             class="dash-item dash-hasmenu {{ Request::segment(1) == 'holiday-calender' ||
@@ -131,7 +109,7 @@
                                 </span>
                             </a>
                             <ul class="dash-submenu">
-                                @can('manage employee')
+                                @can('Manage Employees')
                                     <li
                                         class="dash-item  {{ Request::segment(1) == 'employee' ? 'active dash-trigger' : '' }}   ">
                                         @if (\Auth::user()->type == 'Employee')
@@ -152,7 +130,7 @@
                                 @endcan
 
                                 {{-- Professional Attendance Module --}}
-                                @can('manage attendance')
+                                @can('Manage Attendance')
                                     <li class="dash-item dash-hasmenu {{ Request::segment(1) == 'attendanceemployee' || Request::segment(1) == 'attendance-history' ? 'active dash-trigger' : '' }}">
                                         <a href="#!" class="dash-link">
                                             <span class="dash-micon"><i class="ti ti-calendar-event"></i></span>
@@ -171,7 +149,7 @@
                                 @endcan
 
                                 {{-- Professional Salary Management Module --}}
-                                @if (Gate::check('manage set salary') || Gate::check('manage pay slip') || \Auth::user()->type == 'company')
+                                @if (Gate::check('Manage Payroll'))
                                     <li class="dash-item dash-hasmenu {{ Request::segment(1) == 'salary-management' ? 'active dash-trigger' : '' }}">
                                         <a href="#!" class="dash-link">
                                             <span class="dash-micon"><i class="ti ti-report-money"></i></span>
@@ -182,12 +160,12 @@
                                             <li class="dash-item {{ Request::routeIs('salary-management.index') ? 'active' : '' }}">
                                                 <a class="dash-link" href="{{ route('salary-management.index') }}">{{ __('Salary Sheet') }}</a>
                                             </li>
-                                            @if(\Auth::user()->type == 'company' || \Auth::user()->can('approve expense'))
+                                            @if(\Auth::user()->type == 'company' || \Auth::user()->can('Approve Expenses'))
                                                 <li class="dash-item {{ Request::routeIs('salary-management.approval-queue') ? 'active' : '' }}">
                                                     <a class="dash-link" href="{{ route('salary-management.approval-queue') }}">{{ __('Expense Approval Queue') }}</a>
                                                 </li>
                                             @endif
-                                            @if(\Auth::user()->type == 'company' || \Auth::user()->can('manage bill'))
+                                            @if(\Auth::user()->type == 'company' || \Auth::user()->can('Manage Purchases & Suppliers'))
                                                 <li class="dash-item {{ Request::routeIs('salary-management.approved-bills') ? 'active' : '' }}">
                                                     <a class="dash-link" href="{{ route('salary-management.approved-bills') }}">{{ __('Approved Bills') }}</a>
                                                 </li>
@@ -200,7 +178,7 @@
                                 @endif
 
 
-                                @if (Gate::check('manage leave'))
+                                @if (Gate::check('Manage Leaves'))
                                     <li
                                         class="dash-item {{ Request::segment(1) == 'leave' ? 'active' : '' }}">
                                         <a class="dash-link"
@@ -213,19 +191,22 @@
 
 
 
+                                @can('Manage Transport')
                                 <li class="dash-item {{ Request::segment(1) == 'transports' ? 'active' : '' }}">
                                     <a href="{{ route('transports.index') }}" class="dash-link">
                                         <span class="dash-micon"><i class="ti ti-truck"></i></span>
                                         <span class="dash-mtext">{{ __('Transport Management') }}</span>
                                     </a>
                                 </li>
+                                @endcan
 
 
 
 
 
 
-                                @if (\Auth::user()->type == 'HR' || \Auth::user()->type == 'hr' || \Auth::user()->type == 'company')
+                                @if (Gate::check('Manage Assets') || Gate::check('Manage HR Setup'))
+                                    @can('Manage Assets')
                                     <li class="dash-item {{ request()->is('employee-assets*') ? 'active' : '' }}">
                                         <a class="dash-link"
                                             href="{{ route('employee-assets.index') }}">{{ __('Employee Asset Setup') }}</a>
@@ -234,7 +215,9 @@
                                         <a class="dash-link"
                                             href="{{ route('company-assets.index') }}">{{ __('Company Asset Setup') }}</a>
                                     </li>
+                                    @endcan
 
+                                    @can('Manage HR Setup')
                                     <li
                                         class="dash-item {{ Request::segment(1) == 'leavetype' ||
                                         Request::segment(1) == 'document' ||
@@ -258,6 +241,7 @@
                                         <a class="dash-link"
                                             href="{{ route('branch.index') }}">{{ __('HRM System Setup') }}</a>
                                     </li>
+                                    @endcan
                                 @endif
 
 
@@ -271,21 +255,12 @@
                 <!--------------------- Start Account ----------------------------------->
 
                 @if (!empty($userPlan) && $userPlan->account == 1)
-                    @if (Gate::check('manage budget plan') || Gate::check('income vs expense report') ||
-                            Gate::check('manage goal') || Gate::check('manage constant tax') ||
-                            Gate::check('manage constant category') || Gate::check('manage constant unit') ||
-                            Gate::check('manage constant custom field') ||
-                            Gate::check('manage customer') || Gate::check('manage vender') ||
-                            Gate::check('manage proposal') || Gate::check('manage bank account') ||
-                            Gate::check('manage bank transfer') || Gate::check('manage invoice') ||
-                            Gate::check('manage revenue') || Gate::check('manage credit note') ||
-                            Gate::check('manage bill') || Gate::check('manage payment') ||
-                            Gate::check('manage debit note') || Gate::check('manage chart of account') ||
-                            Gate::check('manage journal entry') || Gate::check('balance sheet report') ||
-                            Gate::check('ledger report') || Gate::check('trial balance report') )
+                    @if (Gate::check('Manage Payables & Receivables') || Gate::check('Manage Banking & Billing') ||
+                            Gate::check('Manage Sales Orders') || Gate::check('Manage Purchases & Suppliers') ||
+                            Gate::check('Manage Accounting Setup'))
                         <li
-                            class="dash-item dash-hasmenu
-
+                            class="dash-item dash-hasmenu {{
+                                        Request::segment(1) == 'payables' || Request::segment(1) == 'receivables' ||
                                         Request::segment(1) == 'customer' || Request::segment(1) == 'vender' ||
                                         Request::segment(1) == 'proposal' || Request::segment(1) == 'bank-account' ||
                                         Request::segment(1) == 'bank-transfer' || Request::segment(1) == 'invoice' ||
@@ -308,7 +283,7 @@
                                 </span><span class="dash-arrow"><i data-feather="chevron-right"></i></span>
                             </a>
                             <ul class="dash-submenu">
-
+                                @can('Manage Payables & Receivables')
                                 <li
                                     class="dash-item {{ Request::segment(1) == 'payables' ? 'active' : '' }}">
                                     <a class="dash-link" href="{{ route('payables.index') }}">
@@ -326,15 +301,16 @@
                                         <span class="dash-mtext">{{ __('Approved Bills') }}</span>
                                     </a>
                                 </li>
-                                @if (Gate::check('expense summary report') || \Auth::user()->type == 'company')
+                                @if (Gate::check('ledger report') || \Auth::user()->type == 'company')
                                     <li class="dash-item {{ Request::routeIs('report.expense.summary') ? 'active' : '' }}">
                                         <a class="dash-link" href="{{ route('report.expense.summary') }}">
                                             <span class="dash-mtext">{{ __('Expense Ledger') }}</span>
                                         </a>
                                     </li>
                                 @endif
+                                @endcan
 
-                                @if (Gate::check('manage bank account') || Gate::check('manage bank transfer'))
+                                @can('Manage Banking & Billing')
                                     <li
                                         class="dash-item dash-hasmenu {{ Request::segment(1) == 'bank-account' || Request::segment(1) == 'bank-transfer' || Request::segment(1) == 'billing' || Request::segment(1) == 'transport-bills' ? 'active dash-trigger' : '' }}">
                                         <a class="dash-link" href="#">{{ __('Banking') }}<span
@@ -352,72 +328,65 @@
                                             </li>
                                         </ul>
                                     </li>
-                                @endif
-                                @if (Gate::check('manage customer') || Gate::check('manage proposal') || Gate::check('manage invoice'))
+                                @endcan
+
+                                @can('Manage Sales Orders')
                                     <li class="dash-item {{ Request::segment(1) == 'sales-orders' ? 'active' : '' }}">
                                         <a class="dash-link" href="{{ route('sales-orders.index') }}">
                                             <span class="dash-mtext">{{ __('Sales Orders') }}</span>
                                         </a>
                                     </li>
-                                @endif
-                                @if (Gate::check('manage vender') ||
-                                        Gate::check('manage bill') ||
-                                        Gate::check('manage payment') ||
-                                        Gate::check('manage debit note'))
+                                @endcan
+
+                                @can('Manage Purchases & Suppliers')
                                     <li
                                         class="dash-item dash-hasmenu {{ Request::segment(1) == 'bill' || Request::segment(1) == 'vender' || Request::segment(1) == 'expense' || Request::segment(1) == 'payment' || Request::segment(1) == 'debit-note' || Request::routeIs('expense-bills.index') ? 'active dash-trigger' : '' }}">
                                         <a class="dash-link" href="#">{{ __('Purchases') }}<span
                                                 class="dash-arrow"><i data-feather="chevron-right"></i></span></a>
                                         <ul class="dash-submenu">
-                                            @if (Gate::check('manage vender'))
-                                                <li
-                                                    class="dash-item {{ Request::segment(1) == 'vender' ? 'active' : '' }}">
-                                                    <a class="dash-link"
-                                                        href="{{ route('vender.index') }}">{{ __('Suppiler') }}</a>
-                                                </li>
-                                            @endif
-                                            @can('manage bill')
-                                                <li
-                                                    class="dash-item {{ Request::route()->getName() == 'bill.index' || Request::route()->getName() == 'bill.create' || Request::route()->getName() == 'bill.edit' || Request::route()->getName() == 'bill.show' ? ' active' : '' }}">
-                                                    <a class="dash-link"
-                                                    href="{{ route('bill.index') }}">{{ __('Bill') }}</a>
-                                                </li>
-                                                <li
-                                                    class="dash-item {{ Request::route()->getName() == 'expense.index' || Request::route()->getName() == 'expense.create' || Request::route()->getName() == 'expense.edit' || Request::route()->getName() == 'expense.show' ? ' active' : '' }}">
-                                                    <a class="dash-link"
-                                                        href="{{ route('expense.index') }}">{{ __('Expense') }}</a>
-                                                </li>
-                                            @endcan
-                                            @can('manage payment')
-                                                <li
-                                                    class="dash-item {{ Request::route()->getName() == 'payment.index' || Request::route()->getName() == 'payment.create' || Request::route()->getName() == 'payment.edit' ? ' active' : '' }}">
-                                                    <a class="dash-link"
-                                                        href="{{ route('payment.index') }}">{{ __('Payment') }}</a>
-                                                </li>
-                                            @endcan
-
-                                            @can('manage debit note')
-                                                <li
-                                                    class="dash-item  {{ Request::route()->getName() == 'debit.note' ? ' active' : '' }}">
-                                                    <a class="dash-link"
-                                                        href="{{ route('custom-debit.note') }}">{{ __('Debit Note') }}</a>
-                                                </li>
-                                            @endcan
+                                            <li
+                                                class="dash-item {{ Request::segment(1) == 'vender' ? 'active' : '' }}">
+                                                <a class="dash-link"
+                                                    href="{{ route('vender.index') }}">{{ __('Suppiler') }}</a>
+                                            </li>
+                                            <li
+                                                class="dash-item {{ Request::route()->getName() == 'bill.index' || Request::route()->getName() == 'bill.create' || Request::route()->getName() == 'bill.edit' || Request::route()->getName() == 'bill.show' ? ' active' : '' }}">
+                                                <a class="dash-link"
+                                                href="{{ route('bill.index') }}">{{ __('Bill') }}</a>
+                                            </li>
+                                            <li
+                                                class="dash-item {{ Request::route()->getName() == 'expense.index' || Request::route()->getName() == 'expense.create' || Request::route()->getName() == 'expense.edit' || Request::route()->getName() == 'expense.show' ? ' active' : '' }}">
+                                                <a class="dash-link"
+                                                    href="{{ route('expense.index') }}">{{ __('Expense') }}</a>
+                                            </li>
+                                            <li
+                                                class="dash-item {{ Request::route()->getName() == 'payment.index' || Request::route()->getName() == 'payment.create' || Request::route()->getName() == 'payment.edit' ? ' active' : '' }}">
+                                                <a class="dash-link"
+                                                    href="{{ route('payment.index') }}">{{ __('Payment') }}</a>
+                                            </li>
+                                            <li
+                                                class="dash-item  {{ Request::route()->getName() == 'debit.note' ? ' active' : '' }}">
+                                                <a class="dash-link"
+                                                    href="{{ route('custom-debit.note') }}">{{ __('Debit Note') }}</a>
+                                            </li>
                                         </ul>
                                     </li>
-                                @endif
+                                @endcan
 
 
-                                @if (\Auth::user()->type != 'HR' && \Auth::user()->type != 'hr' && (
-                                    Gate::check('manage accounting client') ||
-                                        Gate::check('manage accounting supplier') ||
-                                        Gate::check('manage accounting consultant') ||
-                                        Gate::check('manage bank account') ||
-                                        \Auth::user()->type == 'company'))
+                                @can('Manage Accounting Setup')
                                     <li
                                         class="dash-item {{ Request::segment(1) == 'accounting-clients' || Request::segment(1) == 'suppliers' || Request::segment(1) == 'consultants' ? 'active dash-trigger' : '' }}">
                                         <a class="dash-link"
                                             href="{{ route('accounting-clients.index') }}">{{ __('Accounting Setup') }}</a>
+                                    </li>
+                                @endcan
+
+                                @if (Gate::check('Manage Petty Cash') || \Auth::user()->type == 'company')
+                                    <li class="dash-item {{ Request::segment(1) == 'petty-cash' ? 'active' : '' }}">
+                                        <a class="dash-link" href="{{ route('petty-cash.index') }}">
+                                            <span class="dash-mtext">{{ __('Petty Cash') }}</span>
+                                        </a>
                                     </li>
                                 @endif
 
@@ -435,7 +404,7 @@
                 <!--------------------- End CRM ----------------------------------->
 
                 <!--------------------- Start Expense Management ----------------------------------->
-                @if (Gate::check('manage expense') || Gate::check('view office expense history') || Gate::check('approve expense') || \Auth::user()->type == 'company')
+                @if (Gate::check('Submit Expenses') || Gate::check('Approve Expenses'))
                     <li class="dash-item dash-hasmenu {{ Request::segment(1) == 'expense-management' ? 'active dash-trigger' : '' }}">
                         <a href="#!" class="dash-link ">
                             <span class="dash-micon"><i class="ti ti-report-money"></i></span>
@@ -443,7 +412,7 @@
                             <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
                         </a>
                         <ul class="dash-submenu">
-                            @if (Gate::check('manage expense') || \Auth::user()->type == 'company')
+                            @can('Submit Expenses')
                                 <li class="dash-item {{ Request::is('expense-management/purchase*') ? 'active' : '' }}">
                                     <a class="dash-link" href="{{ route('erp-expenses.index', 'purchase') }}">{{ __('Purchase') }}</a>
                                 </li>
@@ -453,17 +422,15 @@
                                 <li class="dash-item {{ Request::is('expense-management/utility*') ? 'active' : '' }}">
                                     <a class="dash-link" href="{{ route('erp-expenses.index', 'utility') }}">{{ __('Utility') }}</a>
                                 </li>
-                            @endif
-                            @if (Gate::check('view office expense history') || \Auth::user()->type == 'company')
                                 <li class="dash-item {{ Request::routeIs('expense-management.history') ? 'active' : '' }}">
                                     <a class="dash-link" href="{{ route('expense-management.history') }}">{{ __('Office Expense History') }}</a>
                                 </li>
-                            @endif
-                            @if (Gate::check('approve expense') || \Auth::user()->type == 'company')
+                            @endcan
+                            @can('Approve Expenses')
                                 <li class="dash-item {{ Request::routeIs('expense-management.approvals') ? 'active' : '' }}">
                                     <a class="dash-link" href="{{ route('expense-management.approvals') }}">{{ __('Expense Approval Queue') }}</a>
                                 </li>
-                            @endif
+                            @endcan
                         </ul>
                     </li>
                 @endif
@@ -476,7 +443,7 @@
 
                 <!--------------------- Start User Managaement System ----------------------------------->
 
-                @if (\Auth::user()->type != 'super admin' && (Gate::check('manage user') || Gate::check('manage role')))
+                @if (\Auth::user()->type != 'super admin' && (Gate::check('Manage Users') || Gate::check('Manage Roles')))
                     <li
                         class="dash-item dash-hasmenu {{ Request::segment(1) == 'users' ||
                         Request::segment(1) == 'roles' ||
@@ -490,13 +457,13 @@
                                 class="dash-mtext">{{ __('User Management') }}</span><span class="dash-arrow"><i
                                     data-feather="chevron-right"></i></span></a>
                         <ul class="dash-submenu">
-                            @can('manage user')
+                            @can('Manage Users')
                                 <li
                                     class="dash-item {{ Request::route()->getName() == 'users.index' || Request::route()->getName() == 'users.create' || Request::route()->getName() == 'users.edit' || Request::route()->getName() == 'user.userlog' ? ' active' : '' }}">
                                     <a class="dash-link" href="{{ route('users.index') }}">{{ __('User') }}</a>
                                 </li>
                             @endcan
-                            @can('manage role')
+                            @can('Manage Roles')
                                 <li
                                     class="dash-item {{ Request::route()->getName() == 'roles.index' || Request::route()->getName() == 'roles.create' || Request::route()->getName() == 'roles.edit' ? ' active' : '' }} ">
                                     <a class="dash-link" href="{{ route('roles.index') }}">{{ __('Role') }}</a>
@@ -545,7 +512,7 @@
                 <!--------------------- Start System Setup ----------------------------------->
 
                 @if (\Auth::user()->type != 'super admin')
-                    @if (Gate::check('manage company plan') || Gate::check('manage order') || Gate::check('manage company settings'))
+                    @if (Gate::check('manage company plan') || Gate::check('manage order') || Gate::check('Manage System Settings'))
                         <li
                             class="dash-item dash-hasmenu {{ Request::segment(1) == 'settings' ||
                             Request::segment(1) == 'plans' ||
@@ -560,7 +527,7 @@
                                     <i data-feather="chevron-right"></i></span>
                             </a>
                             <ul class="dash-submenu">
-                                @if (Gate::check('manage company settings'))
+                                @if (Gate::check('Manage System Settings'))
                                     <li
                                         class="dash-item dash-hasmenu {{ Request::segment(1) == 'settings' ? ' active' : '' }}">
                                         <a href="{{ route('settings') }}"

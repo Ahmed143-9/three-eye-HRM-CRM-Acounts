@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 @section('page-title')
-    {{__('Owner Dashboard')}}
+    {{ Auth::user()->type == 'company' ? __('Owner Dashboard') : __('Accountant Dashboard') }}
 @endsection
 
 @push('script-page')
@@ -86,7 +86,7 @@
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{__('Dashboard')}}</a></li>
-    <li class="breadcrumb-item">{{__('Owner Insights')}}</li>
+    <li class="breadcrumb-item">{{ Auth::user()->type == 'company' ? __('Owner Insights') : __('Financial Insights') }}</li>
 @endsection
 
 @section('content')
@@ -96,7 +96,13 @@
             <div class="d-flex align-items-center justify-content-between">
                 <div>
                     <h2 class="h3 mb-1 fw-bold text-primary">{{ __('Welcome Back, ') }} {{ Auth::user()->name }}!</h2>
-                    <p class="text-muted mb-0">{{ __('Here is what is happening with your business today.') }}</p>
+                    <p class="text-muted mb-0">
+                        @if(Auth::user()->type == 'company')
+                            {{ __('Here is what is happening with your business today.') }}
+                        @else
+                            {{ __('Here is a summary of the financial and operational status.') }}
+                        @endif
+                    </p>
                 </div>
                 <div class="text-end">
                     <span class="badge bg-{{ $statusColor }} p-2 px-3 rounded-pill shadow-sm">

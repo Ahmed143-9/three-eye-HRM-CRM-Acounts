@@ -10,7 +10,7 @@ class GoalTypeController extends Controller
 
     public function index()
     {
-        if(\Auth::user()->can('manage goal type'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
             $goaltypes = GoalType::where('created_by', '=', \Auth::user()->creatorId())->get();
             return view('goaltype.index', compact('goaltypes'));

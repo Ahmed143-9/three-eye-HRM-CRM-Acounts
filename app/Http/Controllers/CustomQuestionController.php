@@ -10,7 +10,7 @@ class CustomQuestionController extends Controller
 
     public function index()
     {
-        if(\Auth::user()->can('manage custom question'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $questions = CustomQuestion::where('created_by', \Auth::user()->creatorId())->get();
 

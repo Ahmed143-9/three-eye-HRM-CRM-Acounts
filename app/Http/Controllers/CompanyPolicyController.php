@@ -13,7 +13,7 @@ class CompanyPolicyController extends Controller
 
     public function index()
     {
-        if(\Auth::user()->can('manage company policy'))
+        if(\Auth::user()->can('Manage Employees'))
         {
 
             $employee_branch = Employee::where('user_id', \Auth::user()->id)->pluck('branch_id');

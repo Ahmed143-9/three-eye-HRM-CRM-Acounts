@@ -13,7 +13,7 @@ class ComplaintController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage complaint'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             if(Auth::user()->type == 'Employee')
             {

@@ -10,7 +10,7 @@ class DocumentController extends Controller
     public function index()
     {
 
-        if(\Auth::user()->can('manage document type'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
             $documents = Document::where('created_by', '=', \Auth::user()->creatorId())->get();
 

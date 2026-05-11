@@ -19,7 +19,7 @@ class JobController extends Controller
 
     public function index()
     {
-        if(\Auth::user()->can('manage job'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $jobs = Job::where('created_by', '=', \Auth::user()->creatorId())->with('branches','createdBy')->get();
 

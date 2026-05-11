@@ -15,7 +15,7 @@ class AnnouncementController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage announcement'))
+        if(\Auth::user()->can('Manage Employees'))
         {
 
             if(Auth::user()->type == 'Employee')

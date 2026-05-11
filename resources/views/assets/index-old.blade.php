@@ -13,7 +13,7 @@
 
 @section('action-btn')
     <div class="float-end">
-        @can('create assets')
+        @can('Manage Assets')
             <a href="#" data-url="{{ route('account-assets.create') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Create New Assets')}}" data-bs-toggle="tooltip" title="{{__('Create')}}"  class="btn btn-sm btn-primary">
                 <i class="ti ti-plus"></i>
             </a>
@@ -63,14 +63,14 @@
                                     <td class="font-style">{{ !empty($asset->description)?$asset->description:'-' }}</td>
                                     <td class="Action">
                                         <span>
-                                            @can('edit assets')
+                                            @can('Manage Assets')
                                                 <div class="action-btn me-2">
                                                     <a href="#" class="mx-3 btn btn-sm align-items-center bg-info" data-url="{{ route('account-assets.edit',$asset->id) }}" data-ajax-popup="true" data-size="lg" data-title="{{__('Edit Assets')}}" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">
                                                     <i class="ti ti-pencil text-white"></i>
                                                 </a>
                                                 </div>
                                             @endcan
-                                            @can('delete assets')
+                                            @can('Manage Assets')
                                                 <div class="action-btn ">
                                                     {!! Form::open(['method' => 'DELETE', 'route' => ['account-assets.destroy', $asset->id],'id'=>'delete-form-'.$asset->id]) !!}
                                                     <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para bg-danger" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$asset->id}}').submit();">

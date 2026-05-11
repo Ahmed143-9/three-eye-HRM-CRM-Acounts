@@ -9,7 +9,7 @@ class JobStageController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage job stage'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
             $stages = JobStage::where('created_by', '=', \Auth::user()->creatorId())->orderBy('order', 'asc')->get();
 

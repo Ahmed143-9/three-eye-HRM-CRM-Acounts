@@ -17,7 +17,7 @@ class CustomerDebitNotesController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage debit note'))
+        if(\Auth::user()->can('Manage Purchases & Suppliers'))
         {
             $customDebitNotes = CustomerDebitNotes::whereHas('bills', function ($query) {
                 $query->where('created_by', \Auth::user()->creatorId());

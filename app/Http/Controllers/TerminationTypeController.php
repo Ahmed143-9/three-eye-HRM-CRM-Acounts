@@ -9,7 +9,7 @@ class TerminationTypeController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage termination type'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
             $terminationtypes = TerminationType::where('created_by', '=', \Auth::user()->creatorId())->get();
 

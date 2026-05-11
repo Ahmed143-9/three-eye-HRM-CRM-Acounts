@@ -39,6 +39,7 @@ class Employee extends Model
         'instagram',
         'probation_period',
         'notice_period',
+        'is_fresher',
         'joining_salary',
     ];
 

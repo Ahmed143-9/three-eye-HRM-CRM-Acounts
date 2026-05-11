@@ -31,7 +31,7 @@ class UserController extends Controller
     public function index()
     {
         $user = \Auth::user();
-        if ($user->can('manage user')) {
+        if ($user->can('Manage Users')) {
             $users = User::where('created_by', '=', $user->creatorId())->where('type', '!=', 'client')->get();
             return view('user.index')->with('users', $users);
         } else {
@@ -42,7 +42,7 @@ class UserController extends Controller
     public function create()
     {
         $user = \Auth::user();
-        if ($user->can('create user')) {
+        if ($user->can('Manage Users')) {
             $roles = Role::where('created_by', '=', $user->creatorId())->where('name', '!=', 'client')->get()->pluck('name', 'id');
             $customFields = CustomField::where('created_by', '=', $user->creatorId())->where('module', '=', 'user')->get();
 
@@ -55,7 +55,7 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $user = \Auth::user();
-        if ($user->can('create user')) {
+        if ($user->can('Manage Users')) {
             $default_language = DB::table('settings')->select('value')->where('name', 'default_language')->where('created_by', '=', \Auth::user()->creatorId())->first();
 
             $validator = \Validator::make(
@@ -116,7 +116,7 @@ class UserController extends Controller
     {
         $user = \Auth::user();
         $roles = Role::where('created_by', '=', $user->creatorId())->where('name', '!=', 'client')->get()->pluck('name', 'id');
-        if (\Auth::user()->can('edit user')) {
+        if (\Auth::user()->can('Manage Users')) {
             $user = User::findOrFail($id);
             $user->customField = CustomField::getData($user, 'user');
             $customFields = CustomField::where('created_by', '=', \Auth::user()->creatorId())->where('module', '=', 'user')->get();
@@ -131,7 +131,7 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
 
-        if (\Auth::user()->can('edit user')) {
+        if (\Auth::user()->can('Manage Users')) {
             if (\Auth::user()->type == 'super admin') {
                 $user = User::findOrFail($id);
                 $validator = \Validator::make(
@@ -194,7 +194,7 @@ class UserController extends Controller
     public function destroy($id)
     {
 
-        if (\Auth::user()->can('delete user')) {
+        if (\Auth::user()->can('Manage Users')) {
             if ($id == 2) {
                 return redirect()->back()->with('error', __('You can not delete By default Company'));
             }

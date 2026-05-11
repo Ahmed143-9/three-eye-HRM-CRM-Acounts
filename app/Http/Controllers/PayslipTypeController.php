@@ -9,7 +9,7 @@ class PayslipTypeController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage payslip type'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
             $paysliptypes = PayslipType::where('created_by', '=', \Auth::user()->creatorId())->get();
 

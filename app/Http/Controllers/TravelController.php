@@ -14,7 +14,7 @@ class TravelController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage travel'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             if(Auth::user()->type == 'Employee')
             {

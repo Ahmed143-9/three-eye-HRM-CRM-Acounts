@@ -167,6 +167,7 @@ use App\Http\Controllers\TapController;
 use App\Http\Controllers\AccountingClientController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\ConsultantController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 
@@ -350,7 +351,7 @@ Route::group(['middleware' => ['verified']], function () {
     // Route::get('/home', [DashboardController::class, 'account_dashboard_index'])->name('home')->middleware(['XSS', 'revalidate']);
 
     // Route::get('/dashboard', [DashboardController::class, 'show_dashboard'])->name('dashboard')->middleware(['auth', 'XSS', 'revalidate']);
-    Route::get('/account-dashboard', [DashboardController::class, 'account_dashboard_index'])->name('dashboard')->middleware(['auth', 'XSS', 'revalidate']);
+    Route::get('/account-dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware(['auth', 'XSS', 'revalidate']);
     Route::get('/project-dashboard', [DashboardController::class, 'project_dashboard_index'])->name('project.dashboard')->middleware(['auth', 'XSS', 'revalidate']);
     Route::get('/hrm-dashboard', [DashboardController::class, 'hrm_dashboard_index'])->name('hrm.dashboard')->middleware(['auth', 'XSS', 'revalidate']);
     Route::get('/crm-dashboard', [DashboardController::class, 'crm_dashboard_index'])->name('crm.dashboard')->middleware(['auth', 'XSS', 'revalidate']);
@@ -1993,3 +1994,11 @@ Route::group(['middleware' => ['auth']], function () {
 
 Route::any('/cookie-consent', [SystemController::class, 'CookieConsent'])->name('cookie-consent');
 Route::get('payslip/payslipPdf/{id}/{month}', [PaySlipController::class, 'payslipPdf'])->name('payslip.payslipPdf')->middleware(['XSS']);
+
+Route::group(['middleware' => ['auth', 'XSS']], function () {
+    Route::get('petty-cash', [\App\Http\Controllers\PettyCashController::class, 'index'])->name('petty-cash.index');
+    Route::post('petty-cash', [\App\Http\Controllers\PettyCashController::class, 'store'])->name('petty-cash.store');
+    Route::get('petty-cash/{id}', [\App\Http\Controllers\PettyCashController::class, 'show'])->name('petty-cash.show');
+    Route::post('petty-cash/{id}/usage', [\App\Http\Controllers\PettyCashController::class, 'storeUsage'])->name('petty-cash.store-usage');
+    Route::get('petty-cash/{id}/pdf', [\App\Http\Controllers\PettyCashController::class, 'downloadPdf'])->name('petty-cash.pdf');
+});

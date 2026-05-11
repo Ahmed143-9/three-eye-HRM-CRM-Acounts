@@ -9,7 +9,7 @@ class LeaveTypeController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage leave type'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
             $leavetypes = LeaveType::where('created_by', '=', \Auth::user()->creatorId())->get();
 

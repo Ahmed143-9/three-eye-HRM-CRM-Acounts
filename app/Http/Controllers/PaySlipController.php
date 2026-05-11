@@ -26,7 +26,7 @@ class PaySlipController extends Controller
 
     public function index()
     {
-        if(\Auth::user()->can('manage pay slip') || \Auth::user()->type != 'client' || \Auth::user()->type != 'company')
+        if(\Auth::user()->can('Manage Payroll') || \Auth::user()->type != 'client' || \Auth::user()->type != 'company')
         {
             $employees = Employee::where(
                 [

@@ -80,7 +80,7 @@ class ExpenseController extends Controller
     public function index(Request $request)
     {
 
-        if (\Auth::user()->can('manage bill')) {
+        if (\Auth::user()->can('Manage Purchases & Suppliers')) {
 
             $vender = Vender::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $vender->prepend('Select Vendor', '');

@@ -35,7 +35,7 @@ class BillController extends Controller
     
     public function index(Request $request)
     {
-        if(\Auth::user()->can('manage bill'))
+        if(\Auth::user()->can('Manage Purchases & Suppliers'))
         {
 
             $vender = Vender::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('name', 'id');
@@ -93,7 +93,7 @@ class BillController extends Controller
 
     public function expenseBills(Request $request)
     {
-        if (!\Auth::user()->can('manage bill')) {
+        if (!\Auth::user()->can('Manage Purchases & Suppliers')) {
             return redirect()->back()->with('error', __('Permission Denied.'));
         }
 
@@ -1067,7 +1067,7 @@ class BillController extends Controller
 
     public function venderBill(Request $request)
     {
-        if(\Auth::user()->can('manage vender bill'))
+        if(\Auth::user()->can('Manage Purchases & Suppliers'))
         {
 
             $status = Bill::$statues;

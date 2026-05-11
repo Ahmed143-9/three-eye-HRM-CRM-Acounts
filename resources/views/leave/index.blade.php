@@ -10,7 +10,7 @@
 
 @section('action-btn')
     <div class="float-end">
-        @can('create leave')
+        @can('Manage Leaves')
         <a href="#" data-size="lg" data-url="{{ route('leave.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create Leave')}}" class="btn btn-sm btn-primary">
             <i class="ti ti-plus"></i>
         </a>
@@ -83,7 +83,7 @@
 
                                         @if(\Auth::user()->type == 'Employee')
                                             @if($item->status == "Pending")
-                                                @can('edit leave')
+                                                @can('Manage Leaves')
                                                 <div class="action-btn me-2">
                                                     <a href="#" data-url="{{ URL::to('leave/'.$item->id.'/edit') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Leave')}}" class="mx-3 btn btn-sm  align-items-center bg-info" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}"><i class="ti ti-pencil text-white"></i></a>
                                                 </div>
@@ -94,14 +94,14 @@
                                             <a href="#" data-url="{{ URL::to('leave/'.$item->id.'/action') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Leave Action')}}" class="mx-3 btn btn-sm  align-items-center bg-warning" data-bs-toggle="tooltip" title="{{__('Leave Action')}}" data-original-title="{{__('Leave Action')}}">
                                                 <i class="ti ti-caret-right text-white"></i> </a>
                                         </div>
-                                            @can('edit leave')
+                                            @can('Manage Leaves')
                                             <div class="action-btn me-2">
                                                 <a href="#" data-url="{{ URL::to('leave/'.$item->id.'/edit') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Leave')}}" class="mx-3 btn btn-sm  align-items-center bg-info" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">
                                                 <i class="ti ti-pencil text-white"></i></a>
                                             </div>
                                             @endcan
                                         @endif
-                                        @can('delete leave')
+                                        @can('Manage Leaves')
                                         <div class="action-btn ">
                                             {!! Form::open(['method' => 'DELETE', 'route' => ['leave.destroy', $item->id],'id'=>'delete-form-'.$item->id]) !!}
                                             <a href="#" class="mx-3 btn btn-sm  align-items-center bs-pass-para bg-danger" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$item->id}}').submit();">

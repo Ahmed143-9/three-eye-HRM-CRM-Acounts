@@ -13,7 +13,7 @@ class RoleController extends Controller
 
     public function index()
     {
-        if(\Auth::user()->can('manage role'))
+        if(\Auth::user()->can('Manage Roles'))
         {
 
             $roles = Role::whereIn('created_by', [0, \Auth::user()->creatorId()])->get();
@@ -30,7 +30,7 @@ class RoleController extends Controller
 
     public function create()
     {
-        if(\Auth::user()->can('create role'))
+        if(\Auth::user()->can('Manage Roles'))
         {
             $user = \Auth::user();
             if($user->type == 'super admin')
@@ -59,7 +59,7 @@ class RoleController extends Controller
 
     public function store(Request $request)
     {
-        if(\Auth::user()->can('create role'))
+        if(\Auth::user()->can('Manage Roles'))
         {
             $validator = \Validator::make(
                 $request->all(), [
@@ -98,7 +98,7 @@ class RoleController extends Controller
 
     public function edit(Role $role)
     {
-        if(\Auth::user()->can('edit role'))
+        if(\Auth::user()->can('Manage Roles'))
         {
 
             $user = \Auth::user();
@@ -129,7 +129,7 @@ class RoleController extends Controller
     public function update(Request $request, Role $role)
     {
 
-        if(\Auth::user()->can('edit role'))
+        if(\Auth::user()->can('Manage Roles'))
         {
             $validator = \Validator::make(
                 $request->all(), [
@@ -174,7 +174,7 @@ class RoleController extends Controller
 
     public function destroy(Role $role)
     {
-        if(\Auth::user()->can('delete role'))
+        if(\Auth::user()->can('Manage Roles'))
         {
             $role->delete();
 

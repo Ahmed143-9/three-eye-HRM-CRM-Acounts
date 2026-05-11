@@ -31,7 +31,7 @@ class ErpExpenseController extends Controller
 
     public function index($type = 'purchase')
     {
-        if (Auth::user()->can('manage expense') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Submit Expenses') || Auth::user()->type == 'company') {
             $workspace_id = Auth::user()->currentWorkspace ?? 1;
             $expenses = ErpExpense::with(['category', 'employee'])
                 ->where('workspace_id', $workspace_id)
@@ -184,7 +184,7 @@ class ErpExpenseController extends Controller
     public function show($type, $id)
     {
         try {
-            if (Auth::user()->can('manage expense') || Auth::user()->type == 'company') {
+            if (Auth::user()->can('Submit Expenses') || Auth::user()->type == 'company') {
                 $expense = ErpExpense::with(['category', 'employee', 'items.unit', 'statusLogs.user'])->find($id);
                 
                 if (!$expense) {
@@ -356,7 +356,7 @@ class ErpExpenseController extends Controller
 
     public function approvals(Request $request)
     {
-        if (Auth::user()->can('approve expense') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Approve Expenses') || Auth::user()->type == 'company') {
             $workspace_id = Auth::user()->currentWorkspace ?? 1;
 
             // Fetch filter data
@@ -425,7 +425,7 @@ class ErpExpenseController extends Controller
 
     public function approve(Request $request, $id)
     {
-        if (! Auth::user()->can('approve expense') && Auth::user()->type != 'company') {
+        if (! Auth::user()->can('Approve Expenses') && Auth::user()->type != 'company') {
             return $this->approvalErrorResponse($request, __('Permission denied.'), 403);
         }
 
@@ -504,7 +504,7 @@ class ErpExpenseController extends Controller
 
     public function reject(Request $request, $id)
     {
-        if (! Auth::user()->can('approve expense') && Auth::user()->type != 'company') {
+        if (! Auth::user()->can('Approve Expenses') && Auth::user()->type != 'company') {
             return $this->approvalErrorResponse($request, __('Permission denied.'), 403);
         }
 
@@ -563,7 +563,7 @@ class ErpExpenseController extends Controller
 
     public function hold(Request $request, $id)
     {
-        if (! Auth::user()->can('approve expense') && Auth::user()->type != 'company') {
+        if (! Auth::user()->can('Approve Expenses') && Auth::user()->type != 'company') {
             return $this->approvalErrorResponse($request, __('Permission denied.'), 403);
         }
 
@@ -620,7 +620,7 @@ class ErpExpenseController extends Controller
 
     public function sendBack(Request $request, $id)
     {
-        if (! Auth::user()->can('approve expense') && Auth::user()->type != 'company') {
+        if (! Auth::user()->can('Approve Expenses') && Auth::user()->type != 'company') {
             return $this->approvalErrorResponse($request, __('Permission denied.'), 403);
         }
 
@@ -754,7 +754,7 @@ class ErpExpenseController extends Controller
     {
         $recipientIds = User::where('type', 'company')->pluck('id');
         try {
-            $recipientIds = $recipientIds->merge(User::permission('approve expense')->pluck('id'))->unique()->values();
+            $recipientIds = $recipientIds->merge(User::permission('Approve Expenses')->pluck('id'))->unique()->values();
         } catch (\Throwable $e) {
             \Log::warning('notifyApproversExpenseSubmitted permission lookup failed: ' . $e->getMessage());
         }
@@ -785,7 +785,7 @@ class ErpExpenseController extends Controller
     {
         $recipientIds = collect();
         try {
-            $recipientIds = User::permission('manage bill')->pluck('id')->unique()->values();
+            $recipientIds = User::permission('Manage Purchases & Suppliers')->pluck('id')->unique()->values();
         } catch (\Throwable $e) {
             \Log::warning('notifyAccountsExpenseReady permission lookup failed: ' . $e->getMessage());
         }
@@ -860,7 +860,7 @@ class ErpExpenseController extends Controller
 
     public function print($type, $id)
     {
-        if (Auth::user()->can('manage expense') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Submit Expenses') || Auth::user()->type == 'company') {
             $expense = ErpExpense::with(['category', 'employee', 'items.unit', 'approver'])->find($id);
             if ($expense) {
                 $setting = Utility::settings();
@@ -928,7 +928,7 @@ class ErpExpenseController extends Controller
     }
     public function markAsPaid(Request $request, $id)
     {
-        if (!Auth::user()->can('manage bill') && Auth::user()->type != 'company') {
+        if (!Auth::user()->can('Manage Purchases & Suppliers') && Auth::user()->type != 'company') {
             return $this->approvalErrorResponse($request, __('Permission denied.'), 403);
         }
 
@@ -1010,7 +1010,7 @@ class ErpExpenseController extends Controller
 
     public function accountantReject(Request $request, $id)
     {
-        if (!Auth::user()->can('manage bill') && Auth::user()->type != 'company') {
+        if (!Auth::user()->can('Manage Purchases & Suppliers') && Auth::user()->type != 'company') {
             return $this->approvalErrorResponse($request, __('Permission denied.'), 403);
         }
 

@@ -162,7 +162,7 @@
                         </div>
                         <div class="card-body employee-detail-edit-body">
                             @php
-                                $employeedoc = $employee->documents()->pluck('document_value', 'document_id');
+                                $employeedocs = $employee->documents->groupBy('document_id');
                                 $logo = \App\Models\Utility::get_file('uploads/document/');
                             @endphp
 
@@ -179,24 +179,98 @@
                                         <div class="float-right col-8">
                                             <input type="hidden" name="emp_doc_id[{{ $document->id }}]" id=""
                                                 value="{{ $document->id }}">
-                                            <div class="choose-file">
-                                                <label for="document[{{ $document->id }}]">
-                                                    <input
-                                                        class="form-control file-validate @if (!empty($employeedoc[$document->id])) float-left @endif @error('document') is-invalid @enderror "
-                                                        @if ($document->is_required == 1 && empty($employeedoc[$document->id])) required @endif
-                                                        name="document[{{ $document->id }}]"
-                                                        type="file" data-filename="{{ $document->id . '_filename' }}">
-                                                    <p id="" class="file-error text-danger"></p>
-                                                </label>
-                                                <p class="{{ $document->id . '_filename' }}"></p>
-                                                <div class="choose-file-img">
-                                                    @if(isset($employeedoc[$document->id]) && !empty($employeedoc[$document->id]))
-                                                        <a href="{{ $logo . '/' . $employeedoc[$document->id] }}" target="_blank">
-                                                            <i class="ti ti-download text-primary" style="font-size: 20px;"></i>
-                                                        </a>
-                                                    @endif
+
+                                            @if($document->name == 'Experience Certificate')
+                                                <div class="form-check form-switch mb-2">
+                                                    <input type="checkbox" class="form-check-input" id="is_fresher" name="is_fresher" value="1" @if($employee->is_fresher) checked @endif>
+                                                    <label class="form-check-label" for="is_fresher">{{ __('Fresher') }}</label>
                                                 </div>
-                                            </div>
+                                                <div id="experience-certificates-container" class="@if($employee->is_fresher) d-none @endif">
+                                                    @if(isset($employeedocs[$document->id]))
+                                                        @foreach($employeedocs[$document->id] as $doc)
+                                                            <div class="existing-file mb-2 d-flex align-items-center">
+                                                                <a href="{{ $logo . '/' . $doc->document_value }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                                    <i class="ti ti-download"></i> {{ __('View Existing') }}
+                                                                </a>
+                                                                <input type="checkbox" name="remove_doc[]" value="{{ $doc->id }}" class="ms-2 d-none" id="remove_doc_{{ $doc->id }}">
+                                                                <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeExistingDoc({{ $doc->id }}, this)">
+                                                                    <i class="ti ti-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        @endforeach
+                                                    @endif
+                                                    <div class="choose-files mb-2">
+                                                        <label for="document_{{ $document->id }}_0">
+                                                            <div class="bg-primary document">
+                                                                <i class="ti ti-upload"></i>{{ __('Choose file here') }}
+                                                            </div>
+                                                            <input type="file" class="form-control file-validate d-none doc-input" 
+                                                                name="document[{{ $document->id }}][]" id="document_{{ $document->id }}_0" 
+                                                                accept=".pdf" data-filename="doc_{{ $document->id }}_0_filename">
+                                                        </label>
+                                                        <span class="file-name-display ms-2"></span>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-outline-primary mb-3 @if($employee->is_fresher) d-none @endif" id="add-experience-doc" onclick="addDocumentRow({{ $document->id }}, 'experience-certificates-container')">
+                                                    <i class="ti ti-plus"></i> {{ __('Add More') }}
+                                                </button>
+
+                                            @elseif($document->name == 'Academic Certificates')
+                                                <div id="academic-certificates-container">
+                                                    @if(isset($employeedocs[$document->id]))
+                                                        @foreach($employeedocs[$document->id] as $doc)
+                                                            <div class="existing-file mb-2 d-flex align-items-center">
+                                                                <a href="{{ $logo . '/' . $doc->document_value }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                                    <i class="ti ti-download"></i> {{ __('View Existing') }}
+                                                                </a>
+                                                                <input type="checkbox" name="remove_doc[]" value="{{ $doc->id }}" class="ms-2 d-none" id="remove_doc_{{ $doc->id }}">
+                                                                <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeExistingDoc({{ $doc->id }}, this)">
+                                                                    <i class="ti ti-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        @endforeach
+                                                    @endif
+                                                    <div class="choose-files mb-2">
+                                                        <label for="document_{{ $document->id }}_0">
+                                                            <div class="bg-primary document">
+                                                                <i class="ti ti-upload"></i>{{ __('Choose file here') }}
+                                                            </div>
+                                                            <input type="file" class="form-control file-validate d-none doc-input" 
+                                                                name="document[{{ $document->id }}][]" id="document_{{ $document->id }}_0" 
+                                                                accept=".pdf" data-filename="doc_{{ $document->id }}_0_filename">
+                                                        </label>
+                                                        <span class="file-name-display ms-2"></span>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-outline-primary mb-3" onclick="addDocumentRow({{ $document->id }}, 'academic-certificates-container')">
+                                                    <i class="ti ti-plus"></i> {{ __('Add More') }}
+                                                </button>
+
+                                            @else
+                                                <div class="choose-file">
+                                                    <label for="document[{{ $document->id }}]">
+                                                        <div class="bg-primary document">
+                                                            <i class="ti ti-upload"></i>{{ __('Choose file here') }}
+                                                        </div>
+                                                        <input
+                                                            class="form-control file-validate d-none @error('document') is-invalid @enderror"
+                                                            @if ($document->is_required == 1 && !isset($employeedocs[$document->id])) required @endif
+                                                            name="document[{{ $document->id }}]" type="file"
+                                                            id="document[{{ $document->id }}]"
+                                                            @if(in_array($document->name, ['Resume', 'NID', 'Offer Letter'])) accept=".pdf" @endif
+                                                            data-filename="{{ $document->id . '_filename' }}">
+                                                    </label>
+                                                    <p class="{{ $document->id . '_filename' }}"></p>
+                                                    <span class="file-name-display ms-2"></span>
+                                                    <div class="choose-file-img">
+                                                        @if(isset($employeedocs[$document->id]) && count($employeedocs[$document->id]) > 0)
+                                                            <a href="{{ $logo . '/' . $employeedocs[$document->id][0]->document_value }}" target="_blank">
+                                                                <i class="ti ti-download text-primary" style="font-size: 20px;"></i>
+                                                            </a>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -449,6 +523,49 @@
 @push('script-page')
     <script>
         var contactCount = {{ count($emergencyContacts) }};
+
+        function addDocumentRow(docId, containerId) {
+            var container = $(`#${containerId}`);
+            var fileId = container.find('.choose-files').length;
+            var inputId = `document_${docId}_${fileId}`;
+            var filenameId = `doc_${docId}_${fileId}_filename`;
+            
+            var html = `
+                <div class="choose-files mb-2">
+                    <label for="${inputId}">
+                        <div class="bg-primary document">
+                            <i class="ti ti-upload"></i>{{ __('Choose file here') }}
+                        </div>
+                        <input type="file" class="form-control file file-validate d-none doc-input" 
+                            name="document[${docId}][]" id="${inputId}" 
+                            accept=".pdf" data-filename="${filenameId}">
+                    </label>
+                    <span class="file-name-display ms-2"></span>
+                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="$(this).parent().remove()">
+                        <i class="ti ti-trash"></i>
+                    </button>
+                </div>
+            `;
+            container.append(html);
+        }
+
+        function removeExistingDoc(docId, btn) {
+            if(confirm('{{ __("Are you sure you want to remove this document?") }}')) {
+                var $container = $(btn).closest('.existing-file');
+                $container.find('input[name="remove_doc[]"]').prop('checked', true);
+                $container.addClass('d-none');
+            }
+        }
+
+        $(document).on('change', '#is_fresher', function() {
+            if ($(this).is(':checked')) {
+                $('#experience-certificates-container').addClass('d-none');
+                $('#add-experience-doc').addClass('d-none');
+            } else {
+                $('#experience-certificates-container').removeClass('d-none');
+                $('#add-experience-doc').removeClass('d-none');
+            }
+        });
 
         function addEmergencyContact() {
             var id = contactCount++;

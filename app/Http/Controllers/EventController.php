@@ -19,7 +19,7 @@ class EventController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage event'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $employees = Employee::where('created_by', '=', \Auth::user()->creatorId())->get();
             $events    = LocalEvent::where('created_by', '=', \Auth::user()->creatorId())->get();

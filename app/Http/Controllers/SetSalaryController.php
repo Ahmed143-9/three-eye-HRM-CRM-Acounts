@@ -20,7 +20,7 @@ class SetSalaryController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage set salary'))
+        if(\Auth::user()->can('Manage Payroll'))
         {
             $employees = Employee::where('created_by' , \Auth::user()->creatorId())->with('salaryType')->get();
 

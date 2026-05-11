@@ -1,6 +1,6 @@
 
 <ul class="card flex-row nav nav-pills nav-fill information-tab hrm_setup_tab" id="pills-tab" role="tablist">
-    @can('manage branch')
+    @can('Manage HR Setup')
         <li class="nav-item" role="presentation">
             <a href="{{ route('branch.index') }}" class="list-group-item list-group-item-action border-0">
                 <button class="nav-link {{ Request::route()->getName() == 'branch.index' ? 'active' : '' }}"
@@ -9,7 +9,7 @@
             </a>
         </li>
     @endcan
-    @can('manage department')
+    @can('Manage HR Setup')
         <li class="nav-item" role="presentation">
             <a href="{{ route('department.index') }}" class="list-group-item list-group-item-action border-0 ">
                 <button class="nav-link {{ Request::route()->getName() == 'department.index' ? 'active' : '' }}"
@@ -18,7 +18,7 @@
             </a>
         </li>
     @endcan
-    @can('manage designation')
+    @can('Manage HR Setup')
         <li class="nav-item" role="presentation">
             <a href="{{ route('designation.index') }}" class="list-group-item list-group-item-action border-0">
                 <button class="nav-link {{ request()->is('designation*') ? 'active' : '' }}" id="designation-setting-tab"
@@ -27,7 +27,7 @@
             </a>
         </li>
     @endcan
-    @can('manage leave type')
+    @can('Manage HR Setup')
         <li class="nav-item" role="presentation">
             <a href="{{ route('leavetype.index') }}" class="list-group-item list-group-item-action border-0">
                 <button class="nav-link {{ Request::route()->getName() == 'leavetype.index' ? 'active' : '' }}"
@@ -36,7 +36,7 @@
             </a>
         </li>
     @endcan
-    @can('manage document type')
+    @can('Manage HR Setup')
         <li class="nav-item" role="presentation">
             <a href="{{ route('document.index') }}" class="list-group-item list-group-item-action border-0">
                 <button class="nav-link {{ Request::route()->getName() == 'document.index' ? 'active' : '' }}"
@@ -45,7 +45,7 @@
             </a>
         </li>
     @endcan
-    @can('manage payslip type')
+    @can('Manage HR Setup')
         <li class="nav-item" role="presentation">
             <a href="{{ route('paysliptype.index') }}" class="list-group-item list-group-item-action border-0">
                 <button class="nav-link {{ request()->is('paysliptype*') ? 'active' : '' }} " id="payslip-setting-tab"
@@ -54,7 +54,7 @@
             </a>
         </li>
     @endcan
-    @can('manage allowance option')
+    @can('Manage HR Setup')
         <li class="nav-item" role="presentation">
             <a href="{{ route('allowanceoption.index') }}" class="list-group-item list-group-item-action border-0">
                 <button class="nav-link {{ request()->is('allowanceoption*') ? 'active' : '' }} "
@@ -63,7 +63,7 @@
             </a>
         </li>
     @endcan
-    @can('manage loan option')
+    @can('Manage HR Setup')
         <li class="nav-item" role="presentation">
             <a href="{{ route('loanoption.index') }}" class="list-group-item list-group-item-action border-0">
                 <button class="nav-link {{ request()->is('loanoption*') ? 'active' : '' }} " id="loan-setting-tab"
@@ -71,7 +71,7 @@
             </a>
         </li>
     @endcan
-    @can('manage deduction option')
+    @can('Manage HR Setup')
         <li class="nav-item" role="presentation">
             <a href="{{ route('deductionoption.index') }}" class="list-group-item list-group-item-action border-0">
                 <button class="nav-link {{ request()->is('deductionoption*') ? 'active' : '' }} "
@@ -80,7 +80,7 @@
             </a>
         </li>
     @endcan
-    @can('manage goal type')
+    @can('Manage HR Setup')
         <li class="nav-item" role="presentation">
             <a href="{{ route('goaltype.index') }}" class="list-group-item list-group-item-action border-0">
                 <button class="nav-link {{ request()->is('goaltype*') ? 'active' : '' }} " id="goal-setting-tab"
@@ -88,7 +88,7 @@
             </a>
         </li>
     @endcan
-    @can('manage training type')
+    @can('Manage HR Setup')
         <li class="nav-item" role="presentation">
             <a href="{{ route('trainingtype.index') }}" class="list-group-item list-group-item-action border-0">
                 <button class="nav-link {{ request()->is('trainingtype*') ? 'active' : '' }} " id="training-setting-tab"
@@ -97,7 +97,7 @@
             </a>
         </li>
     @endcan
-    @can('manage award type')
+    @can('Manage HR Setup')
         <li class="nav-item" role="presentation">
             <a href="{{ route('awardtype.index') }}" class="list-group-item list-group-item-action border-0">
                 <button class="nav-link {{ request()->is('awardtype*') ? 'active' : '' }} " id="award-setting-tab"
@@ -105,7 +105,7 @@
             </a>
         </li>
     @endcan
-    @can('manage termination type')
+    @can('Manage HR Setup')
         <li class="nav-item" role="presentation">
             <a href="{{ route('terminationtype.index') }}" class="list-group-item list-group-item-action border-0">
                 <button class="nav-link {{ request()->is('terminationtype*') ? 'active' : '' }} "
@@ -114,7 +114,7 @@
             </a>
         </li>
     @endcan
-    @can('manage job category')
+    @can('Manage HR Setup')
         <li class="nav-item" role="presentation">
             <a href="{{ route('job-category.index') }}" class="list-group-item list-group-item-action border-0">
                 <button class="nav-link {{ request()->is('job-category*') ? 'active' : '' }} "
@@ -123,7 +123,7 @@
             </a>
         </li>
     @endcan
-    @can('manage job stage')
+    @can('Manage HR Setup')
         <li class="nav-item" role="presentation">
             <a href="{{ route('job-stage.index') }}" class="list-group-item list-group-item-action border-0">
                 <button class="nav-link {{ request()->is('job-stage*') ? 'active' : '' }} " id="jobstage-setting-tab"
@@ -132,7 +132,7 @@
             </a>
         </li>
     @endcan
-    @can('manage performance type')
+    @can('Manage HR Setup')
         <li class="nav-item" role="presentation">
             <a href="{{ route('performanceType.index') }}" class="list-group-item list-group-item-action border-0">
                 <button class="nav-link {{ request()->is('performanceType*') ? 'active' : '' }} "

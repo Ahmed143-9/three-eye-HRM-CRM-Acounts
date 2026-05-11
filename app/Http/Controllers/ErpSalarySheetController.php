@@ -122,7 +122,7 @@ class ErpSalarySheetController extends Controller
     public function show($id)
     {
         $batch = ErpPayrollBatch::with(['salarySheets.employee', 'salarySheets.designation', 'creator'])->findOrFail($id);
-        $isAdmin = (Auth::user()->type == 'company' || Auth::user()->can('approve expense'));
+        $isAdmin = (Auth::user()->type == 'company' || Auth::user()->can('Approve Expenses'));
         
         return view('erp_salary_sheets.show', compact('batch', 'isAdmin'));
     }
@@ -208,7 +208,7 @@ class ErpSalarySheetController extends Controller
 
     public function expenseApprovalQueue(Request $request)
     {
-        if (!Auth::user()->can('approve expense') && Auth::user()->type !== 'company') {
+        if (!Auth::user()->can('Approve Expenses') && Auth::user()->type !== 'company') {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
 
@@ -223,7 +223,7 @@ class ErpSalarySheetController extends Controller
 
     public function approvedBills(Request $request)
     {
-        if (!Auth::user()->can('manage bill') && Auth::user()->type !== 'company') {
+        if (!Auth::user()->can('Manage Purchases & Suppliers') && Auth::user()->type !== 'company') {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
 

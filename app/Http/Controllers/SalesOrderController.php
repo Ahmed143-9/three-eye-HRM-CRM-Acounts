@@ -21,6 +21,9 @@ use App\Models\SalesPOItem;
 use App\Models\SalesPackingList;
 use App\Models\SalesPackingListItem;
 use App\Models\SalesWeightSlip;
+use App\Models\SalesWeightSlip;
+use App\Models\Notification;
+use App\Models\User;
 use App\Models\Utility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -457,6 +460,9 @@ class SalesOrderController extends Controller
         $order->status = 'finalized';
         $order->save();
 
+        // Notify Transport
+        $this->notifyTransportOrderFinalized($order);
+
         return redirect()->back()->with('success', __('Delivery Order created and sent to Transport Management.'));
     }
 
@@ -466,7 +472,38 @@ class SalesOrderController extends Controller
         $order->status = 'finalized';
         $order->save();
 
+        // Notify Transport
+        $this->notifyTransportOrderFinalized($order);
+
         return redirect()->back()->with('success', __('Sales Order finalized and sent to Transport Management.'));
+    }
+
+    private function notifyTransportOrderFinalized($order)
+    {
+        $recipientIds = User::where('type', 'company')->pluck('id');
+        try {
+            // Find users who have permission to manage employees (often logistics roles)
+            $recipientIds = $recipientIds->merge(User::permission('Manage Employees')->pluck('id'))->unique()->values();
+        } catch (\Throwable $e) {
+            \Log::warning('notifyTransportOrderFinalized permission lookup failed: ' . $e->getMessage());
+        }
+
+        foreach ($recipientIds as $userId) {
+            try {
+                Notification::create([
+                    'user_id' => $userId,
+                    'type' => 'sales_order_finalized',
+                    'title' => __('New Transport Request'),
+                    'message' => __('Order :order has been finalized and is ready for transport.', ['order' => $order->order_number]),
+                    'related_model' => 'SalesOrder',
+                    'related_id' => $order->id,
+                    'created_by' => Auth::user()->id,
+                    'is_read' => 0,
+                ]);
+            } catch (\Throwable $e) {
+                \Log::error('Notification not sent (sales_order_finalized): ' . $e->getMessage());
+            }
+        }
     }
 
     // Print & Download Methods
@@ -528,7 +565,7 @@ class SalesOrderController extends Controller
 
     private function generateSalesPayable($order, $source, $type, $ci_id = null)
     {
-        $unique_id = 'PAY-ORD-' . $order->id . '-' . time();
+        $unique_id = 'PAY-ORD-' . $order->id . '-' . ($ci_id ? $ci_id . '-' : '') . time() . '-' . mt_rand(1000, 9999);
         $payable = Payable::create([
             'unique_id' => $unique_id,
             'invoice_number' => $order->order_number,
@@ -570,7 +607,7 @@ class SalesOrderController extends Controller
 
     private function generateSalesReceivable($order, $source, $type, $ci_id = null)
     {
-        $unique_id = 'REC-ORD-' . $order->id . '-' . time();
+        $unique_id = 'REC-ORD-' . $order->id . '-' . ($ci_id ? $ci_id . '-' : '') . time() . '-' . mt_rand(1000, 9999);
         $receivable = Receivable::create([
             'unique_id' => $unique_id,
             'invoice_number' => $order->order_number,

@@ -18,7 +18,7 @@ class AssetController extends Controller
      */
     public function index()
     {
-        if(\Auth::user()->can('manage assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             $creatorId = \Auth::user()->creatorId();
             
@@ -53,7 +53,7 @@ class AssetController extends Controller
      */
     public function create()
     {
-        if(\Auth::user()->can('create assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             return view('assets.create');
         }
@@ -68,7 +68,7 @@ class AssetController extends Controller
      */
     public function store(Request $request)
     {
-        if(\Auth::user()->can('create assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             $validator = Validator::make(
                 $request->all(), [
@@ -114,7 +114,7 @@ class AssetController extends Controller
      */
     public function show($id)
     {
-        if(\Auth::user()->can('manage assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             $asset = Asset::where('created_by', \Auth::user()->creatorId())
                          ->with(['employeeAssets.employee', 'employeeAssets.assignedBy'])
@@ -135,7 +135,7 @@ class AssetController extends Controller
      */
     public function edit($id)
     {
-        if(\Auth::user()->can('edit assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             $asset = Asset::where('created_by', \Auth::user()->creatorId())->findOrFail($id);
             
@@ -152,7 +152,7 @@ class AssetController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if(\Auth::user()->can('edit assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             $asset = Asset::where('created_by', \Auth::user()->creatorId())->findOrFail($id);
             
@@ -206,7 +206,7 @@ class AssetController extends Controller
      */
     public function destroy($id)
     {
-        if(\Auth::user()->can('delete assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             $asset = Asset::where('created_by', \Auth::user()->creatorId())->findOrFail($id);
             
@@ -416,7 +416,7 @@ class AssetController extends Controller
      */
     public function history($id)
     {
-        if(\Auth::user()->can('manage assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             $asset = Asset::where('created_by', \Auth::user()->creatorId())
                          ->with(['employeeAssets.employee', 'employeeAssets.assignedBy'])
@@ -437,7 +437,7 @@ class AssetController extends Controller
      */
     public function employeeAssets($employeeId)
     {
-        if(\Auth::user()->can('manage assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             $employee = Employee::where('created_by', \Auth::user()->creatorId())
                                ->findOrFail($employeeId);
@@ -467,7 +467,7 @@ class AssetController extends Controller
      */
     public function requests()
     {
-        if(\Auth::user()->can('manage assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             $requests = AssetRequest::whereHas('asset', function($query) {
                 $query->where('created_by', \Auth::user()->creatorId());
@@ -489,7 +489,7 @@ class AssetController extends Controller
      */
     public function approveRequest($id)
     {
-        if(\Auth::user()->can('manage assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             $request = AssetRequest::whereHas('asset', function($query) {
                 $query->where('created_by', \Auth::user()->creatorId());
@@ -521,7 +521,7 @@ class AssetController extends Controller
      */
     public function rejectRequest(Request $request, $id)
     {
-        if(\Auth::user()->can('manage assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             $assetRequest = AssetRequest::whereHas('asset', function($query) {
                 $query->where('created_by', \Auth::user()->creatorId());

@@ -13,7 +13,7 @@ class IndicatorController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage indicator'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $user = \Auth::user();
             if($user->type == 'Employee')

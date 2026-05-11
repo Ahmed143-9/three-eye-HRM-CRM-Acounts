@@ -14,7 +14,7 @@ class AssetCategoryController extends Controller
      */
     public function index()
     {
-        if(\Auth::user()->can('manage assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             $categories = AssetCategory::where('created_by', \Auth::user()->creatorId())
                                       ->withCount(['assets', 'assets as available_count' => function($query) {
@@ -38,7 +38,7 @@ class AssetCategoryController extends Controller
      */
     public function create()
     {
-        if(\Auth::user()->can('manage assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             return view('assets.categories.create');
         }
@@ -53,7 +53,7 @@ class AssetCategoryController extends Controller
      */
     public function store(Request $request)
     {
-        if(\Auth::user()->can('manage assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             $validator = Validator::make(
                 $request->all(), [
@@ -91,7 +91,7 @@ class AssetCategoryController extends Controller
      */
     public function edit($id)
     {
-        if(\Auth::user()->can('manage assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             $category = AssetCategory::where('created_by', \Auth::user()->creatorId())->findOrFail($id);
             return view('assets.categories.edit', compact('category'));
@@ -107,7 +107,7 @@ class AssetCategoryController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if(\Auth::user()->can('manage assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             $category = AssetCategory::where('created_by', \Auth::user()->creatorId())->findOrFail($id);
             
@@ -145,7 +145,7 @@ class AssetCategoryController extends Controller
      */
     public function destroy($id)
     {
-        if(\Auth::user()->can('manage assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             $category = AssetCategory::where('created_by', \Auth::user()->creatorId())->findOrFail($id);
             
@@ -169,7 +169,7 @@ class AssetCategoryController extends Controller
      */
     public function setupDefaults()
     {
-        if(\Auth::user()->can('manage assets'))
+        if(\Auth::user()->can('Manage Assets'))
         {
             $creatorId = \Auth::user()->creatorId();
             

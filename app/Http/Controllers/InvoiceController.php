@@ -36,7 +36,7 @@ class InvoiceController extends Controller
 
     public function index(Request $request)
     {
-        if (\Auth::user()->can('manage invoice')) {
+        if (\Auth::user()->can('Manage Sales Orders')) {
             $customer = Customer::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $customer->prepend('Select Customer', '');
             $status = Invoice::$statues;
@@ -473,7 +473,7 @@ class InvoiceController extends Controller
 
     public function customerInvoice(Request $request)
     {
-        if (\Auth::user()->can('manage customer invoice')) {
+        if (\Auth::user()->can('Manage Sales Orders')) {
 
             $status = Invoice::$statues;
             $query = Invoice::where('customer_id', '=', \Auth::user()->id)->where('status', '!=', '0')->where('created_by', \Auth::user()->creatorId());

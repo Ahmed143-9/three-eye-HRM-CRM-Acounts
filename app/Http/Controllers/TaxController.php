@@ -16,7 +16,7 @@ class TaxController extends Controller
 
     public function index()
     {
-        if(\Auth::user()->can('manage constant tax'))
+        if(\Auth::user()->can('Manage Accounting Setup'))
         {
             $taxes = Tax::where('created_by', '=', \Auth::user()->creatorId())->get();
 

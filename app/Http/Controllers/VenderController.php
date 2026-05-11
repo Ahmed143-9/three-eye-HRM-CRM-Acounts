@@ -33,7 +33,7 @@ class VenderController extends Controller
 
     public function index()
     {
-        if(\Auth::user()->can('manage vender'))
+        if(\Auth::user()->can('Manage Purchases & Suppliers'))
         {
             $venders = Vender::where('created_by', \Auth::user()->creatorId())->get();
 
@@ -274,7 +274,7 @@ class VenderController extends Controller
     public function payment(Request $request)
     {
 
-        if(\Auth::user()->can('manage vender payment'))
+        if(\Auth::user()->can('Manage Purchases & Suppliers'))
         {
             $category = [
                 'Bill' => 'Bill',

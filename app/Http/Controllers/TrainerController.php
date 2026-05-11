@@ -11,7 +11,7 @@ class TrainerController extends Controller
 
     public function index()
     {
-        if(\Auth::user()->can('manage trainer'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $trainers = Trainer::where('created_by', '=', \Auth::user()->creatorId())->with('branches')->get();
 

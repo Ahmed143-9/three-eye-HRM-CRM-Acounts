@@ -16,7 +16,7 @@ class EmployeePerformanceController extends Controller
 {
     public function index(Request $request)
     {
-        if (!Auth::user()->can('manage expense') && Auth::user()->type !== 'company') {
+        if (!Auth::user()->can('Submit Expenses') && Auth::user()->type !== 'company') {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
 
@@ -36,7 +36,7 @@ class EmployeePerformanceController extends Controller
 
     public function generate(Request $request)
     {
-        if (!Auth::user()->can('manage expense') && Auth::user()->type !== 'company') {
+        if (!Auth::user()->can('Submit Expenses') && Auth::user()->type !== 'company') {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
 
@@ -117,7 +117,7 @@ class EmployeePerformanceController extends Controller
         ]));
     public function update(Request $request, $id)
     {
-        if (!Auth::user()->can('manage expense') && Auth::user()->type !== 'company') {
+        if (!Auth::user()->can('Submit Expenses') && Auth::user()->type !== 'company') {
             return response()->json(['success' => false, 'message' => __('Permission denied.')], 403);
         }
 

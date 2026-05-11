@@ -10,7 +10,7 @@ class PerformanceTypeController extends Controller
 
     public function index()
     {
-        if(\Auth::user()->can('manage performance type'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
             if(\Auth::user()->type == 'company')
             {

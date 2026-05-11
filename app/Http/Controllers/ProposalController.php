@@ -35,7 +35,7 @@ class ProposalController extends Controller
 
     public function index(Request $request)
     {
-        if(\Auth::user()->can('manage proposal'))
+        if(\Auth::user()->can('Manage Sales Orders'))
         {
 
             $customer = Customer::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('name', 'id');
@@ -373,7 +373,7 @@ class ProposalController extends Controller
 
     public function customerProposal(Request $request)
     {
-        if(\Auth::user()->can('manage customer proposal'))
+        if(\Auth::user()->can('Manage Sales Orders'))
         {
 
             $status = Proposal::$statues;

@@ -10,7 +10,7 @@ class ProductServiceUnitController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage constant unit'))
+        if(\Auth::user()->can('Manage Accounting Setup'))
         {
             $units = ProductServiceUnit::where('created_by', '=', \Auth::user()->creatorId())->get();
 

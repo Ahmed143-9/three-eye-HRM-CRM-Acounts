@@ -69,89 +69,143 @@
         {{-- Bill Cost Entry --}}
         <form action="{{ route('transport.bill.update', $transport->id) }}" method="POST" id="bill-form">
             @csrf
-            <div class="card">
-                <div class="card-header d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0"><i class="ti ti-receipt-2 me-2 text-warning"></i>{{__('Cost Line Items')}}</h5>
-                    <button type="button" class="btn btn-sm btn-success" id="add-row">
-                        <i class="ti ti-plus me-1"></i>{{__('Add Row')}}
-                    </button>
+            
+            <div class="row">
+                {{-- Left Side: Payable (Cost to us) --}}
+                <div class="col-md-6">
+                    <div class="card border-danger">
+                        <div class="card-header d-flex align-items-center justify-content-between bg-light-danger">
+                            <h5 class="mb-0 text-danger"><i class="ti ti-receipt-2 me-2"></i>{{__('Cost Line Items (Payable)')}}</h5>
+                            <button type="button" class="btn btn-sm btn-danger" id="add-payable-row">
+                                <i class="ti ti-plus me-1"></i>{{__('Add Row')}}
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table" id="payable-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>{{__('Description')}}</th>
+                                            <th width="150px">{{__('Amount')}}</th>
+                                            <th width="40px"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="payable-body">
+                                        @if($payable && $payable->items->count() > 0)
+                                            @foreach($payable->items as $i => $item)
+                                            <tr class="item-row">
+                                                <td>
+                                                    <input type="text" name="items[{{ $i }}][description]" class="form-control form-control-sm" value="{{ $item->order_details }}" required>
+                                                </td>
+                                                <td>
+                                                    <input type="number" name="items[{{ $i }}][amount]" class="form-control form-control-sm payable-amount" value="{{ (int)$item->amount }}" min="0" required>
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm text-danger remove-row"><i class="ti ti-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                            @endforeach
+                                        @else
+                                            <tr class="item-row">
+                                                <td><input type="text" name="items[0][description]" class="form-control form-control-sm" placeholder="e.g. Truck Rent" required></td>
+                                                <td><input type="number" name="items[0][amount]" class="form-control form-control-sm payable-amount" value="0" min="0" required></td>
+                                                <td><button type="button" class="btn btn-sm text-danger remove-row"><i class="ti ti-trash"></i></button></td>
+                                            </tr>
+                                        @endif
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="table-light">
+                                            <td class="text-end fw-bold">{{__('Total Cost')}}</td>
+                                            <td colspan="2" class="fw-bold">৳ <span id="total-payable">0</span></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table" id="items-table">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>#</th>
-                                    <th>{{__('Description')}}</th>
-                                    <th width="180px">{{__('Amount (৳)')}}</th>
-                                    <th width="60px"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="items-body">
-                                @if($payable && $payable->items->count() > 0)
-                                    @foreach($payable->items as $i => $item)
-                                    <tr class="item-row">
-                                        <td class="row-num">{{ $i + 1 }}</td>
-                                        <td>
-                                            <input type="text" name="items[{{ $i }}][description]"
-                                                class="form-control" value="{{ $item->order_details }}"
-                                                placeholder="{{__('e.g. Delivery charge, Fuel cost...')}}" required>
-                                        </td>
-                                        <td>
-                                            <input type="number" name="items[{{ $i }}][amount]"
-                                                class="form-control amount-input" value="{{ (int)$item->amount }}"
-                                                min="0" step="1" placeholder="0" required>
-                                        </td>
-                                        <td>
-                                            <button type="button" class="btn btn-sm btn-danger remove-row">
-                                                <i class="ti ti-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                @else
-                                    <tr class="item-row">
-                                        <td class="row-num">1</td>
-                                        <td>
-                                            <input type="text" name="items[0][description]"
-                                                class="form-control"
-                                                placeholder="{{__('e.g. Delivery charge, Fuel cost...')}}" required>
-                                        </td>
-                                        <td>
-                                            <input type="number" name="items[0][amount]"
-                                                class="form-control amount-input"
-                                                min="0" step="1" placeholder="0" required>
-                                        </td>
-                                        <td>
-                                            <button type="button" class="btn btn-sm btn-danger remove-row">
-                                                <i class="ti ti-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                @endif
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="2" class="text-end fw-bold">{{__('Total Amount')}}</td>
-                                    <td>
-                                        <div class="input-group">
-                                            <span class="input-group-text fw-bold">৳</span>
-                                            <input type="text" id="grand-total" class="form-control fw-bold bg-light"
-                                                value="{{ $payable ? (int)$payable->total_amount : 0 }}" readonly>
-                                        </div>
-                                    </td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
+
+                {{-- Right Side: Receivable (Income from Client) --}}
+                <div class="col-md-6">
+                    <div class="card border-success">
+                        <div class="card-header d-flex align-items-center justify-content-between bg-light-success">
+                            <h5 class="mb-0 text-success"><i class="ti ti-file-invoice me-2"></i>{{__('Client Billing (Receivable)')}}</h5>
+                            <button type="button" class="btn btn-sm btn-success" id="add-receivable-row">
+                                <i class="ti ti-plus me-1"></i>{{__('Add Row')}}
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table" id="receivable-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>{{__('Description')}}</th>
+                                            <th width="150px">{{__('Amount')}}</th>
+                                            <th width="40px"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="receivable-body">
+                                        @if($receivable && $receivable->items->count() > 0)
+                                            @foreach($receivable->items as $i => $item)
+                                            <tr class="item-row">
+                                                <td>
+                                                    <input type="text" name="receivable_items[{{ $i }}][description]" class="form-control form-control-sm" value="{{ $item->order_details }}" required>
+                                                </td>
+                                                <td>
+                                                    <input type="number" name="receivable_items[{{ $i }}][amount]" class="form-control form-control-sm receivable-amount" value="{{ (int)$item->amount }}" min="0" required>
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm text-danger remove-row"><i class="ti ti-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                            @endforeach
+                                        @else
+                                            <tr class="item-row">
+                                                <td><input type="text" name="receivable_items[0][description]" class="form-control form-control-sm" placeholder="e.g. Service Charge" required></td>
+                                                <td><input type="number" name="receivable_items[0][amount]" class="form-control form-control-sm receivable-amount" value="0" min="0" required></td>
+                                                <td><button type="button" class="btn btn-sm text-danger remove-row"><i class="ti ti-trash"></i></button></td>
+                                            </tr>
+                                        @endif
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="table-light">
+                                            <td class="text-end fw-bold">{{__('Total Income')}}</td>
+                                            <td colspan="2" class="fw-bold">৳ <span id="total-receivable">0</span></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Summary Card --}}
+            <div class="card mb-4 bg-light">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-center gap-5 align-items-center">
+                        <div class="text-center">
+                            <span class="text-muted d-block small">{{__('TOTAL COST')}}</span>
+                            <h4 class="text-danger mb-0">৳ <span id="summary-payable">0</span></h4>
+                        </div>
+                        <div class="fs-2 text-muted">-</div>
+                        <div class="text-center">
+                            <span class="text-muted d-block small">{{__('TOTAL INCOME')}}</span>
+                            <h4 class="text-success mb-0">৳ <span id="summary-receivable">0</span></h4>
+                        </div>
+                        <div class="fs-2 text-muted">=</div>
+                        <div class="text-center bg-white px-4 py-2 rounded shadow-sm">
+                            <span class="text-muted d-block small fw-bold">{{__('NET PROFIT')}}</span>
+                            <h3 class="mb-0" id="net-profit-text">৳ 0</h3>
+                        </div>
                     </div>
                 </div>
                 <div class="card-footer d-flex justify-content-between align-items-center">
                     <a href="{{ route('transport.bill.index') }}" class="btn btn-secondary">
                         <i class="ti ti-arrow-left me-1"></i>{{__('Back')}}
                     </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="ti ti-device-floppy me-1"></i>{{__('Save Bill')}}
+                    <button type="submit" class="btn btn-primary px-5">
+                        <i class="ti ti-device-floppy me-1"></i>{{__('Save & Finalize Bill')}}
                     </button>
                 </div>
             </div>
@@ -163,73 +217,86 @@
 @push('script-page')
 <script>
 $(document).ready(function() {
-    var rowIndex = $('#items-body tr').length;
-
-    // Calculate total
-    function calcTotal() {
-        var total = 0;
-        $('.amount-input').each(function() {
-            var val = parseInt($(this).val()) || 0;
-            total += val;
+    // Calculate totals and profit
+    function updateCalculations() {
+        var totalPayable = 0;
+        $('.payable-amount').each(function() {
+            totalPayable += parseInt($(this).val()) || 0;
         });
-        $('#grand-total').val(total);
+        $('#total-payable').text(totalPayable.toLocaleString());
+        $('#summary-payable').text(totalPayable.toLocaleString());
+
+        var totalReceivable = 0;
+        $('.receivable-amount').each(function() {
+            totalReceivable += parseInt($(this).val()) || 0;
+        });
+        $('#total-receivable').text(totalReceivable.toLocaleString());
+        $('#summary-receivable').text(totalReceivable.toLocaleString());
+
+        var netProfit = totalReceivable - totalPayable;
+        var profitText = $('#net-profit-text');
+        profitText.text('৳ ' + netProfit.toLocaleString());
+        
+        if (netProfit > 0) {
+            profitText.removeClass('text-danger').addClass('text-success');
+        } else if (netProfit < 0) {
+            profitText.removeClass('text-success').addClass('text-danger');
+        } else {
+            profitText.removeClass('text-success text-danger');
+        }
     }
 
-    // Re-number rows
-    function reNumber() {
-        $('#items-body tr').each(function(i) {
-            $(this).find('.row-num').text(i + 1);
-            // Update name indices
-            $(this).find('input[name*="description"]').attr('name', 'items[' + i + '][description]');
-            $(this).find('input[name*="amount"]').attr('name', 'items[' + i + '][amount]');
-        });
-        rowIndex = $('#items-body tr').length;
-    }
-
-    // Add row
-    $('#add-row').on('click', function() {
-        var newRow = `<tr class="item-row">
-            <td class="row-num">${rowIndex + 1}</td>
-            <td>
-                <input type="text" name="items[${rowIndex}][description]"
-                    class="form-control"
-                    placeholder="{{ __('e.g. Delivery charge, Fuel cost...') }}" required>
-            </td>
-            <td>
-                <input type="number" name="items[${rowIndex}][amount]"
-                    class="form-control amount-input"
-                    min="0" step="1" placeholder="0" required>
-            </td>
-            <td>
-                <button type="button" class="btn btn-sm btn-danger remove-row">
-                    <i class="ti ti-trash"></i>
-                </button>
-            </td>
+    // Add Payable Row
+    $('#add-payable-row').on('click', function() {
+        var idx = $('#payable-body tr').length;
+        var html = `<tr class="item-row">
+            <td><input type="text" name="items[${idx}][description]" class="form-control form-control-sm" placeholder="Description" required></td>
+            <td><input type="number" name="items[${idx}][amount]" class="form-control form-control-sm payable-amount" value="0" min="0" required></td>
+            <td><button type="button" class="btn btn-sm text-danger remove-row"><i class="ti ti-trash"></i></button></td>
         </tr>`;
-        $('#items-body').append(newRow);
-        rowIndex++;
-        calcTotal();
+        $('#payable-body').append(html);
+        updateCalculations();
     });
 
-    // Remove row
+    // Add Receivable Row
+    $('#add-receivable-row').on('click', function() {
+        var idx = $('#receivable-body tr').length;
+        var html = `<tr class="item-row">
+            <td><input type="text" name="receivable_items[${idx}][description]" class="form-control form-control-sm" placeholder="Description" required></td>
+            <td><input type="number" name="receivable_items[${idx}][amount]" class="form-control form-control-sm receivable-amount" value="0" min="0" required></td>
+            <td><button type="button" class="btn btn-sm text-danger remove-row"><i class="ti ti-trash"></i></button></td>
+        </tr>`;
+        $('#receivable-body').append(html);
+        updateCalculations();
+    });
+
+    // Remove Row
     $(document).on('click', '.remove-row', function() {
-        if ($('#items-body tr').length > 1) {
+        var tbody = $(this).closest('tbody');
+        if (tbody.find('tr').length > 1) {
             $(this).closest('tr').remove();
-            reNumber();
-            calcTotal();
-        } else {
-            $(this).closest('tr').find('input').val('');
-            calcTotal();
+            
+            // Re-index names
+            tbody.find('tr').each(function(i) {
+                $(this).find('input').each(function() {
+                    var name = $(this).attr('name');
+                    if (name) {
+                        var newName = name.replace(/\[\d+\]/, '[' + i + ']');
+                        $(this).attr('name', newName);
+                    }
+                });
+            });
+            updateCalculations();
         }
     });
 
-    // Live total calculation
-    $(document).on('input', '.amount-input', function() {
-        calcTotal();
+    // Live Calculation
+    $(document).on('input', '.payable-amount, .receivable-amount', function() {
+        updateCalculations();
     });
 
-    // Initial calc
-    calcTotal();
+    // Initial Calculation
+    updateCalculations();
 });
 </script>
 @endpush

@@ -16,7 +16,7 @@ class AppraisalController extends Controller
 
     public function index()
     {
-        if(\Auth::user()->can('manage appraisal'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $user = \Auth::user();
             if($user->type == 'Employee')

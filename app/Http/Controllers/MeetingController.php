@@ -15,7 +15,7 @@ class MeetingController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage meeting'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $employees = Employee::get();
             if(Auth::user()->type == 'Employee')
@@ -301,7 +301,7 @@ class MeetingController extends Controller
     public function calender(Request $request)
     {
 
-        if(\Auth::user()->can('manage meeting'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $transdate = date('Y-m-d', time());
 

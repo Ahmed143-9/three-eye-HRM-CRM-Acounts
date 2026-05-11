@@ -61,119 +61,103 @@
 @endif
 
 @if(\Auth::check() && $user->type != 'admin' && $user->type != 'company')
-    <!-- {{-- ===== Transport Bill Notification Modal ===== --}} -->
-    @if($user->can('manage bill'))
-        <div class="modal fade" id="transportBillModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
-            data-bs-keyboard="false">
-            <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
-                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-                    <div class="modal-body p-0">
-                        <div class="bg-primary text-white text-center py-4 px-3">
-                            <div style="font-size:3rem;line-height:1">🚛</div>
-                            <h5 class="fw-bold mt-2 mb-0">{{ __('New Transport Bill!') }}</h5>
-                        </div>
-                        <div class="px-4 pt-3 pb-2">
-                            <p class="text-muted text-center mb-2">{{ __('A transport record is awaiting billing entry.') }}</p>
-                            <div id="transport-notif-list"></div>
-                        </div>
-                        <div class="d-flex gap-2 px-4 pb-4 justify-content-center">
-                            <a href="{{ route('transport.bill.index') }}"
-                                class="btn btn-primary px-4">{{ __('Manage Bills') }}</a>
-                            <button type="button" class="btn btn-outline-secondary bill-later-btn"
-                                data-bs-dismiss="modal">{{ __('Later') }}</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- {{-- ===== Transport Bill Notification Logic ===== --}} -->
+    @if($user->can('Manage Purchases & Suppliers'))
         <script>
             (function () {
-                var modalEl = document.getElementById('transportBillModal');
-                var bsModal = null;
                 var currentIds = [];
+                var shownBills = JSON.parse(localStorage.getItem('shown_transport_bills') || '[]');
 
                 function check() {
                     $.get('{{ route("transport.bill.check") }}', function (data) {
                         if (data && data.count > 0) {
-                            var html = '';
                             currentIds = data.bills.map(function (b) { return b.id; });
+                            
+                            var hasNew = false;
                             data.bills.forEach(function (b) {
-                                html += '<div class="border rounded p-2 mb-2 text-sm">';
-                                html += '<div>Transport: <strong>' + b.transport + '</strong></div>';
-                                html += '<div class="text-primary">Order: ' + b.order + '</div>';
-                                html += '</div>';
+                                if (!shownBills.includes(b.id)) {
+                                    hasNew = true;
+                                    shownBills.push(b.id);
+                                    
+                                    var title = '{{ __("New Transport Bill!") }}';
+                                    var message = '{{ __("Transport") }}: ' + b.transport + '<br>{{ __("Order") }}: ' + b.order;
+                                    var redirectUrl = '{{ route("transport.bill.index") }}';
+                                    
+                                    var toastHtml = '<b>' + title + '</b><br>' + message + '<br>' + 
+                                                   '<a href="' + redirectUrl + '" class="btn btn-sm btn-primary mt-2 text-white toast-action-btn">{{ __("Manage Bills") }}</a>';
+                                    
+                                    show_toastr('info', toastHtml);
+                                }
                             });
-                            $('#transport-notif-list').html(html);
-                            if (!bsModal) bsModal = new bootstrap.Modal(modalEl);
-                            bsModal.show();
+                            
+                            if (hasNew) {
+                                if(shownBills.length > 50) shownBills = shownBills.slice(-50);
+                                localStorage.setItem('shown_transport_bills', JSON.stringify(shownBills));
+                                
+                                // Increment Bell Icon
+                                var badge = $('#notification-badge');
+                                var currentCount = parseInt(badge.text()) || 0;
+                                badge.text(currentCount + data.count).removeClass('d-none');
+                            }
                         }
                     });
                 }
-                $(document).on('click', '.bill-later-btn', function () {
-                    if (currentIds.length > 0) {
-                        $.post('{{ route("transport.bill.mark-seen") }}', { ids: currentIds });
-                    }
-                });
-                setTimeout(check, 3000);
+                
+                // We'll mark them seen if they visit the page, but for now we'll just check periodically
+                setTimeout(function loop() {
+                    check();
+                    setTimeout(loop, 15000); // Poll every 15s instead of 3s to be less intensive
+                }, 3000);
             })();
         </script>
     @endif
 
-    {{-- ===== Transport Request Notification Modal ===== --}}
-    @if($user->can('manage employee'))
-        <div class="modal fade" id="transportRequestModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
-            data-bs-keyboard="false">
-            <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
-                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-                    <div class="modal-body p-0">
-                        <div class="bg-info text-white text-center py-4 px-3">
-                            <div style="font-size:3rem;line-height:1">📦</div>
-                            <h5 class="fw-bold mt-2 mb-0">{{ __('New Transport Request!') }}</h5>
-                        </div>
-                        <div class="px-4 pt-3 pb-2">
-                            <p class="text-muted text-center mb-2">
-                                {{ __('New finalized sales orders are ready for transport.') }}</p>
-                            <div id="transport-request-list"></div>
-                        </div>
-                        <div class="d-flex gap-2 px-4 pb-4 justify-content-center">
-                            <a href="{{ route('transports.index') }}"
-                                class="btn btn-info text-white px-4">{{ __('Manage Transports') }}</a>
-                            <button type="button" class="btn btn-outline-secondary request-later-btn"
-                                data-bs-dismiss="modal">{{ __('Later') }}</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    {{-- ===== Transport Request Notification Logic ===== --}}
+    @if($user->can('Manage Employees'))
         <script>
             (function () {
-                var modalEl = document.getElementById('transportRequestModal');
-                var bsModal = null;
                 var currentReqIds = [];
+                var shownReqs = JSON.parse(localStorage.getItem('shown_transport_requests') || '[]');
 
                 function checkRequests() {
                     $.get('{{ route("transport.request.check") }}', function (data) {
                         if (data && data.count > 0) {
-                            var html = '';
                             currentReqIds = data.orders.map(function (o) { return o.id; });
+                            
+                            var hasNew = false;
                             data.orders.forEach(function (o) {
-                                html += '<div class="border rounded p-2 mb-2 text-sm">';
-                                html += '<div>Order: <strong>' + o.order_number + '</strong></div>';
-                                html += '<div class="text-muted">Customer: ' + o.customer + '</div>';
-                                html += '</div>';
+                                if (!shownReqs.includes(o.id)) {
+                                    hasNew = true;
+                                    shownReqs.push(o.id);
+                                    
+                                    var title = '{{ __("New Transport Request!") }}';
+                                    var message = '{{ __("Order") }}: ' + o.order_number + '<br>{{ __("Customer") }}: ' + o.customer;
+                                    var redirectUrl = '{{ route("transports.index") }}';
+                                    
+                                    var toastHtml = '<b>' + title + '</b><br>' + message + '<br>' + 
+                                                   '<a href="' + redirectUrl + '" class="btn btn-sm btn-info mt-2 text-white toast-action-btn">{{ __("Manage Transports") }}</a>';
+                                    
+                                    show_toastr('info', toastHtml);
+                                }
                             });
-                            $('#transport-request-list').html(html);
-                            if (!bsModal) bsModal = new bootstrap.Modal(modalEl);
-                            bsModal.show();
+                            
+                            if (hasNew) {
+                                if(shownReqs.length > 50) shownReqs = shownReqs.slice(-50);
+                                localStorage.setItem('shown_transport_requests', JSON.stringify(shownReqs));
+                                
+                                // Increment Bell Icon
+                                var badge = $('#notification-badge');
+                                var currentCount = parseInt(badge.text()) || 0;
+                                badge.text(currentCount + data.count).removeClass('d-none');
+                            }
                         }
                     });
                 }
-                $(document).on('click', '.request-later-btn', function () {
-                    if (currentReqIds.length > 0) {
-                        $.post('{{ route("transport.request.mark-seen") }}', { ids: currentReqIds });
-                    }
-                });
-                setTimeout(checkRequests, 5000);
+                
+                setTimeout(function loop() {
+                    checkRequests();
+                    setTimeout(loop, 15000);
+                }, 5000);
             })();
         </script>
     @endif

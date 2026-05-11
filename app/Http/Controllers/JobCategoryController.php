@@ -10,7 +10,7 @@ class JobCategoryController extends Controller
 
     public function index()
     {
-        if(\Auth::user()->can('manage job category'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
             $categories = JobCategory::where('created_by', '=', \Auth::user()->creatorId())->get();
 

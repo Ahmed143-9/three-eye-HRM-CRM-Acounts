@@ -74,17 +74,17 @@
                                     <td>
                                         {{ (!empty($employee->user->last_login_at)) ? $employee->user->last_login_at : '-' }}
                                     </td>
-                                    @if(Gate::check('edit employee') || Gate::check('delete employee'))
+                                    @if(Gate::check('Manage Employees') || Gate::check('Manage Employees'))
                                         <td>
                                             @if($employee->is_active==1)
-                                                @can('edit employee')
+                                                @can('Manage Employees')
                                                 <div class="action-btn me-2">
                                                     <a href="{{route('employee.edit',\Illuminate\Support\Facades\Crypt::encrypt($employee->id))}}" class="mx-3 btn btn-sm align-items-center bg-info" data-bs-toggle="tooltip" title="{{__('Edit')}}"
                                                      data-original-title="{{__('Edit')}}"><i class="ti ti-pencil text-white"></i></a>
                                                 </div>
 
                                                     @endcan
-                                                @can('delete employee')
+                                                @can('Manage Employees')
                                                 <div class="action-btn ">
                                                 {!! Form::open(['method' => 'DELETE', 'route' => ['employee.destroy', $employee->id],'id'=>'delete-form-'.$employee->id]) !!}
 

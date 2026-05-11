@@ -85,7 +85,7 @@ class HrmSetupController extends Controller
 
     public function departmentsIndex()
     {
-        if (!Auth::user()->can('manage employee') && Auth::user()->type !== 'company') {
+        if (!Auth::user()->can('Manage Employees') && Auth::user()->type !== 'company') {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
         $departments = Department::where('created_by', Auth::user()->creatorId())->latest()->get();
@@ -122,7 +122,7 @@ class HrmSetupController extends Controller
 
     public function designationsIndex()
     {
-        if (!Auth::user()->can('manage employee') && Auth::user()->type !== 'company') {
+        if (!Auth::user()->can('Manage Employees') && Auth::user()->type !== 'company') {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
         $designations = Designation::where('created_by', Auth::user()->creatorId())->with('department')->latest()->get();

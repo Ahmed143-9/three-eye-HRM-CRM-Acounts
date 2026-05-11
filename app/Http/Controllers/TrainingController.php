@@ -15,7 +15,7 @@ class TrainingController extends Controller
 
     public function index()
     {
-        if(\Auth::user()->can('manage training'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $trainings = Training::where('created_by', '=', \Auth::user()->creatorId())->with(['branches','types'])->get();
             $status    = Training::$Status;

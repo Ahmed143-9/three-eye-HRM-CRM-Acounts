@@ -40,7 +40,7 @@ class EmployeeController extends Controller
      */
     public function index()
     {
-        if(\Auth::user()->can('manage employee'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             if(Auth::user()->type == 'Employee')
             {
@@ -61,7 +61,7 @@ class EmployeeController extends Controller
 
     public function create()
     {
-        if(\Auth::user()->can('create employee'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $company_settings = Utility::settings();
             $documents        = Document::where('created_by', \Auth::user()->creatorId())->get();
@@ -81,7 +81,7 @@ class EmployeeController extends Controller
 
     public function store(Request $request)
     {
-        if(\Auth::user()->can('create employee'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $validator = \Validator::make(
                 $request->all(), [
@@ -188,44 +188,43 @@ class EmployeeController extends Controller
                     'twitter' => $request['twitter'] ?? null,
                     'instagram' => $request['instagram'] ?? null,
                     'probation_period' => $request['probation_period'] ?? null,
+                    'is_fresher' => $request->has('is_fresher') ? 1 : 0,
                     'notice_period' => $request['notice_period'] ?? null,
                     'created_by' => \Auth::user()->creatorId(),
                 ]
             );
             if($request->hasFile('document'))
             {
-                foreach($request->document as $key => $document)
+                foreach($request->file('document') as $key => $documentData)
                 {
-
-                    $filenameWithExt = $request->file('document')[$key]->getClientOriginalName();
-                    $filename        = pathinfo($filenameWithExt, PATHINFO_FILENAME);
-                    $extension       = $request->file('document')[$key]->getClientOriginalExtension();
-                    $fileNameToStore = $filename . '_' . time() . '.' . $extension;
-                    $dir             = storage_path('uploads/document/');
-                    $image_path      = $dir . $filenameWithExt;
-
-                    if(File::exists($image_path))
-                    {
-                        File::delete($image_path);
+                    $files = is_array($documentData) ? $documentData : [$documentData];
+                    
+                    foreach($files as $file) {
+                        if (!$file) continue;
+                        
+                        $filenameWithExt = $file->getClientOriginalName();
+                        $filename        = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+                        $extension       = $file->getClientOriginalExtension();
+                        $fileNameToStore = $filename . '_' . time() . '_' . uniqid() . '.' . $extension;
+                        $dir             = storage_path('uploads/document/');
+                        
+                        if(!file_exists($dir))
+                        {
+                            mkdir($dir, 0777, true);
+                        }
+                        
+                        $path              = $file->storeAs('uploads/document/', $fileNameToStore);
+                        $employee_document = EmployeeDocument::create(
+                            [
+                                'employee_id' => $employee['employee_id'],
+                                'document_id' => $key,
+                                'document_value' => $fileNameToStore,
+                                'created_by' => \Auth::user()->creatorId(),
+                            ]
+                        );
+                        $employee_document->save();
                     }
-
-                    if(!file_exists($dir))
-                    {
-                        mkdir($dir, 0777, true);
-                    }
-                    $path              = $request->file('document')[$key]->storeAs('uploads/document/', $fileNameToStore);
-                    $employee_document = EmployeeDocument::create(
-                        [
-                            'employee_id' => $employee['employee_id'],
-                            'document_id' => $key,
-                            'document_value' => $fileNameToStore,
-                            'created_by' => \Auth::user()->creatorId(),
-                        ]
-                    );
-                    $employee_document->save();
-
                 }
-
             }
 
             // Save Emergency Contacts
@@ -314,7 +313,7 @@ class EmployeeController extends Controller
         } catch (\Exception $e){
             return redirect()->back()->with('error', __('Something went wrong.'));
         }
-        if(\Auth::user()->can('edit employee'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $documents    = Document::where('created_by', \Auth::user()->creatorId())->get();
             $branches     = Branch::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
@@ -344,7 +343,7 @@ class EmployeeController extends Controller
 
     public function update(Request $request, $id)
     {
-        if(\Auth::user()->can('edit employee'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $validator = \Validator::make(
                 $request->all(), [
@@ -396,51 +395,64 @@ class EmployeeController extends Controller
                 }
             }
 
-            if($request->document)
+            if($request->hasFile('document'))
             {
-                foreach($request->document as $key => $document)
+                foreach($request->file('document') as $key => $documentData)
                 {
-                    if(!empty($document))
-                    {
-                        $filenameWithExt = $request->file('document')[$key]->getClientOriginalName();
-                        $filename        = pathinfo($filenameWithExt, PATHINFO_FILENAME);
-                        $extension       = $request->file('document')[$key]->getClientOriginalExtension();
-                        $fileNameToStore = $filename . '_' . time() . '.' . $extension;
-                        $dir             = 'uploads/document/';
+                    if (!empty($documentData)) {
+                        $files = is_array($documentData) ? $documentData : [$documentData];
+                        
+                        foreach($files as $file) {
+                            if (!$file) continue;
 
-                        $image_path = $dir . $filenameWithExt;
+                            $filenameWithExt = $file->getClientOriginalName();
+                            $filename        = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+                            $extension       = $file->getClientOriginalExtension();
+                            $fileNameToStore = $filename . '_' . time() . '_' . uniqid() . '.' . $extension;
+                            $dir             = 'uploads/document/';
 
-                        if(File::exists($image_path))
-                        {
-                            File::delete($image_path);
+                            $path = \Utility::upload_coustom_file($request, 'document', $fileNameToStore, $dir, $key, []);
+
+                            if($path['flag'] == 1){
+                                // Save to employee_documents
+                                // For multiple files, we might want to keep existing ones or replace?
+                                // Usually for specific IDs like 4 and 5 (Experience/Academic), we add more.
+                                // For others, we might want to replace.
+                                
+                                // Logic: if it's not a multiple-upload document, try to update existing row
+                                $multipleUploadDocIds = [4, 5]; // Experience, Academic
+                                
+                                if (!in_array($key, $multipleUploadDocIds)) {
+                                    $employee_document = EmployeeDocument::where('employee_id', $employee->employee_id)->where('document_id', $key)->first();
+                                    if(!empty($employee_document))
+                                    {
+                                        // Delete old file
+                                        if(file_exists(storage_path('uploads/document/' . $employee_document->document_value))) {
+                                            unlink(storage_path('uploads/document/' . $employee_document->document_value));
+                                        }
+                                        $employee_document->document_value = $fileNameToStore;
+                                        $employee_document->save();
+                                    }
+                                    else
+                                    {
+                                        $employee_document                 = new EmployeeDocument();
+                                        $employee_document->employee_id    = $employee->employee_id;
+                                        $employee_document->document_id    = $key;
+                                        $employee_document->document_value = $fileNameToStore;
+                                        $employee_document->created_by     = \Auth::user()->creatorId();
+                                        $employee_document->save();
+                                    }
+                                } else {
+                                    // Just add a new row for multiple uploads
+                                    $employee_document                 = new EmployeeDocument();
+                                    $employee_document->employee_id    = $employee->employee_id;
+                                    $employee_document->document_id    = $key;
+                                    $employee_document->document_value = $fileNameToStore;
+                                    $employee_document->created_by     = \Auth::user()->creatorId();
+                                    $employee_document->save();
+                                }
+                            }
                         }
-
-                        $path = \Utility::upload_coustom_file($request,'document',$fileNameToStore,$dir,$key,[]);
-
-
-                        if($path['flag'] == 1){
-                            $url = $path['url'];
-                        }else{
-                            return redirect()->back()->with('error', __($path['msg']));
-                        }
-
-
-                        $employee_document = EmployeeDocument::where('employee_id', $employee->employee_id)->where('document_id', $key)->first();
-
-                        if(!empty($employee_document))
-                        {
-                            $employee_document->document_value = $fileNameToStore;
-                            $employee_document->save();
-                        }
-                        else
-                        {
-                            $employee_document                 = new EmployeeDocument();
-                            $employee_document->employee_id    = $employee->employee_id;
-                            $employee_document->document_id    = $key;
-                            $employee_document->document_value = $fileNameToStore;
-                            $employee_document->save();
-                        }
-
                     }
                 }
             }
@@ -471,6 +483,23 @@ class EmployeeController extends Controller
 
             $employee->fill($input)->save();
             
+            // Save is_fresher
+            $employee->is_fresher = $request->has('is_fresher') ? 1 : 0;
+            $employee->save();
+
+            // Handle document removal
+            if ($request->has('remove_doc')) {
+                foreach ($request->remove_doc as $docId) {
+                    $doc = EmployeeDocument::where('id', $docId)->where('employee_id', $employee->employee_id)->first();
+                    if ($doc) {
+                        if (file_exists(storage_path('uploads/document/' . $doc->document_value))) {
+                            unlink(storage_path('uploads/document/' . $doc->document_value));
+                        }
+                        $doc->delete();
+                    }
+                }
+            }
+
             $user = User::where('id',$employee->user_id)->first();
             if(!empty($user)){
                 $user->name = $employee->name;
@@ -579,7 +608,7 @@ class EmployeeController extends Controller
     public function destroy($id)
     {
 
-        if(Auth::user()->can('delete employee'))
+        if(Auth::user()->can('Manage Employees'))
         {
             $employee      = Employee::findOrFail($id);
             $user          = User::where('id', '=', $employee->user_id)->first();
@@ -683,7 +712,7 @@ class EmployeeController extends Controller
 
     public function profile(Request $request)
     {
-        if(\Auth::user()->can('manage employee profile'))
+        if(\Auth::user()->can('Manage Employees'))
         {
             $employees = Employee::where('created_by', \Auth::user()->creatorId());
             if(!empty($request->branch))

@@ -9,7 +9,7 @@ class LoanOptionController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage loan option'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
             $loanoptions = LoanOption::where('created_by', '=', \Auth::user()->creatorId())->get();
 

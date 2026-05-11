@@ -13,7 +13,7 @@ class BillingController extends Controller
 {
     public function index(Request $request)
     {
-        if (Auth::user()->can('manage bank account') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Manage Banking & Billing') || Auth::user()->type == 'company') {
             $creatorId = Auth::user()->creatorId();
             
             $payablesQuery = Payable::where('created_by', $creatorId);
@@ -109,7 +109,7 @@ class BillingController extends Controller
 
     public function create()
     {
-        if (Auth::user()->can('manage bank account') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Manage Banking & Billing') || Auth::user()->type == 'company') {
             return view('billing.create');
         } else {
             return response()->json(['error' => __('Permission denied.')], 401);
@@ -118,7 +118,7 @@ class BillingController extends Controller
 
     public function store(Request $request)
     {
-        if (Auth::user()->can('manage bank account') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Manage Banking & Billing') || Auth::user()->type == 'company') {
             $validator = \Validator::make(
                 $request->all(), [
                     'amount' => 'required|numeric',
@@ -173,7 +173,7 @@ class BillingController extends Controller
 
     public function edit($id)
     {
-        if (Auth::user()->can('manage bank account') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Manage Banking & Billing') || Auth::user()->type == 'company') {
             $billing = Billing::find($id);
             if ($billing->created_by == Auth::user()->creatorId()) {
                 return view('billing.edit', compact('billing'));
@@ -187,7 +187,7 @@ class BillingController extends Controller
 
     public function update(Request $request, $id)
     {
-        if (Auth::user()->can('manage bank account') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Manage Banking & Billing') || Auth::user()->type == 'company') {
             $billing = Billing::find($id);
             if ($billing->created_by == Auth::user()->creatorId()) {
                 $validator = \Validator::make(
@@ -248,7 +248,7 @@ class BillingController extends Controller
 
     public function addPayment($type, $id)
     {
-        if (Auth::user()->can('manage bank account') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Manage Banking & Billing') || Auth::user()->type == 'company') {
             $billable = ($type == 'Payable') ? Payable::find($id) : Receivable::find($id);
             
             if ($billable) {
@@ -263,7 +263,7 @@ class BillingController extends Controller
 
     public function storePayment(Request $request, $type, $id)
     {
-        if (Auth::user()->can('manage bank account') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Manage Banking & Billing') || Auth::user()->type == 'company') {
             $billable = ($type == 'Payable') ? Payable::find($id) : Receivable::find($id);
             
             if ($billable) {
@@ -318,7 +318,7 @@ class BillingController extends Controller
 
     public function showPayment($type, $id)
     {
-        if (Auth::user()->can('manage bank account') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Manage Banking & Billing') || Auth::user()->type == 'company') {
             $billable = ($type == 'Payable') ? Payable::find($id) : Receivable::find($id);
             
             if ($billable) {
@@ -334,7 +334,7 @@ class BillingController extends Controller
 
     public function editPayment($paymentId)
     {
-        if (Auth::user()->can('manage bank account') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Manage Banking & Billing') || Auth::user()->type == 'company') {
             $payment = BillingPayment::find($paymentId);
             if ($payment) {
                 return view('billing.edit_payment', compact('payment'));
@@ -346,7 +346,7 @@ class BillingController extends Controller
 
     public function updatePayment(Request $request, $paymentId)
     {
-        if (Auth::user()->can('manage bank account') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Manage Banking & Billing') || Auth::user()->type == 'company') {
             $payment = BillingPayment::find($paymentId);
             if (!$payment) {
                 return redirect()->back()->with('error', __('Payment not found.'));
@@ -391,7 +391,7 @@ class BillingController extends Controller
 
     public function destroyPayment($paymentId)
     {
-        if (Auth::user()->can('manage bank account') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Manage Banking & Billing') || Auth::user()->type == 'company') {
             $payment = BillingPayment::find($paymentId);
             if ($payment) {
                 $payment->delete();

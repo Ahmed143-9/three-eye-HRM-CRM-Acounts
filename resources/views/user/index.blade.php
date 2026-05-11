@@ -27,7 +27,7 @@
                     class="ti ti-user-check"></i>
             </a>
         @endif
-        @can('create user')
+        @can('Manage Users')
             <a href="#" data-size="lg" data-url="{{ route('users.create') }}" data-ajax-popup="true"
                 data-bs-toggle="tooltip" data-title="{{ \Auth::user()->type == 'super admin' ?  __('Create Company')  : __('Create User') }}" data-bs-original-title="{{ \Auth::user()->type == 'super admin' ?  __('Create Company')  : __('Create User') }}" class="btn btn-sm btn-primary me-1">
                 <i class="ti ti-plus"></i>
@@ -50,7 +50,7 @@
                             {{ ucfirst($user->type) }}
                         </div>
                     @endif
-                    @if (Gate::check('edit user') || Gate::check('delete user'))
+                    @if (Gate::check('Manage Users') || Gate::check('Manage Users'))
                         <div class="btn-group card-option">
                             @if ($user->is_active == 1 && $user->is_disable == 1)
                                 <button type="button" class="btn p-0 border-0" data-bs-toggle="dropdown"
@@ -59,7 +59,7 @@
                                 </button>
 
                                 <div class="dropdown-menu icon-dropdown dropdown-menu-end">
-                                    @can('edit user')
+                                    @can('Manage Users')
                                         <a href="#!" data-size="lg" data-url="{{ route('users.edit', $user->id) }}"
                                             data-ajax-popup="true" class="dropdown-item"
                                             data-bs-original-title="{{ \Auth::user()->type == 'super admin' ? __('Edit Company') : __('Edit User') }}">
@@ -68,7 +68,7 @@
                                         </a>
                                     @endcan
 
-                                    @can('delete user')
+                                    @can('Manage Users')
                                         {!! Form::open([
                                             'method' => 'DELETE',
                                             'route' => ['users.destroy', $user['id']],

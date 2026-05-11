@@ -9,7 +9,7 @@ class DeductionOptionController extends Controller
 {
     public function index()
     {
-        if(\Auth::user()->can('manage deduction option'))
+        if(\Auth::user()->can('Manage HR Setup'))
         {
             $deductionoptions = DeductionOption::where('created_by', '=', \Auth::user()->creatorId())->get();
 

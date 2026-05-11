@@ -19,7 +19,7 @@ class AttendanceEmployeeController extends Controller
 {
     public function history(Request $request)
     {
-        if (\Auth::user()->can('manage attendance')) {
+        if (\Auth::user()->can('Manage Attendance')) {
             $department = Department::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $department->prepend('All Departments', '');
 
@@ -49,7 +49,7 @@ class AttendanceEmployeeController extends Controller
 
     public function index(Request $request)
     {
-        if (\Auth::user()->can('manage attendance')) {
+        if (\Auth::user()->can('Manage Attendance')) {
 
             $branch = Branch::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $branch->prepend('Select Branch', '');
@@ -154,7 +154,7 @@ class AttendanceEmployeeController extends Controller
 
     public function create()
     {
-        if (\Auth::user()->can('create attendance')) {
+        if (\Auth::user()->can('Manage Attendance')) {
             $employees = Employee::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('name', 'id');
 
             return view('attendance.create', compact('employees'));
@@ -166,7 +166,7 @@ class AttendanceEmployeeController extends Controller
 
     public function store(Request $request)
     {
-        if (\Auth::user()->can('create attendance')) {
+        if (\Auth::user()->can('Manage Attendance')) {
             $validator = \Validator::make(
                 $request->all(),
                 [
@@ -252,7 +252,7 @@ class AttendanceEmployeeController extends Controller
 
     public function edit($id)
     {
-        if (\Auth::user()->can('edit attendance')) {
+        if (\Auth::user()->can('Manage Attendance')) {
             $attendanceEmployee = AttendanceEmployee::where('id', $id)->first();
             $employees = Employee::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('name', 'id');
 
@@ -268,7 +268,7 @@ class AttendanceEmployeeController extends Controller
             return redirect()->back()->with('error', __('Permission denied.'));
         }
 
-        if (\Auth::user()->can('edit attendance')) {
+        if (\Auth::user()->can('Manage Attendance')) {
             $validator = \Validator::make(
                 $request->all(),
                 [
@@ -446,7 +446,7 @@ class AttendanceEmployeeController extends Controller
 
     public function destroy($id)
     {
-        if (\Auth::user()->can('delete attendance')) {
+        if (\Auth::user()->can('Manage Attendance')) {
             $attendance = AttendanceEmployee::where('id', $id)->first();
 
             $attendance->delete();
@@ -565,7 +565,7 @@ class AttendanceEmployeeController extends Controller
 
     public function bulkAttendance(Request $request)
     {
-        if (\Auth::user()->can('create attendance')) {
+        if (\Auth::user()->can('Manage Attendance')) {
 
             $department = Department::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $department->prepend('All Departments', '');
@@ -586,7 +586,7 @@ class AttendanceEmployeeController extends Controller
 
     public function bulkAttendanceData(Request $request)
     {
-        if (\Auth::user()->can('create attendance')) {
+        if (\Auth::user()->can('Manage Attendance')) {
             $date = $request->date;
             $employees = $request->employee_id;
 
@@ -679,7 +679,7 @@ class AttendanceEmployeeController extends Controller
      */
     public function lateAttendanceLog(Request $request)
     {
-        if (!\Auth::user()->can('manage attendance')) {
+        if (!\Auth::user()->can('Manage Attendance')) {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
 

@@ -18,7 +18,7 @@
         </div>
         <div class="col-12">
             <div class="my-3 d-flex justify-content-end">
-                @can('create designation')
+                @can('Manage HR Setup')
                     <a href="#" data-url="{{ route('designation.create') }}" data-ajax-popup="true"
                         data-title="{{ __('Create New Designation') }}" data-bs-toggle="tooltip" title="{{ __('Create') }}"
                         class="btn btn-sm btn-primary">
@@ -58,7 +58,7 @@
                                                 <td class="Action">
                                                     <span>
 
-                                                        @can('edit designation')
+                                                        @can('Manage HR Setup')
                                                             <div class="action-btn me-2">
                                                                 <a href="#"
                                                                     class="mx-3 btn btn-sm align-items-center bg-info"
@@ -72,7 +72,7 @@
                                                             </div>
                                                         @endcan
 
-                                                        @can('delete designation')
+                                                        @can('Manage HR Setup')
                                                             <div class="action-btn ">
 
                                                                 {!! Form::open([

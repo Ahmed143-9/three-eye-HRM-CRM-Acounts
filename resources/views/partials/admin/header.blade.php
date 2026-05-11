@@ -150,7 +150,19 @@
 
     <script>
         $(document).ready(function() {
-            var lastNotificationId = localStorage.getItem('last_notification_id') || 0;
+            var lastNotificationId = 0;
+            var shownNotifications = [];
+
+            try {
+                lastNotificationId = localStorage.getItem('last_notification_id') || 0;
+                var stored = localStorage.getItem('shown_notifications');
+                shownNotifications = stored ? JSON.parse(stored) : [];
+                if (!Array.isArray(shownNotifications)) shownNotifications = [];
+            } catch (e) {
+                console.error("Error parsing notification storage", e);
+                shownNotifications = [];
+            }
+
             var isDropdownOpen = false;
 
             $('.drp-notification').on('shown.bs.dropdown', function () {
@@ -165,44 +177,59 @@
                 $.ajax({
                     url: '{{ route('notifications.latest') }}',
                     type: 'GET',
+                    timeout: 10000, // 10 second timeout
                     success: function(response) {
-                        // Update list only if there's new data or dropdown is open
-                        // To avoid flickering, we only update if content changed or it's first load
-                        var currentHtml = $('#notification-list').html();
-                        if (response.html != currentHtml) {
-                            $('#notification-list').html(response.html);
-                        }
-                        
-                        // Badge count
-                        if (response.unreadCount > 0) {
-                            $('#notification-badge').text(response.unreadCount).removeClass('d-none');
-                        } else {
-                            $('#notification-badge').addClass('d-none');
-                        }
-
-                        // Popup Logic for new notifications
-                        if (response.latestId > lastNotificationId) {
-                            if (lastNotificationId != 0 && response.latestNotification) {
-                                var n = response.latestNotification;
-                                var type = 'success';
-                                if(n.type.includes('rejected') || n.type.includes('reject')) type = 'error';
-                                
-                                var title = n.title;
-                                var message = n.message;
-                                var redirectUrl = '{{ url('notifications/read-redirect') }}/' + n.id;
-                                
-                                // Show toast with View button
-                                var toastHtml = '<b>' + title + '</b><br>' + message + '<br>' + 
-                                               '<a href="' + redirectUrl + '" class="btn btn-sm btn-primary mt-2 text-white toast-action-btn">View Details</a>';
-                                
-                                show_toastr(type, toastHtml);
+                        if (response.success) {
+                            // Update list only if content changed
+                            var currentHtml = $('#notification-list').html();
+                            if (response.html != currentHtml) {
+                                $('#notification-list').html(response.html);
                             }
-                            lastNotificationId = response.latestId;
-                            localStorage.setItem('last_notification_id', lastNotificationId);
+                            
+                            // Badge count
+                            if (response.unreadCount > 0) {
+                                $('#notification-badge').text(response.unreadCount).removeClass('d-none');
+                            } else {
+                                $('#notification-badge').addClass('d-none');
+                            }
+
+                            // Popup Logic for new notifications
+                            if (response.latestNotification) {
+                                var n = response.latestNotification;
+                                
+                                if (!shownNotifications.includes(n.id) && n.id > lastNotificationId) {
+                                    var type = 'success';
+                                    if(n.type && (n.type.includes('rejected') || n.type.includes('reject'))) type = 'error';
+                                    
+                                    var title = n.title || 'Notification';
+                                    var message = n.message || '';
+                                    var redirectUrl = '{{ url('notifications/read-redirect') }}/' + n.id;
+                                    
+                                    var toastHtml = '<b>' + title + '</b><br>' + message + '<br>' + 
+                                                   '<a href="' + redirectUrl + '" class="btn btn-sm btn-primary mt-2 text-white toast-action-btn">View Details</a>';
+                                    
+                                    if (typeof show_toastr === 'function') {
+                                        show_toastr(type, toastHtml);
+                                    }
+                                    
+                                    shownNotifications.push(n.id);
+                                    if(shownNotifications.length > 50) shownNotifications.shift();
+                                    localStorage.setItem('shown_notifications', JSON.stringify(shownNotifications));
+                                    
+                                    lastNotificationId = n.id;
+                                    localStorage.setItem('last_notification_id', lastNotificationId);
+                                }
+                            }
+                        } else {
+                            $('#notification-list').html('<div class="text-center p-3 text-muted">' + (response.error || '{{__("No notifications found")}}' ) + '</div>');
                         }
                     },
-                    error: function(xhr) {
-                        console.error('Notification fetch failed', xhr);
+                    error: function(xhr, status, error) {
+                        console.error('Notification fetch failed:', status, error);
+                        // Only replace with error if it's currently showing a spinner or is empty
+                        if ($('#notification-list .spinner-border').length > 0 || $('#notification-list').html().trim() == "") {
+                            $('#notification-list').html('<div class="text-center p-3 text-danger"><i class="ti ti-alert-circle d-block fs-4 mb-2"></i>{{__("Unable to load notifications. Please check your connection.")}}</div>');
+                        }
                     }
                 });
             }
@@ -210,10 +237,10 @@
             // Fetch on load
             fetchNotifications();
 
-            // Refresh every 10 seconds for "real-time" feel
+            // Refresh every 30 seconds (increased interval to be more stable)
             setInterval(function() {
                 fetchNotifications();
-            }, 10000);
+            }, 30000);
 
             // Fetch when dropdown is opened
             $('#notification-btn').on('click', function() {
