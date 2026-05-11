@@ -3170,21 +3170,23 @@ class UsersTableSeeder extends Seeder
             ],
         ];
 
-        Permission::insert($arrPermissions);
+        foreach ($arrPermissions as $perm) {
+            Permission::firstOrCreate($perm);
+        }
 
         // Super admin
 
-        $companyRole = Role::create(
+        $companyRole = Role::firstOrCreate(
             [
                 'name' => 'company',
                 'created_by' => 0,
             ]
         );
 
-        $admin = User::create(
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@example.com'],
             [
                 'name' => 'Admin',
-                'email' => 'admin@example.com',
                 'password' => Hash::make('1234'),
                 'type' => 'company',
                 'plan' => 1,
@@ -3202,6 +3204,9 @@ class UsersTableSeeder extends Seeder
 
         // company
 
+        
+        
+        
         $companyPermissions = [
             'show pos dashboard',
             'show crm dashboard',
@@ -3304,16 +3309,13 @@ class UsersTableSeeder extends Seeder
             'create debit note',
             'edit debit note',
             'delete debit note',
-            'duplicate invoice',
-            'convert invoice',
-            'duplicate bill',
             'manage proposal',
             'create proposal',
             'edit proposal',
             'delete proposal',
             'duplicate proposal',
-            'show proposal',
             'send proposal',
+            'show proposal',
             'delete proposal product',
             'manage goal',
             'create goal',
@@ -3557,10 +3559,6 @@ class UsersTableSeeder extends Seeder
             'create job stage',
             'edit job stage',
             'delete job stage',
-            'Manage Competencies',
-            'Create Competencies',
-            'Edit Competencies',
-            'Delete Competencies',
             'manage custom question',
             'create custom question',
             'edit custom question',
@@ -3702,7 +3700,6 @@ class UsersTableSeeder extends Seeder
             'edit quotation',
             'show quotation',
             'delete quotation',
-            'show quotation',
             'convert quotation',
             'show pos',
             'manage zoom meeting',
@@ -3712,14 +3709,41 @@ class UsersTableSeeder extends Seeder
             'delete company policy',
             "manage biometric attendance",
             "biometric attendance synchronize",
+            'manage print settings',
+            'manage budget plan',
+            'create budget plan',
+            'edit budget plan',
+            'delete budget plan',
+            'view budget plan',
+            'manage payroll',
+            'manage transport',
+            'manage hr setup',
+            'manage payables & receivables',
+            'manage banking & billing',
+            'manage sales orders',
+            'manage purchases & suppliers',
+            'manage accounting setup',
+            'submit expenses',
+            'approve expenses',
+            'manage petty cash',
+            'duplicate invoice',
+            'convert invoice',
+            'duplicate bill',
         ];
 
-        $companyRole->givePermissionTo($companyPermissions);
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+        foreach ($companyPermissions as $permName) {
+            Permission::firstOrCreate(['name' => $permName, 'guard_name' => 'web']);
+        }
+
+        $companyRole->syncPermissions($companyPermissions);
+
 
         // The master admin is already created above and assigned the company role.
 
         // accountant
-        $accountantRole       = Role::create(
+        $accountantRole       = Role::firstOrCreate(
             [
                 'name' => 'accountant',
                 'created_by' => $company->id,
@@ -3857,10 +3881,9 @@ class UsersTableSeeder extends Seeder
         ];
 
 
-        $accountantRole->givePermissionTo($accountantPermission);
+        $accountantRole->syncPermissions($accountantPermission);
 
-        $accountant = User::create(
-            [
+        $accountant = User::firstOrCreate(['email' => 'accountant@example.com'], [
                 'name' => 'accountant',
                 'email' => 'accountant@example.com',
                 'password' => Hash::make('1234'),
@@ -3875,7 +3898,7 @@ class UsersTableSeeder extends Seeder
         $accountant->assignRole($accountantRole);
 
         // HR
-        $hrRole = Role::create(
+        $hrRole = Role::firstOrCreate(
             [
                 'name' => 'HR',
                 'created_by' => $company->id,
@@ -3952,10 +3975,9 @@ class UsersTableSeeder extends Seeder
             'delete transfer',
         ];
 
-        $hrRole->givePermissionTo($hrPermission);
+        $hrRole->syncPermissions($hrPermission);
 
-        $hr = User::create(
-            [
+        $hr = User::firstOrCreate(['email' => 'hr@example.com'], [
                 'name' => 'HR',
                 'email' => 'hr@example.com',
                 'password' => Hash::make('1234'),
@@ -3972,7 +3994,7 @@ class UsersTableSeeder extends Seeder
 
         // employee
 
-        $employeeRole       = Role::create(
+        $employeeRole       = Role::firstOrCreate(
             [
                 'name' => 'Employee',
                 'created_by' => $company->id,
@@ -4002,10 +4024,9 @@ class UsersTableSeeder extends Seeder
             'manage leave',
         ];
 
-        $employeeRole->givePermissionTo($employeePermission);
+        $employeeRole->syncPermissions($employeePermission);
 
-        $employee = User::create(
-            [
+        $employee = User::firstOrCreate(['email' => 'employee@example.com'], [
                 'name' => 'employee',
                 'email' => 'employee@example.com',
                 'password' => Hash::make('1234'),
@@ -4032,7 +4053,7 @@ class UsersTableSeeder extends Seeder
         );
 
         // accountant
-        $clientRole       = Role::create(
+        $clientRole       = Role::firstOrCreate(
             [
                 'name' => 'client',
                 'created_by' => $company->id,
@@ -4070,10 +4091,9 @@ class UsersTableSeeder extends Seeder
             'show contract',
         ];
 
-        $clientRole->givePermissionTo($clientPermission);
+        $clientRole->syncPermissions($clientPermission);
 
-        $client = User::create(
-            [
+        $client = User::firstOrCreate(['email' => 'client@example.com'], [
                 'name' => 'client',
                 'email' => 'client@example.com',
                 'password' => Hash::make('1234'),
@@ -4116,7 +4136,9 @@ class UsersTableSeeder extends Seeder
             ['name'=>'wasabi_max_upload_size', 'value'=> 2048000, 'created_by'=> 1, 'created_at'=> now(), 'updated_at'=> now()],
             ['name'=>'s3_max_upload_size', 'value'=> 2048000, 'created_by'=> 1, 'created_at'=> now(), 'updated_at'=> now()]
         ];
-        DB::table('settings')->insert($data);
+        foreach ($data as $row) {
+            DB::table('settings')->updateOrInsert(['name' => $row['name'], 'created_by' => $row['created_by']], $row);
+        }
 
     }
 }
