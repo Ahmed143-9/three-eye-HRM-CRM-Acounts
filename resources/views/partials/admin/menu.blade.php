@@ -512,7 +512,7 @@
                 <!--------------------- Start System Setup ----------------------------------->
 
                 @if (\Auth::user()->type != 'super admin')
-                    @if (Gate::check('manage company plan') || Gate::check('manage order') || Gate::check('Manage System Settings'))
+                    @if (Gate::check('manage company plan') || Gate::check('manage order') || Gate::check('manage system settings'))
                         <li
                             class="dash-item dash-hasmenu {{ Request::segment(1) == 'settings' ||
                             Request::segment(1) == 'plans' ||
@@ -527,7 +527,7 @@
                                     <i data-feather="chevron-right"></i></span>
                             </a>
                             <ul class="dash-submenu">
-                                @if (Gate::check('Manage System Settings'))
+                                @if (Gate::check('manage system settings'))
                                     <li
                                         class="dash-item dash-hasmenu {{ Request::segment(1) == 'settings' ? ' active' : '' }}">
                                         <a href="{{ route('settings') }}"

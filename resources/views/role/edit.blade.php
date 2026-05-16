@@ -26,7 +26,7 @@
         'Administration Permissions' => [
             'Manage Users',
             'Manage Roles',
-            'Manage System Settings',
+            'manage system settings',
         ],
     ];
 @endphp

@@ -21,7 +21,6 @@ use App\Models\SalesPOItem;
 use App\Models\SalesPackingList;
 use App\Models\SalesPackingListItem;
 use App\Models\SalesWeightSlip;
-use App\Models\SalesWeightSlip;
 use App\Models\Notification;
 use App\Models\User;
 use App\Models\Utility;

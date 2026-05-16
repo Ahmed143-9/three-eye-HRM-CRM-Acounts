@@ -240,7 +240,7 @@ class SystemController extends Controller
     public function saveCompanySettings(Request $request)
     {
 
-        if (\Auth::user()->can('Manage System Settings')) {
+        if (\Auth::user()->can('manage system settings')) {
             $user = \Auth::user();
             $request->validate(
                 [
@@ -310,7 +310,7 @@ class SystemController extends Controller
     public function saveSystemSettings(Request $request)
     {
 
-        if (\Auth::user()->can('Manage System Settings')) {
+        if (\Auth::user()->can('manage system settings')) {
             $user = \Auth::user();
 
             $post = $request->all();
@@ -498,7 +498,7 @@ class SystemController extends Controller
 
     public function companyIndex(Request $request)
     {
-        if (\Auth::user()->can('Manage System Settings')) {
+        if (\Auth::user()->can('manage system settings')) {
 
             if ($request->offerlangs) {
                 $offerlang = $request->offerlangs;
@@ -2517,7 +2517,7 @@ class SystemController extends Controller
 
     public function storeIp(Request $request)
     {
-        if (\Auth::user()->can('Manage System Settings')) {
+        if (\Auth::user()->can('manage system settings')) {
             $validator = \Validator::make(
                 $request->all(),
                 [

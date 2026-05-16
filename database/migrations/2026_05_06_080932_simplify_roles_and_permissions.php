@@ -34,7 +34,7 @@ return new class extends Migration
             // Administration Permissions
             'Manage Users',
             'Manage Roles',
-            'Manage System Settings',
+            'manage system settings',
         ];
 
         foreach ($newPermissions as $permissionName) {
