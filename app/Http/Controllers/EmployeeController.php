@@ -87,6 +87,7 @@ class EmployeeController extends Controller
                 $request->all(), [
                                    'name' => 'required',
                                    'dob' => 'required',
+                                   'gender' => 'required',
                                    'phone' => 'required',
                                    'address' => 'required',
                                    'email' => 'required|unique:users',
@@ -292,9 +293,12 @@ class EmployeeController extends Controller
                     'password' => $user->password,
                 ];
 
-                $resp = Utility::sendEmailTemplate('new_user', [$user->id => $user->email], $userArr);
-                return redirect()->route('employee.index')->with('success', __('Employee successfully created.') . ((!empty($resp) && $resp['is_success'] == false && !empty($resp['error'])) ? '<br> <span class="text-danger">' . $resp['error'] . '</span>' : ''));
-
+                try {
+                    $resp = Utility::sendEmailTemplate('new_user', [$user->id => $user->email], $userArr);
+                    return redirect()->route('employee.index')->with('success', __('Employee successfully created.') . ((!empty($resp) && isset($resp['is_success']) && $resp['is_success'] == false && !empty($resp['error'])) ? '<br> <span class="text-danger">' . $resp['error'] . '</span>' : ''));
+                } catch (\Exception $e) {
+                    return redirect()->route('employee.index')->with('success', __('Employee successfully created.') . '<br> <span class="text-danger">' . __('SMTP Error: ') . $e->getMessage() . '</span>');
+                }
             }
 
             return redirect()->route('employee.index')->with('success', __('Employee  successfully created.'));
