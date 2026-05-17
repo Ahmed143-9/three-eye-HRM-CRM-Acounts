@@ -616,14 +616,6 @@ class EmployeeController extends Controller
             $pay_slips     = PaySlip::where('employee_id', $employee->id)->get();
             $emergency_contacts = EmployeeEmergencyContact::where('employee_id', $employee->id)->get();
 
-            // Delete profile image if exists
-            $profileImageDir = storage_path('uploads/employee/');
-            if (!empty($employee->profile_image) && file_exists($profileImageDir . $employee->profile_image)) {
-                unlink($profileImageDir . $employee->profile_image);
-            }
-
-            $employee->delete();
-            $user->delete();
             $dir = storage_path('uploads/document/');
             $emergencyDir = storage_path('uploads/emergency_contacts/');
 
@@ -651,6 +643,15 @@ class EmployeeController extends Controller
                     $pay_slip->delete();
                 }
             }
+
+            // Delete profile image if exists
+            $profileImageDir = storage_path('uploads/employee/');
+            if (!empty($employee->profile_image) && file_exists($profileImageDir . $employee->profile_image)) {
+                unlink($profileImageDir . $employee->profile_image);
+            }
+
+            $employee->delete();
+            $user->delete();
 
             return redirect()->route('employee.index')->with('success', 'Employee successfully deleted.');
         }
