@@ -13,11 +13,11 @@ return new class extends Migration
     public function up(): void
     {
         $documents = [
-            ['name' => 'Resume', 'is_required' => 1, 'workspace' => 1, 'created_by' => 2, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'NID', 'is_required' => 1, 'workspace' => 1, 'created_by' => 2, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Offer Letter', 'is_required' => 0, 'workspace' => 1, 'created_by' => 2, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Experience Certificate', 'is_required' => 0, 'workspace' => 1, 'created_by' => 2, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Academic Certificates', 'is_required' => 0, 'workspace' => 1, 'created_by' => 2, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Resume', 'is_required' => 1, 'created_by' => 2, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'NID', 'is_required' => 1, 'created_by' => 2, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Offer Letter', 'is_required' => 0, 'created_by' => 2, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Experience Certificate', 'is_required' => 0, 'created_by' => 2, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Academic Certificates', 'is_required' => 0, 'created_by' => 2, 'created_at' => now(), 'updated_at' => now()],
         ];
         DB::table('documents')->insert($documents);
     }
