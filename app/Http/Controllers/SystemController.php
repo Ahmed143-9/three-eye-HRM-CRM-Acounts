@@ -24,7 +24,7 @@ class SystemController extends Controller
 {
     public function index()
     {
-        if (\Auth::user()->can('manage system settings')) {
+        if (\Auth::user()->can('Manage System Settings')) {
             $settings = Utility::settings();
             $admin_payment_setting = Utility::getAdminPaymentSetting();
             $file_size = 0;
@@ -42,7 +42,7 @@ class SystemController extends Controller
     public function store(Request $request)
     {
 
-        if (\Auth::user()->can('manage system settings')) {
+        if (\Auth::user()->can('Manage System Settings')) {
             if ($request->logo_dark) {
                 $logoName = 'logo-dark.png';
                 $dir = 'uploads/logo/';
@@ -159,7 +159,7 @@ class SystemController extends Controller
 
     public function saveEmailSettings(Request $request)
     {
-        if (\Auth::user()->can('manage system settings')) {
+        if (\Auth::user()->can('Manage System Settings')) {
             $request->validate(
                 [
                     'mail_driver' => 'required|string|max:255',
@@ -240,7 +240,7 @@ class SystemController extends Controller
     public function saveCompanySettings(Request $request)
     {
 
-        if (\Auth::user()->can('manage system settings')) {
+        if (\Auth::user()->can('Manage System Settings')) {
             $user = \Auth::user();
             $request->validate(
                 [
@@ -310,7 +310,7 @@ class SystemController extends Controller
     public function saveSystemSettings(Request $request)
     {
 
-        if (\Auth::user()->can('manage system settings')) {
+        if (\Auth::user()->can('Manage System Settings')) {
             $user = \Auth::user();
 
             $post = $request->all();
@@ -498,7 +498,7 @@ class SystemController extends Controller
 
     public function companyIndex(Request $request)
     {
-        if (\Auth::user()->can('manage system settings')) {
+        if (\Auth::user()->can('Manage System Settings')) {
 
             if ($request->offerlangs) {
                 $offerlang = $request->offerlangs;
