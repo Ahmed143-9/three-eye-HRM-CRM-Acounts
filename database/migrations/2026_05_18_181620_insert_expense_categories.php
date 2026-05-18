@@ -28,4 +28,4 @@ return new class extends Migration
     {
         DB::table('erp_expense_categories')->whereIn('name', ['Stationary', 'Entertainment', 'MISC'])->delete();
     }
-}
+};
