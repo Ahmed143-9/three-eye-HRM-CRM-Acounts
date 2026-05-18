@@ -118,30 +118,32 @@ class EmployeeController extends Controller
             $plan           = Plan::find($objUser->plan);
             $settings = Utility::settings();
 
-            if($total_employee < $plan->max_users || $plan->max_users == -1)
-            {
-                $user = User::create(
-                    [
-                        'name' => $request['name'],
-                        'email' => $request['email'],
-                        'password' => Hash::make(!empty($request['password']) ? $request['password'] : \Str::random(16)),
-                        'type' => 'employee',
-                        'lang' => 'en',
-                        'created_by' => \Auth::user()->creatorId(),
-                    ]
-                );
-                if ($settings['email_verification'] == 'on') {
-                    $user->email_verified_at = null;
-                } else {
-                    $user->email_verified_at = date('Y-m-d H:i:s');
+            \Illuminate\Support\Facades\DB::beginTransaction();
+            try {
+                if($total_employee < $plan->max_users || $plan->max_users == -1)
+                {
+                    $user = User::create(
+                        [
+                            'name' => $request['name'],
+                            'email' => $request['email'],
+                            'password' => Hash::make(!empty($request['password']) ? $request['password'] : \Str::random(16)),
+                            'type' => 'employee',
+                            'lang' => 'en',
+                            'created_by' => \Auth::user()->creatorId(),
+                        ]
+                    );
+                    if ($settings['email_verification'] == 'on') {
+                        $user->email_verified_at = null;
+                    } else {
+                        $user->email_verified_at = date('Y-m-d H:i:s');
+                    }
+                    $user->save();
+                    $user->assignRole('Employee');
                 }
-                $user->save();
-                $user->assignRole('Employee');
-            }
-            else
-            {
-                return redirect()->back()->with('error', __('Your employee limit is over, Please upgrade plan.'));
-            }
+                else
+                {
+                    return redirect()->back()->with('error', __('Your employee limit is over, Please upgrade plan.'));
+                }
 
 
             if(!empty($request->document) && !is_null($request->document))
@@ -286,6 +288,8 @@ class EmployeeController extends Controller
 
             $setings = Utility::settings();
 
+            \Illuminate\Support\Facades\DB::commit();
+            
             if($setings['new_user'] == 1)
             {
                 $userArr = [
@@ -302,6 +306,10 @@ class EmployeeController extends Controller
             }
 
             return redirect()->route('employee.index')->with('success', __('Employee  successfully created.'));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return redirect()->back()->withInput()->with('error', __('Employee creation failed: ') . $e->getMessage());
+        }
 
         }
         else

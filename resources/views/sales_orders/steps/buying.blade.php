@@ -27,6 +27,7 @@
                         <th>{{ __('Qty') }}</th>
                         <th>{{ __('Unit') }}</th>
                         <th>{{ __('Price') }}</th>
+                        <th>{{ __('Currency') }}</th>
                         <th>{{ __('Total') }}</th>
                         <th>{{ __('Action') }}</th>
                     </tr>
@@ -47,6 +48,14 @@
                                 </select>
                             </td>
                             <td><input type="number" step="0.01" name="items[{{ $index }}][price]" class="form-control b-price" value="{{ $item->price }}" required></td>
+                            <td>
+                                <select name="items[{{ $index }}][currency]" class="form-control curr-select" required>
+                                    @foreach($currencies as $val => $label)
+                                        <option value="{{ $val }}" {{ ($item->currency ?? 'D.') == $val ? 'selected' : '' }}>{{ $label }}</option>
+                                    @endforeach
+                                    <option value="ADD_NEW_CURR" class="text-primary fw-bold">+ {{ __('Add New') }}</option>
+                                </select>
+                            </td>
                             <td><input type="number" step="0.01" name="items[{{ $index }}][total]" class="form-control b-total" value="{{ $item->total }}" readonly></td>
                             <td><button type="button" class="btn btn-danger btn-sm remove-b-item"><i class="ti ti-trash"></i></button></td>
                         </tr>
@@ -65,6 +74,14 @@
                                 </select>
                             </td>
                             <td><input type="number" step="0.01" name="items[0][price]" class="form-control b-price" required></td>
+                            <td>
+                                <select name="items[0][currency]" class="form-control curr-select" required>
+                                    @foreach($currencies as $val => $label)
+                                        <option value="{{ $val }}" {{ $val == 'D.' ? 'selected' : '' }}>{{ $label }}</option>
+                                    @endforeach
+                                    <option value="ADD_NEW_CURR" class="text-primary fw-bold">+ {{ __('Add New') }}</option>
+                                </select>
+                            </td>
                             <td><input type="number" step="0.01" name="items[0][total]" class="form-control b-total" value="0.00" readonly></td>
                             <td><button type="button" class="btn btn-danger btn-sm remove-b-item"><i class="ti ti-trash"></i></button></td>
                         </tr>
@@ -106,6 +123,12 @@
                     </select>
                 </td>
                 <td><input type="number" step="0.01" name="items[${index}][price]" class="form-control b-price" required></td>
+                <td>
+                    <select name="items[${index}][currency]" class="form-control curr-select" required>
+                        @foreach($currencies as $val => $label)<option value="{{ $val }}" {{ $val == 'D.' ? 'selected' : '' }}>{{ $label }}</option>@endforeach
+                        <option value="ADD_NEW_CURR" class="text-primary fw-bold">+ {{ __('Add New') }}</option>
+                    </select>
+                </td>
                 <td><input type="number" step="0.01" name="items[${index}][total]" class="form-control b-total" value="0.00" readonly></td>
                 <td><button type="button" class="btn btn-danger btn-sm remove-b-item"><i class="ti ti-trash"></i></button></td>
             </tr>`;

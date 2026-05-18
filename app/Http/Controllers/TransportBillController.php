@@ -12,6 +12,7 @@ use App\Models\BillingPayment;
 use App\Models\Utility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class TransportBillController extends Controller
 {
