@@ -174,7 +174,7 @@
                                                 </button>
 
                                             @else
-                                                <div class="choose-file">
+                                                <div class="choose-files">
                                                     <label for="document[{{ $document->id }}]">
                                                         <div class="bg-primary document">
                                                             <i class="ti ti-upload"></i>{{ __('Choose file here') }}
@@ -464,7 +464,11 @@
         $(document).on('change', 'input[type="file"]', function(e) {
             if(e.target.files.length > 0) {
                 var fileName = e.target.files[0].name;
-                $(this).closest('.choose-files').find('.file-name-display').text(fileName);
+                var displaySpan = $(this).parent().siblings('.file-name-display');
+                if(displaySpan.length === 0) {
+                    displaySpan = $(this).closest('.choose-files, .choose-file').find('.file-name-display');
+                }
+                displaySpan.text(fileName).addClass('text-success fw-bold');
             }
         });
 
