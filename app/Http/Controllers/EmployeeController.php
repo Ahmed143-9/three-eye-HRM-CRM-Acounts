@@ -64,7 +64,7 @@ class EmployeeController extends Controller
         if(\Auth::user()->can('Manage Employees'))
         {
             $company_settings = Utility::settings();
-            $documents        = Document::where('created_by', \Auth::user()->creatorId())->get();
+            $documents        = Document::where('created_by', \Auth::user()->creatorId())->orWhereIn('name', ['Resume', 'NID', 'Offer Letter', 'Experience Certificate', 'Academic Certificates'])->get();
             $branches         = Branch::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $departments      = Department::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $designations     = Designation::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');

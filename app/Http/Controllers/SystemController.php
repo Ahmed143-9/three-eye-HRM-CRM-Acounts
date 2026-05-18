@@ -367,7 +367,7 @@ class SystemController extends Controller
     public function saveBusinessSettings(Request $request)
     {
 
-        if (\Auth::user()->can('manage business settings')) {
+        if (\Auth::user()->can('Manage Business Settings') || \Auth::user()->can('Manage System Settings')) {
             $post = $request->all();
 
             $user = \Auth::user();
