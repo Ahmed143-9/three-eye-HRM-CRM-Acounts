@@ -561,25 +561,7 @@ class JobApplicationController extends Controller
                 ]
             );
             $user->save();
-            
-            $employeeRole = \Spatie\Permission\Models\Role::where('created_by', \Auth::user()->creatorId())
-                ->where(function($q) {
-                    $q->where('name', 'Employee')->orWhere('name', 'employee');
-                })
-                ->first();
-
-            if ($employeeRole) {
-                $user->assignRole($employeeRole);
-            } else {
-                $globalEmployeeRole = \Spatie\Permission\Models\Role::where(function($q) {
-                    $q->where('name', 'Employee')->orWhere('name', 'employee');
-                })->first();
-                if ($globalEmployeeRole) {
-                    $user->assignRole($globalEmployeeRole);
-                } else {
-                    $user->assignRole('Employee');
-                }
-            }
+            Utility::assignEmployeeRole($user);
         }
         else
         {

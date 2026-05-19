@@ -546,6 +546,53 @@ class Utility extends Model
         return self::$languageSetting;
     }
 
+    public static function assignEmployeeRole($user)
+    {
+        $employeeRole = \Spatie\Permission\Models\Role::where(function($q) {
+            $q->where('name', 'Employee')->orWhere('name', 'employee');
+        })
+        ->where('guard_name', 'web')
+        ->first();
+
+        if (!$employeeRole) {
+            $employeeRole = \Spatie\Permission\Models\Role::create([
+                'name' => 'Employee',
+                'guard_name' => 'web',
+                'created_by' => $user->created_by ?? 0
+            ]);
+
+            $employeePermission = [
+                'show hrm dashboard',
+                'manage user',
+                'manage employee',
+                'view employee',
+                'manage employee profile',
+                'show employee profile',
+                'manage pay slip',
+                'manage company policy',
+                'manage event',
+                'manage meeting',
+                'manage award',
+                'manage promotion',
+                'manage complaint',
+                'manage warning',
+                'manage termination',
+                'manage job',
+                'show job',
+                'manage holiday',
+                'manage announcement',
+                'manage leave',
+            ];
+
+            $existingPermissions = \Spatie\Permission\Models\Permission::whereIn('name', $employeePermission)->where('guard_name', 'web')->pluck('name');
+            if ($existingPermissions->isNotEmpty()) {
+                $employeeRole->syncPermissions($existingPermissions);
+            }
+        }
+
+        $user->assignRole($employeeRole);
+    }
+
     public static function getValByName($key)
     {
 

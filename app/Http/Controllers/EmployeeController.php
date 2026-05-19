@@ -138,25 +138,7 @@ class EmployeeController extends Controller
                         $user->email_verified_at = date('Y-m-d H:i:s');
                     }
                     $user->save();
-                    
-                    $employeeRole = \Spatie\Permission\Models\Role::where('created_by', \Auth::user()->creatorId())
-                        ->where(function($q) {
-                            $q->where('name', 'Employee')->orWhere('name', 'employee');
-                        })
-                        ->first();
-
-                    if ($employeeRole) {
-                        $user->assignRole($employeeRole);
-                    } else {
-                        $globalEmployeeRole = \Spatie\Permission\Models\Role::where(function($q) {
-                            $q->where('name', 'Employee')->orWhere('name', 'employee');
-                        })->first();
-                        if ($globalEmployeeRole) {
-                            $user->assignRole($globalEmployeeRole);
-                        } else {
-                            $user->assignRole('Employee');
-                        }
-                    }
+                    Utility::assignEmployeeRole($user);
                 }
                 else
                 {
@@ -1194,24 +1176,7 @@ class EmployeeController extends Controller
                             'created_by' => \Auth::user()->creatorId(),
                         ]
                     );
-                    $employeeRole = \Spatie\Permission\Models\Role::where('created_by', \Auth::user()->creatorId())
-                        ->where(function($q) {
-                            $q->where('name', 'Employee')->orWhere('name', 'employee');
-                        })
-                        ->first();
-
-                    if ($employeeRole) {
-                        $user->assignRole($employeeRole);
-                    } else {
-                        $globalEmployeeRole = \Spatie\Permission\Models\Role::where(function($q) {
-                            $q->where('name', 'Employee')->orWhere('name', 'employee');
-                        })->first();
-                        if ($globalEmployeeRole) {
-                            $user->assignRole($globalEmployeeRole);
-                        } else {
-                            $user->assignRole('Employee');
-                        }
-                    }
+                    Utility::assignEmployeeRole($user);
 
                     Employee::create([
                         'name' => $row[$request->name],
