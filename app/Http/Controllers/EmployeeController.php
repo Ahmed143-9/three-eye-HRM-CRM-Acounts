@@ -322,8 +322,9 @@ class EmployeeController extends Controller
     {
         try{
             $id = Crypt::decrypt($id);
+            $employee = Employee::findOrFail($id);
         } catch (\Exception $e){
-            return redirect()->back()->with('error', __('Something went wrong.'));
+            return redirect()->back()->with('error', __('Employee not found.'));
         }
         if(\Auth::user()->can('Manage Employees'))
         {
@@ -332,11 +333,13 @@ class EmployeeController extends Controller
             $branches->prepend('Select Branch','');
             $departments  = Department::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $designations = Designation::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
-            $employee     = Employee::find($id);
-//            $employeesId  = \Auth::user()->employeeIdFormat($employee->employee_id);
-            $employeesId  = \Auth::user()->employeeIdFormat(!empty($employee) ? $employee->employee_id : '');
+            $employeesId  = \Auth::user()->employeeIdFormat($employee->employee_id);
 
-            $departmentData  = Department::where('created_by', \Auth::user()->creatorId())->where('branch_id',$employee->branch_id)->get()->pluck('name', 'id');
+            $departmentDataQuery = Department::where('created_by', \Auth::user()->creatorId());
+            if (!empty($employee->branch_id)) {
+                $departmentDataQuery->where('branch_id', $employee->branch_id);
+            }
+            $departmentData = $departmentDataQuery->get()->pluck('name', 'id');
 
             // Load emergency contacts with files
             $emergencyContacts = EmployeeEmergencyContact::where('employee_id', $employee->id)
