@@ -45,7 +45,7 @@ class Employee extends Model
 
     public function documents()
     {
-        return $this->hasMany('App\Models\EmployeeDocument', 'employee_id', 'employee_id')->get();
+        return $this->hasMany('App\Models\EmployeeDocument', 'employee_id', 'employee_id');
     }
 
     public function emergencyContacts()
