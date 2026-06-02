@@ -247,7 +247,7 @@
                                                 </button>
 
                                             @else
-                                                <div class="choose-file">
+                                                <div class="choose-files">
                                                     <label for="document[{{ $document->id }}]">
                                                         <div class="bg-primary document">
                                                             <i class="ti ti-upload"></i>{{ __('Choose file here') }}
