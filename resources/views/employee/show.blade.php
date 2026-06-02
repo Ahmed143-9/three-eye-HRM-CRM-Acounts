@@ -194,7 +194,7 @@
                     
                     <div class="row gy-2">
                         @php
-                            $employeedocs = !empty($employee) ? $employee->documents->groupBy('document_id') : [];
+                            $employeedocs = !empty($employee) ? $employee->documents()->get()->groupBy('document_id') : [];
                             $logo = \App\Models\Utility::get_file('uploads/document/');
                         @endphp
                         @if (!$documents->isEmpty())

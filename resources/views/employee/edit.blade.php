@@ -162,7 +162,7 @@
                         </div>
                         <div class="card-body employee-detail-edit-body">
                             @php
-                                $employeedocs = $employee->documents->groupBy('document_id');
+                                $employeedocs = $employee->documents()->get()->groupBy('document_id');
                                 $logo = \App\Models\Utility::get_file('uploads/document/');
                             @endphp
 
