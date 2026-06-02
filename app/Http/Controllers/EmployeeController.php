@@ -666,7 +666,9 @@ class EmployeeController extends Controller
             }
 
             $employee->delete();
-            $user->delete();
+            if ($user) {
+                $user->delete();
+            }
 
             return redirect()->route('employee.index')->with('success', 'Employee successfully deleted.');
         }
