@@ -36,10 +36,15 @@
                         <label class="form-label text-muted small fw-bold text-uppercase">{{ __('Department Focus') }}</label>
                         {{ Form::select('department', $department, isset($_GET['department']) ? $_GET['department'] : '', ['class' => 'p-input w-100 select2']) }}
                     </div>
-                    <div class="col-auto">
+                    <div class="col-auto d-flex gap-2">
                         <button type="submit" class="btn btn-dark px-4 py-2 rounded-pill">
                             <i class="ti ti-adjustments-horizontal me-2"></i> {{ __('Sync Personnel') }}
                         </button>
+                        @can('Manage Attendance')
+                            <a href="#" data-size="md" data-bs-toggle="tooltip" title="{{ __('Import Attendance CSV/Excel') }}" data-url="{{ route('attendance.file.import') }}" data-ajax-popup="true" data-title="{{ __('Import Employee Attendance') }}" class="btn btn-indigo px-4 py-2 rounded-pill text-white shadow-sm" style="background:#4f46e5;">
+                                <i class="ti ti-file-import me-1"></i> {{ __('Upload Sheet') }}
+                            </a>
+                        @endcan
                     </div>
                 </div>
                 {{ Form::close() }}
