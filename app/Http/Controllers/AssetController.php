@@ -86,6 +86,12 @@ class AssetController extends Controller
             }
 
             $asset = new Asset();
+            
+            // Generate Asset Unique Number
+            $latestAsset = Asset::latest('id')->first();
+            $nextId = $latestAsset ? $latestAsset->id + 1 : 1;
+            $asset->asset_unique_number = 'AST-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
+            
             $asset->name = $request->name;
             $asset->quantity = $request->quantity;
             $asset->status = $request->status;
@@ -94,8 +100,12 @@ class AssetController extends Controller
 
             // Handle image upload
             if ($request->hasFile('image')) {
+                $dir = public_path('uploads/assets');
+                if (!file_exists($dir)) {
+                    mkdir($dir, 0777, true);
+                }
                 $imageName = time() . '_' . $request->file('image')->getClientOriginalName();
-                $request->file('image')->move(public_path('uploads/assets'), $imageName);
+                $request->file('image')->move($dir, $imageName);
                 $asset->image = $imageName;
             }
 

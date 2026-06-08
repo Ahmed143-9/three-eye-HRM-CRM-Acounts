@@ -26,6 +26,7 @@
                         <table class="table datatable">
                             <thead>
                             <tr>
+                                <th>{{__('Asset UID')}}</th>
                                 <th>{{__('Asset Name')}}</th>
                                 <th>{{__('Description')}}</th>
                                 <th>{{__('Quantity')}}</th>
@@ -36,6 +37,7 @@
                             <tbody>
                             @foreach ($assets as $asset)
                                 <tr>
+                                    <td>{{ $asset->asset_unique_number }}</td>
                                     <td>{{ $asset->name }}</td>
                                     <td>{{ $asset->description }}</td>
                                     <td>{{ $asset->quantity }}</td>

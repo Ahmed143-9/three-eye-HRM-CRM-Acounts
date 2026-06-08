@@ -73,8 +73,13 @@
                         <i class="ti ti-search me-1"></i> {{ __('Apply Filters') }}
                     </button>
                 {{ Form::close() }}
-                <div class="text-end pe-3">
+                <div class="text-end pe-3 d-flex gap-2 align-items-center">
                     <span class="badge bg-soft-info text-info rounded-pill px-3 py-2 border border-info">{{ __('Live Analytics Enabled') }}</span>
+                    @can('Manage Attendance')
+                        <a href="#" data-size="md" data-bs-toggle="tooltip" title="{{ __('Import Attendance CSV/Excel') }}" data-url="{{ route('attendance.file.import') }}" data-ajax-popup="true" data-title="{{ __('Import Employee Attendance') }}" class="btn btn-indigo px-3 py-2 rounded-pill text-white shadow-sm" style="background:#4f46e5;">
+                            <i class="ti ti-file-import me-1"></i> {{ __('Upload Sheet') }}
+                        </a>
+                    @endcan
                 </div>
             </div>
         </div>
@@ -90,8 +95,11 @@
                                 <th>{{ __('Timeline') }}</th>
                                 <th>{{ __('Personnel Log') }}</th>
                                 <th class="text-center">{{ __('HRM Status') }}</th>
-                                <th class="text-center">{{ __('Session Bound') }}</th>
+                                <th class="text-center">{{ __('Clock In / Out') }}</th>
                                 <th class="text-end">{{ __('Work Yield') }}</th>
+                                @if (Gate::check('Manage Attendance'))
+                                    <th class="text-end">{{ __('Action') }}</th>
+                                @endif
                             </tr>
                         </thead>
                         <tbody>
@@ -131,6 +139,13 @@
                                     <td class="text-end">
                                         <div class="h5 mb-0 fw-bold text-indigo" style="color:#4f46e5;">{{ number_format($attendance->working_hours, 1) }} <small class="text-muted fw-normal">{{ __('Hrs') }}</small></div>
                                     </td>
+                                    @if (Gate::check('Manage Attendance'))
+                                        <td class="text-end">
+                                            <a href="#" data-url="{{ URL::to('attendanceemployee/' . $attendance->id . '/edit') }}" data-size="lg" data-ajax-popup="true" data-title="{{ __('Edit Attendance') }}" class="btn btn-sm btn-info text-white" data-bs-toggle="tooltip" title="{{ __('Edit') }}">
+                                                <i class="ti ti-pencil"></i>
+                                            </a>
+                                        </td>
+                                    @endif
                                 </tr>
                             @empty
                                 <tr>

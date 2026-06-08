@@ -45,78 +45,88 @@ class ErpSalarySheetController extends Controller
             return redirect()->back()->with('error', __('Payroll batch for this month/department already exists.'));
         }
 
-        $batch = ErpPayrollBatch::create([
-            'batch_no'      => 'PB-' . date('Ymd-His'),
-            'month'         => $month,
-            'department_id' => $deptId,
-            'status'        => 'Draft',
-            'created_by'    => Auth::user()->creatorId(),
-        ]);
-
-        $employeesQuery = Employee::where('created_by', Auth::user()->creatorId());
-        if($deptId) {
-            $employeesQuery->where('department_id', $deptId);
-        }
-        $employees = $employeesQuery->get();
-
-        $startDate = $month . '-01';
-        $endDate   = date('Y-m-t', strtotime($startDate));
-        $daysInMonth = (int)date('t', strtotime($startDate));
-
-        $totalBatchPayable = 0;
-
-        foreach($employees as $employee) {
-            $attendances = AttendanceEmployee::where('employee_id', $employee->id)
-                ->whereBetween('date', [$startDate, $endDate])
-                ->get();
-
-            $pCount  = $attendances->where('status', 'Present')->count();
-            $aCount  = $attendances->where('status', 'Absent')->count();
-            $lCount  = $attendances->where('status', 'Late')->count();
-            $lvCount = $attendances->where('status', 'Leave')->count();
-            $hrs     = $attendances->sum('working_hours');
-
-            $ctc = (float)($employee->joining_salary ?? 0);
-            $basic = round($ctc * 0.60, 2);
-            $hra   = round($ctc * 0.20, 2);
-            $conv  = round($ctc * 0.10, 2);
-            $med   = round($ctc * 0.10, 2);
-
-            $dailyPay = $daysInMonth > 0 ? ($ctc / $daysInMonth) : 0;
+        try {
+            \Illuminate\Support\Facades\DB::beginTransaction();
             
-            // ERP Policy: Present, Late, and Approved Leaves are paid.
-            $payableDays = $pCount + $lCount + $lvCount;
-            $payable  = round($dailyPay * $payableDays, 2);
-
-            ErpSalarySheet::create([
-                'batch_id'             => $batch->id,
-                'employee_id'          => $employee->id,
-                'department_id'        => $employee->department_id,
-                'designation_id'       => $employee->designation_id,
-                'month'                => $month,
-                'status'               => 'Draft',
-                'net_salary'           => $ctc,
-                'basic_salary'         => $basic,
-                'hra'                  => $hra,
-                'conveyance_allowance' => $conv,
-                'medical_allowance'    => $med,
-                'present_days'         => $pCount,
-                'absent_days'          => $aCount,
-                'late_count'           => $lCount,
-                'leave_count'          => $lvCount,
-                'working_hours'        => round($hrs, 2),
-                'payable_amount'       => $payable,
-                'final_salary'         => $payable, // Initially equal to payable
-                'created_by'           => Auth::user()->creatorId(),
-                'workspace_id'         => Auth::user()->currentWorkspace ?? 1,
+            $batch = ErpPayrollBatch::create([
+                'batch_no'      => 'PB-' . date('Ymd-His'),
+                'month'         => $month,
+                'department_id' => $deptId,
+                'status'        => 'Draft',
+                'created_by'    => Auth::user()->creatorId(),
             ]);
 
-            $totalBatchPayable += $payable;
+            $employeesQuery = Employee::where('created_by', Auth::user()->creatorId());
+            if($deptId) {
+                $employeesQuery->where('department_id', $deptId);
+            }
+            $employees = $employeesQuery->get();
+
+            $startDate = $month . '-01';
+            $endDate   = date('Y-m-t', strtotime($startDate));
+            $daysInMonth = (int)date('t', strtotime($startDate));
+
+            $totalBatchPayable = 0;
+
+            foreach($employees as $employee) {
+                $attendances = AttendanceEmployee::where('employee_id', $employee->id)
+                    ->whereBetween('date', [$startDate, $endDate])
+                    ->get();
+
+                $pCount  = $attendances->where('status', 'Present')->count();
+                $aCount  = $attendances->where('status', 'Absent')->count();
+                $lCount  = $attendances->where('status', 'Late')->count();
+                $lvCount = $attendances->where('status', 'Leave')->count();
+                $hrs     = $attendances->sum('working_hours');
+
+                $ctc = (float)($employee->joining_salary ?? 0);
+                $basic = round($ctc * 0.60, 2);
+                $hra   = round($ctc * 0.20, 2);
+                $conv  = round($ctc * 0.10, 2);
+                $med   = round($ctc * 0.10, 2);
+
+                $dailyPay = $daysInMonth > 0 ? ($ctc / $daysInMonth) : 0;
+                
+                // ERP Policy: Present, Late, and Approved Leaves are paid.
+                $payableDays = $pCount + $lCount + $lvCount;
+                $payable  = round($dailyPay * $payableDays, 2);
+
+                ErpSalarySheet::create([
+                    'batch_id'             => $batch->id,
+                    'employee_id'          => $employee->id,
+                    'department_id'        => $employee->department_id,
+                    'designation_id'       => $employee->designation_id,
+                    'month'                => $month,
+                    'status'               => 'Draft',
+                    'net_salary'           => $ctc,
+                    'basic_salary'         => $basic,
+                    'hra'                  => $hra,
+                    'conveyance_allowance' => $conv,
+                    'medical_allowance'    => $med,
+                    'present_days'         => $pCount,
+                    'absent_days'          => $aCount,
+                    'late_count'           => $lCount,
+                    'leave_count'          => $lvCount,
+                    'working_hours'        => round($hrs, 2),
+                    'payable_amount'       => $payable,
+                    'final_salary'         => $payable, // Initially equal to payable
+                    'created_by'           => Auth::user()->creatorId(),
+                    'workspace_id'         => Auth::user()->currentWorkspace ?? 1,
+                ]);
+
+                $totalBatchPayable += $payable;
+            }
+
+            $batch->update(['total_net_payable' => $totalBatchPayable]);
+            
+            \Illuminate\Support\Facades\DB::commit();
+
+            return redirect()->route('salary-management.show', $batch->id)->with('success', __('Payroll batch generated with :count records.', ['count' => count($employees)]));
+            
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return redirect()->back()->with('error', __('Failed to generate salary sheet: ') . $e->getMessage());
         }
-
-        $batch->update(['total_net_payable' => $totalBatchPayable]);
-
-        return redirect()->route('salary-management.show', $batch->id)->with('success', __('Payroll batch generated with :count records.', ['count' => count($employees)]));
     }
 
     public function show($id)

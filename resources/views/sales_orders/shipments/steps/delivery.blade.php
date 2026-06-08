@@ -8,12 +8,25 @@
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">
+            @php
+                $existingModes = \App\Models\SalesDelivery::select('delivery_mode')->distinct()->pluck('delivery_mode')->filter()->toArray();
+                $defaultModes = ['Road', 'Rail', 'Sea'];
+                $allModes = array_unique(array_merge($defaultModes, $existingModes));
+                
+                $existingPacking = \App\Models\SalesDelivery::select('packing_type')->distinct()->pluck('packing_type')->filter()->toArray();
+                $defaultPacking = ['200 kg drum', '1000 kg IBC'];
+                $allPacking = array_unique(array_merge($defaultPacking, $existingPacking));
+                
+                $existingUnits = \App\Models\SalesDelivery::select('drum_unit')->distinct()->pluck('drum_unit')->filter()->toArray();
+                $defaultUnits = ['Pcs', 'Drums', 'IBCs', 'MT', 'KG'];
+                $allUnits = array_unique(array_merge($defaultUnits, $existingUnits));
+            @endphp
             {{ Form::label('delivery_mode', __('Delivery Mode'), ['class' => 'form-label']) }}
             <select name="delivery_mode" id="delivery_mode" class="form-control" required>
                 <option value="">{{ __('Select Delivery Mode') }}</option>
-                <option value="Road" {{ (isset($active_ci->delivery) && $active_ci->delivery->delivery_mode == 'Road') ? 'selected' : '' }}>Road</option>
-                <option value="Rail" {{ (isset($active_ci->delivery) && $active_ci->delivery->delivery_mode == 'Rail') ? 'selected' : '' }}>Rail</option>
-                <option value="Sea" {{ (isset($active_ci->delivery) && $active_ci->delivery->delivery_mode == 'Sea') ? 'selected' : '' }}>Sea</option>
+                @foreach($allModes as $mode)
+                    <option value="{{ $mode }}" {{ (isset($active_ci->delivery) && $active_ci->delivery->delivery_mode == $mode) ? 'selected' : '' }}>{{ $mode }}</option>
+                @endforeach
                 <option value="ADD_NEW_MODE" class="text-primary fw-bold">+ {{ __('Add New') }}</option>
             </select>
         </div>
@@ -24,8 +37,13 @@
             {{ Form::label('packing_type', __('Packing Type'), ['class' => 'form-label']) }}
             <select name="packing_type" id="packing_type" class="form-control" required>
                 <option value="">{{ __('Select Packing Type') }}</option>
-                <option value="200 kg drum" data-val="200" {{ (optional(optional($active_ci)->delivery)->packing_type == '200 kg drum') ? 'selected' : '' }}>200 kg drum</option>
-                <option value="1000 kg IBC" data-val="1000" {{ (optional(optional($active_ci)->delivery)->packing_type == '1000 kg IBC') ? 'selected' : '' }}>1000 kg IBC</option>
+                @foreach($allPacking as $packing)
+                    @php 
+                        $numVal = filter_var($packing, FILTER_SANITIZE_NUMBER_INT);
+                        $numVal = $numVal ? $numVal : '0';
+                    @endphp
+                    <option value="{{ $packing }}" data-val="{{ $numVal }}" {{ (optional(optional($active_ci)->delivery)->packing_type == $packing) ? 'selected' : '' }}>{{ $packing }}</option>
+                @endforeach
                 <option value="ADD_NEW_PACKING" class="text-primary fw-bold">+ {{ __('Add New') }}</option>
             </select>
             <input type="hidden" id="packing_weight" value="{{ (optional(optional($active_ci)->delivery)->packing_type) ? filter_var($active_ci->delivery->packing_type, FILTER_SANITIZE_NUMBER_INT) : '0' }}">
@@ -79,7 +97,12 @@
             <div class="col-md-3">
                 <div class="form-group">
                     {{ Form::label('drum_unit', __('Unit'), ['class' => 'form-label']) }}
-                    {{ Form::text('drum_unit', optional(optional($active_ci)->delivery)->drum_unit ?? 'Pcs', ['class' => 'form-control', 'placeholder' => 'e.g. Pcs']) }}
+                    <select name="drum_unit" id="drum_unit" class="form-control">
+                        @foreach($allUnits as $unit)
+                            <option value="{{ $unit }}" {{ (optional(optional($active_ci)->delivery)->drum_unit == $unit || (!optional($active_ci)->delivery && $unit == 'Pcs')) ? 'selected' : '' }}>{{ $unit }}</option>
+                        @endforeach
+                        <option value="ADD_NEW_UNIT" class="text-primary fw-bold">+ {{ __('Add New') }}</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -196,6 +219,19 @@
                     select.append(newOption).trigger('change');
                 } else {
                     select.val('');
+                }
+            }
+        });
+
+        $('#drum_unit').on('change', function() {
+            var select = $(this);
+            if (select.val() === 'ADD_NEW_UNIT') {
+                var newName = prompt("{{ __('Enter new unit (e.g. Bottles):') }}");
+                if (newName) {
+                    var newOption = new Option(newName, newName, true, true);
+                    select.append(newOption).trigger('change');
+                } else {
+                    select.val('Pcs');
                 }
             }
         });

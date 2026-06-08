@@ -13,6 +13,18 @@
 <div class="animate-fade-in">
     <div class="row">
         <div class="col-12">
+            @if (session('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {!! session('success') !!}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {!! session('error') !!}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
             <div class="glass-panel p-4 mb-4 shadow-sm border-0">
                 {{ Form::open(['route' => ['attendanceemployee.bulkattendance'], 'method' => 'get', 'id' => 'att_filter']) }}
                 <div class="row align-items-end g-3">
@@ -52,11 +64,11 @@
                         <table class="premium-table">
                             <thead>
                                 <tr>
-                                    <th>{{ __('Identity') }}</th>
-                                    <th>{{ __('HRM Metrics') }}</th>
+                                    <th>{{ __('Employee') }}</th>
+                                    <th>{{ __('Dept / Designation') }}</th>
                                     <th class="text-center">{{ __('Reporting Status') }}</th>
-                                    <th class="text-center">{{ __('Schedule Log') }}</th>
-                                    <th class="text-center">{{ __('Daily Yield') }}</th>
+                                    <th class="text-center">{{ __('Clock In / Out') }}</th>
+                                    <th class="text-center">{{ __('Work Hours') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -106,7 +118,7 @@
                                                 </div>
                                             </div>
                                             <div class="text-muted small timeline-empty-{{ $employee->id }} {{ ($status == 'Present' || $status == 'Late') ? 'd-none' : '' }}">
-                                                <i class="ti ti-clock-off opacity-50"></i>
+                                                <span class="badge bg-danger">{{ __('No Clock In/Out Required') }}</span>
                                             </div>
                                         </td>
                                         <td class="text-center">

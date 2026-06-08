@@ -90,9 +90,9 @@ class LeaveController extends Controller
 
             if ($leave_type && $leave_type->is_attachment_required) {
                 $rules['attachments'] = 'required';
-                $rules['attachments.*'] = 'file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120';
+                $rules['attachments.*'] = 'file|mimes:pdf,jpg,jpeg,png,webp,doc,docx|max:5120';
             } else {
-                $rules['attachments.*'] = 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120';
+                $rules['attachments.*'] = 'nullable|file|mimes:pdf,jpg,jpeg,png,webp,doc,docx|max:5120';
             }
 
             $validator = \Validator::make($request->all(), $rules);
@@ -248,7 +248,7 @@ class LeaveController extends Controller
                 if ($leave_type && $leave_type->is_attachment_required && $existingCount === 0) {
                     $rules['attachments'] = 'required';
                 }
-                $rules['attachments.*'] = 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120';
+                $rules['attachments.*'] = 'nullable|file|mimes:pdf,jpg,jpeg,png,webp,doc,docx|max:5120';
 
                 $validator = \Validator::make($request->all(), $rules);
                 if($validator->fails())

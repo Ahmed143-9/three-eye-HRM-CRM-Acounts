@@ -25,7 +25,9 @@ class EmployeeAssetController extends Controller
     {
         if (\Auth::user()->can('Manage Assets')) {
             $employees = Employee::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
-            $company_assets = Asset::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
+            $company_assets = Asset::where('created_by', \Auth::user()->creatorId())->get()->mapWithKeys(function ($asset) {
+                return [$asset->id => ($asset->asset_unique_number ? $asset->asset_unique_number . ' - ' : '') . $asset->name];
+            });
             $company_assets->prepend(__('Select Asset (Optional)'), '');
             return view('employee_assets.create', compact('employees', 'company_assets'));
         } else {
@@ -75,7 +77,9 @@ class EmployeeAssetController extends Controller
     {
         if (\Auth::user()->can('Manage Assets')) {
             $employees = Employee::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
-            $company_assets = Asset::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
+            $company_assets = Asset::where('created_by', \Auth::user()->creatorId())->get()->mapWithKeys(function ($asset) {
+                return [$asset->id => ($asset->asset_unique_number ? $asset->asset_unique_number . ' - ' : '') . $asset->name];
+            });
             $company_assets->prepend(__('Select Asset (Optional)'), '');
             return view('employee_assets.edit', compact('employee_asset', 'employees', 'company_assets'));
         } else {

@@ -299,9 +299,9 @@ class EmployeeController extends Controller
 
                 try {
                     $resp = Utility::sendEmailTemplate('new_user', [$user->id => $user->email], $userArr);
-                    return redirect()->route('employee.index')->with('success', __('Employee successfully created.') . ((!empty($resp) && isset($resp['is_success']) && $resp['is_success'] == false && !empty($resp['error'])) ? '<br> <span class="text-danger">' . $resp['error'] . '</span>' : ''));
+                    return redirect()->route('employee.index')->with('success', __('Employee successfully created.') . ((!empty($resp) && isset($resp['is_success']) && $resp['is_success'] == false && !empty($resp['error'])) ? '<br> <span class="text-danger">' . __('Email failed to send.') . '</span>' : ''));
                 } catch (\Exception $e) {
-                    return redirect()->route('employee.index')->with('success', __('Employee successfully created.') . '<br> <span class="text-danger">' . __('SMTP Error: ') . $e->getMessage() . '</span>');
+                    return redirect()->route('employee.index')->with('success', __('Employee successfully created.') . '<br> <span class="text-danger">' . __('Email failed to send (SMTP configuration issue).') . '</span>');
                 }
             }
 

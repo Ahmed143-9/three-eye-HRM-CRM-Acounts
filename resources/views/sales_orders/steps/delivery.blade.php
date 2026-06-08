@@ -6,12 +6,21 @@
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">
+            @php
+                $existingModes = \App\Models\SalesDelivery::select('delivery_mode')->distinct()->pluck('delivery_mode')->filter()->toArray();
+                $defaultModes = ['Road', 'Rail', 'Sea'];
+                $allModes = array_unique(array_merge($defaultModes, $existingModes));
+                
+                $existingPacking = \App\Models\SalesDelivery::select('packing_type')->distinct()->pluck('packing_type')->filter()->toArray();
+                $defaultPacking = ['200 kg drum', '1000 kg IBC'];
+                $allPacking = array_unique(array_merge($defaultPacking, $existingPacking));
+            @endphp
             {{ Form::label('delivery_mode', __('Delivery Mode'), ['class' => 'form-label']) }}
             <select name="delivery_mode" id="delivery_mode" class="form-control select2" required>
                 <option value="">{{ __('Select Delivery Mode') }}</option>
-                <option value="Road" {{ (isset($order->delivery) && $order->delivery->delivery_mode == 'Road') ? 'selected' : '' }}>Road</option>
-                <option value="Rail" {{ (isset($order->delivery) && $order->delivery->delivery_mode == 'Rail') ? 'selected' : '' }}>Rail</option>
-                <option value="Sea" {{ (isset($order->delivery) && $order->delivery->delivery_mode == 'Sea') ? 'selected' : '' }}>Sea</option>
+                @foreach($allModes as $mode)
+                    <option value="{{ $mode }}" {{ (isset($order->delivery) && $order->delivery->delivery_mode == $mode) ? 'selected' : '' }}>{{ $mode }}</option>
+                @endforeach
                 <option value="ADD_NEW_MODE" class="text-primary fw-bold">+ {{ __('Add New') }}</option>
             </select>
         </div>
@@ -22,8 +31,13 @@
             {{ Form::label('packing_type', __('Packing Type'), ['class' => 'form-label']) }}
             <select name="packing_type" id="packing_type" class="form-control select2" required>
                 <option value="">{{ __('Select Packing Type') }}</option>
-                <option value="200 kg drum" data-val="200" {{ (isset($order->delivery) && $order->delivery->packing_type == '200 kg drum') ? 'selected' : '' }}>200 kg drum</option>
-                <option value="1000 kg IBC" data-val="1000" {{ (isset($order->delivery) && $order->delivery->packing_type == '1000 kg IBC') ? 'selected' : '' }}>1000 kg IBC</option>
+                @foreach($allPacking as $packing)
+                    @php 
+                        $numVal = filter_var($packing, FILTER_SANITIZE_NUMBER_INT);
+                        $numVal = $numVal ? $numVal : '0';
+                    @endphp
+                    <option value="{{ $packing }}" data-val="{{ $numVal }}" {{ (isset($order->delivery) && $order->delivery->packing_type == $packing) ? 'selected' : '' }}>{{ $packing }}</option>
+                @endforeach
                 <option value="ADD_NEW_PACKING" class="text-primary fw-bold">+ {{ __('Add New') }}</option>
             </select>
             <input type="hidden" id="packing_weight" value="{{ isset($order->delivery) ? filter_var($order->delivery->packing_type, FILTER_SANITIZE_NUMBER_INT) : '0' }}">
