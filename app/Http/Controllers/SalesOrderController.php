@@ -362,13 +362,12 @@ class SalesOrderController extends Controller
 
             $ci_id = $request->ci_id ?? session('active_ci_id');
 
-            $cn = SalesConsignmentNote::updateOrCreate(
-                ['ci_id' => $ci_id],
-                [
-                    'order_id' => $order->id,
-                    'file_path' => $filePath ?? null
-                ]
-            );
+            $cn = SalesConsignmentNote::firstOrNew(['ci_id' => $ci_id]);
+            $cn->order_id = $order->id;
+            if (isset($filePath)) {
+                $cn->file_path = $filePath;
+            }
+            $cn->save();
 
             // Handle per-tanker files if any
             if ($request->hasFile('tanker_files')) {

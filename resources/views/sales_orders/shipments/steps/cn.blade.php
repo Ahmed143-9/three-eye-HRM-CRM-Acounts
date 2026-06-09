@@ -28,13 +28,13 @@
                                    class="form-control"
                                    accept="image/*,application/pdf">
                             @if($tanker->file_path)
-                                <div class="mt-1">
-                                    <a href="{{ asset($tanker->file_path) }}"
-                                       target="_blank"
-                                       class="btn btn-xs btn-outline-info">
-                                        <i class="ti ti-eye me-1"></i>{{ __('View') }}
+                                <div class="mt-2 p-2 border rounded bg-light d-flex align-items-center justify-content-between">
+                                    <span class="text-success small fw-bold"><i class="ti ti-check me-1"></i>{{ __('Uploaded') }}</span>
+                                    <a href="{{ asset($tanker->file_path) }}" target="_blank" class="btn btn-xs btn-info" data-bs-toggle="tooltip" title="{{ __('View') }}">
+                                        <i class="ti ti-eye"></i>
                                     </a>
                                 </div>
+                                <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">* {{ __('Leave empty to keep existing file') }}</small>
                             @endif
                         </div>
                     </div>
@@ -45,11 +45,13 @@
         <div class="col-md-6">
             <div class="form-group">
                 {{ Form::label('file', __('Upload Consignment Note for ') . ($active_ci->ci_number ?? ''), ['class' => 'form-label']) }}
-                {{ Form::file('file', ['class' => 'form-control', ($active_ci && $active_ci->consignmentNote) ? '' : 'required']) }}
+                {{ Form::file('file', ['class' => 'form-control', ($active_ci && $active_ci->consignmentNote && $active_ci->consignmentNote->file_path) ? '' : 'required']) }}
                 @if($active_ci && $active_ci->consignmentNote && $active_ci->consignmentNote->file_path)
-                    <div class="mt-2">
-                        <a href="{{ asset($active_ci->consignmentNote->file_path) }}" target="_blank" class="btn btn-sm btn-info">{{ __('View Uploaded Note') }}</a>
+                    <div class="mt-2 p-2 border rounded bg-light d-flex align-items-center justify-content-between" style="max-width: 300px;">
+                        <span class="text-success small fw-bold"><i class="ti ti-check me-1"></i>{{ __('Already Uploaded') }}</span>
+                        <a href="{{ asset($active_ci->consignmentNote->file_path) }}" target="_blank" class="btn btn-sm btn-info">{{ __('View') }}</a>
                     </div>
+                    <small class="text-muted d-block mt-1">* {{ __('Leave empty to keep existing file') }}</small>
                 @endif
             </div>
         </div>
