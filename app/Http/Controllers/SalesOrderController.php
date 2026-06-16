@@ -751,4 +751,13 @@ class SalesOrderController extends Controller
 
         return ucfirst($string);
     }
+    public function destroy($id)
+    {
+        $order = SalesOrder::find($id);
+        if ($order) {
+            $order->delete();
+            return redirect()->route('sales-orders.index')->with('success', __('Sales Order deleted successfully.'));
+        }
+        return redirect()->route('sales-orders.index')->with('error', __('Sales Order not found.'));
+    }
 }

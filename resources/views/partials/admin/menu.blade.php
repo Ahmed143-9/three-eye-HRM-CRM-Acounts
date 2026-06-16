@@ -283,6 +283,13 @@
                                 </span><span class="dash-arrow"><i data-feather="chevron-right"></i></span>
                             </a>
                             <ul class="dash-submenu">
+                                @can('Manage Accounting Setup')
+                                    <li
+                                        class="dash-item {{ Request::segment(1) == 'accounting-clients' || Request::segment(1) == 'suppliers' || Request::segment(1) == 'consultants' ? 'active dash-trigger' : '' }}">
+                                        <a class="dash-link"
+                                            href="{{ route('accounting-clients.index') }}">{{ __('Accounting Setup') }}</a>
+                                    </li>
+                                @endcan
                                 @can('Manage Payables & Receivables')
                                 <li
                                     class="dash-item {{ Request::segment(1) == 'payables' ? 'active' : '' }}">
@@ -374,13 +381,6 @@
                                 @endcan
 
 
-                                @can('Manage Accounting Setup')
-                                    <li
-                                        class="dash-item {{ Request::segment(1) == 'accounting-clients' || Request::segment(1) == 'suppliers' || Request::segment(1) == 'consultants' ? 'active dash-trigger' : '' }}">
-                                        <a class="dash-link"
-                                            href="{{ route('accounting-clients.index') }}">{{ __('Accounting Setup') }}</a>
-                                    </li>
-                                @endcan
 
                                 @if (Gate::check('Manage Petty Cash') || \Auth::user()->type == 'company')
                                     <li class="dash-item {{ Request::segment(1) == 'petty-cash' ? 'active' : '' }}">

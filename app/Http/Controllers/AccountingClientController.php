@@ -48,7 +48,9 @@ class AccountingClientController extends Controller
             'factory_address' => 'nullable|string',
             'billing_address' => 'nullable|string',
             'delivery_address' => 'nullable|string',
-            'bank_details' => 'nullable|string',
+            'bank_name' => 'nullable|string',
+            'bank_branch' => 'nullable|string',
+            'bank_account_number' => 'nullable|string',
             'file_attachment' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:2048',
         ]);
 
@@ -102,7 +104,9 @@ class AccountingClientController extends Controller
             'factory_address' => 'nullable|string',
             'billing_address' => 'nullable|string',
             'delivery_address' => 'nullable|string',
-            'bank_details' => 'nullable|string',
+            'bank_name' => 'nullable|string',
+            'bank_branch' => 'nullable|string',
+            'bank_account_number' => 'nullable|string',
             'file_attachment' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:2048',
         ]);
 

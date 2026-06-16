@@ -73,9 +73,20 @@
 
                         <hr class="my-4">
                         
-                        <div class="form-group col-md-6">
-                            <label class="form-label">{{ __('Bank Details') }}</label>
-                            <textarea class="form-control" name="bank_details" rows="3"></textarea>
+                        <div class="form-group col-md-12">
+                            <h5 class="mb-3">{{ __('Bank Details') }}</h5>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="form-label">{{ __('Bank Name') }}</label>
+                            <input type="text" class="form-control" name="bank_name">
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="form-label">{{ __('Bank Branch') }}</label>
+                            <input type="text" class="form-control" name="bank_branch">
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="form-label">{{ __('Account Number') }}</label>
+                            <input type="text" class="form-control" name="bank_account_number">
                         </div>
                         <div class="form-group col-md-6">
                             <label class="form-label">{{ __('File Attachment') }}</label>
