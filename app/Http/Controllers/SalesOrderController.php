@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
- 
+
 use App\Models\Client;
 use App\Models\SalesCI;
 use App\Models\SalesCITanker;
@@ -39,14 +39,14 @@ class SalesOrderController extends Controller
     public function fullReport($id)
     {
         $order = SalesOrder::where('id', $id)->with([
-            'buying.items', 
-            'po.items', 
-            'pi', 
-            'lc', 
-            'cis.tankers', 
-            'cis.packingList', 
-            'cis.consignmentNote.weightSlips', 
-            'cis.delivery', 
+            'buying.items',
+            'po.items',
+            'pi',
+            'lc',
+            'cis.tankers',
+            'cis.packingList',
+            'cis.consignmentNote.weightSlips',
+            'cis.delivery',
             'customer'
         ])->first();
 
@@ -57,11 +57,11 @@ class SalesOrderController extends Controller
     {
         // Get creator ID and allowed creator IDs
         $creatorId = Auth::user()->creatorId();
-        
+
         $customers = Client::where('created_by', $creatorId)
             ->orWhere('id', '>', 0) // Broaden to ensure accessibility
             ->get()->pluck('name', 'id');
-        
+
         return view('sales_orders.create', compact('customers'));
     }
 
@@ -87,17 +87,21 @@ class SalesOrderController extends Controller
     public function show($id)
     {
         $order = SalesOrder::where('id', $id)->with(['buying.items', 'po.items', 'pi', 'lc', 'ci.tankers', 'cis.tankers', 'cis.packingList.items', 'cis.consignmentNote.weightSlips', 'cis.delivery', 'customer'])->first();
-        
+
         $units = \App\Models\ProductServiceUnit::where('created_by', Auth::user()->creatorId())->get()->pluck('name', 'name')->toArray();
         $currencies = \App\Models\SalesCurrency::where('created_by', Auth::user()->creatorId())->get()->pluck('code', 'code')->toArray();
         $suppliers = Supplier::where('created_by', Auth::user()->creatorId())->get()->pluck('name', 'id')->toArray();
 
         // Add default if empty or ensure Pc/D. are available
-        if(empty($units)) $units = ['MT' => 'MT', 'KG' => 'KG', 'Ltr' => 'Ltr', 'Pc' => 'Pc'];
-        else $units['Pc'] = 'Pc';
-        
-        if(empty($currencies)) $currencies = ['USD' => 'USD', 'BDT' => 'BDT', 'EUR' => 'EUR', 'D.' => 'D.'];
-        else $currencies['D.'] = 'D.';
+        if (empty($units))
+            $units = ['MT' => 'MT', 'KG' => 'KG', 'Ltr' => 'Ltr', 'Pc' => 'Pc'];
+        else
+            $units['Pc'] = 'Pc';
+
+        if (empty($currencies))
+            $currencies = ['USD' => 'USD', 'BDT' => 'BDT', 'EUR' => 'EUR', 'D.' => 'D.'];
+        else
+            $currencies['D.'] = 'D.';
 
         return view('sales_orders.show', compact('order', 'units', 'currencies', 'suppliers'));
     }
@@ -181,9 +185,9 @@ class SalesOrderController extends Controller
     public function piStore(Request $request, $id)
     {
         $order = SalesOrder::find($id);
-        
+
         $pi_date = $request->pi_date;
-        if($pi_date) {
+        if ($pi_date) {
             try {
                 $pi_date = \Carbon\Carbon::createFromFormat('m-d-Y', $pi_date)->format('Y-m-d');
             } catch (\Exception $e) {
@@ -237,30 +241,30 @@ class SalesOrderController extends Controller
         SalesLC::updateOrCreate(
             ['order_id' => $order->id],
             [
-                'pi_id'               => $order->pi->id,
-                'lc_reference_no'     => $request->lc_reference_no,
-                'client_lc_no'        => $request->client_lc_no,
-                'lc_type'             => $request->lc_type,
-                'lc_qty'              => $request->lc_qty,
-                'unit'                => $request->unit,
-                'lc_date'             => $request->lc_date,
-                'latest_shipment_date'=> $request->latest_shipment_date,
-                'lc_validity_date'    => $request->lc_validity_date,
-                'seller_name'         => $request->seller_name,
-                'seller_address'      => $request->seller_address,
-                'seller_mobile'       => $request->seller_mobile,
-                'seller_email'        => $request->seller_email,
-                'buyer_name'          => $request->buyer_name,
-                'buyer_address'       => $request->buyer_address,
-                'buyer_mobile'        => $request->buyer_mobile,
-                'buyer_email'         => $request->buyer_email,
-                'lifting_time'        => $request->lifting_time,
-                'country_of_origin'   => $request->country_of_origin,
-                'tolerance'           => $request->tolerance,
-                'port_of_loading'     => $request->port_of_loading,
-                'port_of_discharge'   => $request->port_of_discharge,
-                'terms_and_conditions'=> $request->terms_and_conditions,
-                'created_by'          => Auth::user()->creatorId(),
+                'pi_id' => $order->pi->id,
+                'lc_reference_no' => $request->lc_reference_no,
+                'client_lc_no' => $request->client_lc_no,
+                'lc_type' => $request->lc_type,
+                'lc_qty' => $request->lc_qty,
+                'unit' => $request->unit,
+                'lc_date' => $request->lc_date,
+                'latest_shipment_date' => $request->latest_shipment_date,
+                'lc_validity_date' => $request->lc_validity_date,
+                'seller_name' => $request->seller_name,
+                'seller_address' => $request->seller_address,
+                'seller_mobile' => $request->seller_mobile,
+                'seller_email' => $request->seller_email,
+                'buyer_name' => $request->buyer_name,
+                'buyer_address' => $request->buyer_address,
+                'buyer_mobile' => $request->buyer_mobile,
+                'buyer_email' => $request->buyer_email,
+                'lifting_time' => $request->lifting_time,
+                'country_of_origin' => $request->country_of_origin,
+                'tolerance' => $request->tolerance,
+                'port_of_loading' => $request->port_of_loading,
+                'port_of_discharge' => $request->port_of_discharge,
+                'terms_and_conditions' => $request->terms_and_conditions,
+                'created_by' => Auth::user()->creatorId(),
             ]
         );
 
@@ -292,7 +296,7 @@ class SalesOrderController extends Controller
             if ($request->has('tankers')) {
                 foreach ($request->tankers as $index => $tankerData) {
                     $filePath = $tankerData['existing_file'] ?? null;
-                    
+
                     if ($request->hasFile("tankers.$index.file")) {
                         $file = $request->file("tankers.$index.file");
                         $fileName = time() . '_tanker_' . $index . '_' . $file->getClientOriginalName();
@@ -315,7 +319,7 @@ class SalesOrderController extends Controller
 
             $order->current_step = 'Packing List';
             $order->save();
-            
+
             // Store CI ID in session for the next steps
             session(['active_ci_id' => $ci->id]);
             return $ci;
@@ -409,10 +413,10 @@ class SalesOrderController extends Controller
     {
         $order = SalesOrder::find($id);
         $ci_id = $request->ci_id ?? session('active_ci_id');
-        
+
         // Find or Create CI specific tankers data if we move it there, 
         // but for now let's just keep the flow moving.
-        
+
         $order->status = 'completed'; // Order is partially completed
         $order->save();
 
@@ -423,7 +427,7 @@ class SalesOrderController extends Controller
     {
         $order = SalesOrder::find($id);
         $ci_id = $request->ci_id ?? session('active_ci_id');
-        
+
         $delivery = \App\Models\SalesDelivery::updateOrCreate(
             ['ci_id' => $ci_id, 'order_id' => $order->id],
             [
@@ -505,58 +509,70 @@ class SalesOrderController extends Controller
     }
 
     // Print & Download Methods
-    public function poPrint($id) {
+    public function poPrint($id)
+    {
         $order = SalesOrder::with(['po.items'])->find($id);
         $amountInWords = $this->numberToWords($order->po->grand_total ?? 0);
         return view('sales_orders.print.po', compact('order', 'amountInWords'));
     }
-    public function poDownload($id) {
+    public function poDownload($id)
+    {
         $order = SalesOrder::with(['po.items'])->find($id);
         return view('sales_orders.print.po', compact('order')); // Browser can print to PDF
     }
 
-    public function piPrint($id) {
+    public function piPrint($id)
+    {
         $order = SalesOrder::with(['pi'])->find($id);
         return view('sales_orders.print.pi', compact('order'));
     }
-    public function piDownload($id) {
+    public function piDownload($id)
+    {
         $order = SalesOrder::with(['pi'])->find($id);
         return view('sales_orders.print.pi', compact('order'));
     }
 
-    public function lcPrint($id) {
+    public function lcPrint($id)
+    {
         $order = SalesOrder::with(['lc'])->find($id);
         return view('sales_orders.print.lc', compact('order'));
     }
-    public function lcDownload($id) {
+    public function lcDownload($id)
+    {
         $order = SalesOrder::with(['lc'])->find($id);
         return view('sales_orders.print.lc', compact('order'));
     }
 
-    public function ciPrint($id) {
+    public function ciPrint($id)
+    {
         $order = SalesOrder::with(['ci.tankers'])->find($id);
         return view('sales_orders.print.ci', compact('order'));
     }
-    public function ciDownload($id) {
+    public function ciDownload($id)
+    {
         $order = SalesOrder::with(['ci.tankers'])->find($id);
         return view('sales_orders.print.ci', compact('order'));
     }
 
-    public function plPrint($id) {
+    public function plPrint($id)
+    {
         $order = SalesOrder::with(['packingList'])->find($id);
         return view('sales_orders.print.pl', compact('order'));
     }
-    public function plDownload($id) {
+    public function plDownload($id)
+    {
         $order = SalesOrder::with(['packingList'])->find($id);
         return view('sales_orders.print.pl', compact('order'));
     }
 
-    public function cnPrint($id) {
+    public function cnPrint($id)
+    {
         $order = SalesOrder::with(['consignmentNote.weightSlips.tanker'])->find($id);
         return view('sales_orders.print.cn', compact('order'));
     }
 
-    public function cnDownload($id) {
+    public function cnDownload($id)
+    {
         $order = SalesOrder::with(['consignmentNote.weightSlips.tanker'])->find($id);
         return view('sales_orders.print.cn', compact('order'));
     }
@@ -647,46 +663,46 @@ class SalesOrderController extends Controller
 
     private function numberToWords($number)
     {
-        $hyphen      = '-';
+        $hyphen = '-';
         $conjunction = ' and ';
-        $separator   = ', ';
-        $negative    = 'negative ';
-        $decimal     = ' point ';
-        $dictionary  = array(
-            0                   => 'zero',
-            1                   => 'one',
-            2                   => 'two',
-            3                   => 'three',
-            4                   => 'four',
-            5                   => 'five',
-            6                   => 'six',
-            7                   => 'seven',
-            8                   => 'eight',
-            9                   => 'nine',
-            10                  => 'ten',
-            11                  => 'eleven',
-            12                  => 'twelve',
-            13                  => 'thirteen',
-            14                  => 'fourteen',
-            15                  => 'fifteen',
-            16                  => 'sixteen',
-            17                  => 'seventeen',
-            18                  => 'eighteen',
-            19                  => 'nineteen',
-            20                  => 'twenty',
-            30                  => 'thirty',
-            40                  => 'forty',
-            50                  => 'fifty',
-            60                  => 'sixty',
-            70                  => 'seventy',
-            80                  => 'eighty',
-            90                  => 'ninety',
-            100                 => 'hundred',
-            1000                => 'thousand',
-            1000000             => 'million',
-            1000000000          => 'billion',
-            1000000000000       => 'trillion',
-            1000000000000000    => 'quadrillion',
+        $separator = ', ';
+        $negative = 'negative ';
+        $decimal = ' point ';
+        $dictionary = array(
+            0 => 'zero',
+            1 => 'one',
+            2 => 'two',
+            3 => 'three',
+            4 => 'four',
+            5 => 'five',
+            6 => 'six',
+            7 => 'seven',
+            8 => 'eight',
+            9 => 'nine',
+            10 => 'ten',
+            11 => 'eleven',
+            12 => 'twelve',
+            13 => 'thirteen',
+            14 => 'fourteen',
+            15 => 'fifteen',
+            16 => 'sixteen',
+            17 => 'seventeen',
+            18 => 'eighteen',
+            19 => 'nineteen',
+            20 => 'twenty',
+            30 => 'thirty',
+            40 => 'forty',
+            50 => 'fifty',
+            60 => 'sixty',
+            70 => 'seventy',
+            80 => 'eighty',
+            90 => 'ninety',
+            100 => 'hundred',
+            1000 => 'thousand',
+            1000000 => 'million',
+            1000000000 => 'billion',
+            1000000000000 => 'trillion',
+            1000000000000000 => 'quadrillion',
             1000000000000000000 => 'quintillion'
         );
 
@@ -717,15 +733,15 @@ class SalesOrderController extends Controller
                 $string = $dictionary[$number];
                 break;
             case $number < 100:
-                $tens   = ((int) ($number / 10)) * 10;
-                $units  = $number % 10;
+                $tens = ((int) ($number / 10)) * 10;
+                $units = $number % 10;
                 $string = $dictionary[$tens];
                 if ($units) {
                     $string .= $hyphen . $dictionary[$units];
                 }
                 break;
             case $number < 1000:
-                $hundreds  = $number / 100;
+                $hundreds = $number / 100;
                 $remainder = $number % 100;
                 $string = $dictionary[(int) $hundreds] . ' ' . $dictionary[100];
                 if ($remainder) {

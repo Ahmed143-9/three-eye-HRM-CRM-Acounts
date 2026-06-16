@@ -228,7 +228,7 @@
         calculateCITotals();
 
         // AJAX for Add New
-        $(document).on('change', '.unit-select', function() {
+        $(document).on('change', '.unit-select, .b-unit', function() {
             var select = $(this);
             if (select.val() === 'ADD_NEW_UNIT') {
                 var newName = prompt("{{ __('Enter new unit name (e.g. Box, Drum):') }}");
@@ -240,7 +240,7 @@
                         success: function(res) {
                             if (res.success) {
                                 units[res.data.name] = res.data.name;
-                                $('.unit-select').each(function() {
+                                $('.unit-select, .b-unit').each(function() {
                                     var s = $(this);
                                     var current = s.val();
                                     s.html(getUnitOptions(current === 'ADD_NEW_UNIT' ? res.data.name : current));
