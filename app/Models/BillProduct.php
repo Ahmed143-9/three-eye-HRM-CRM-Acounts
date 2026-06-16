@@ -10,6 +10,8 @@ class BillProduct extends Model
         'product_id',
         'bill_id',
         'quantity',
+        'unit',
+        'currency',
         'tax',
         'discount',
         'price',

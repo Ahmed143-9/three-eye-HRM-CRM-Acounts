@@ -138,7 +138,12 @@ class BillController extends Controller
             $product_services = ProductService::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $product_services->prepend('Select Item', '');
 
-            return view('bill.create', compact('venders', 'bill_number', 'product_services', 'category', 'customFields', 'vendorId'));
+            $units = \App\Models\ProductServiceUnit::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'name')->toArray();
+            $currencies = \App\Models\SalesCurrency::where('created_by', \Auth::user()->creatorId())->get()->pluck('code', 'code')->toArray();
+            if (empty($units)) $units = ['MT' => 'MT', 'KG' => 'KG', 'Ltr' => 'Ltr', 'Pc' => 'Pc']; else $units['Pc'] = 'Pc';
+            if (empty($currencies)) $currencies = ['USD' => 'USD', 'BDT' => 'BDT', 'EUR' => 'EUR', 'D.' => 'D.']; else $currencies['D.'] = 'D.';
+
+            return view('bill.create', compact('venders', 'bill_number', 'product_services', 'category', 'customFields', 'vendorId', 'units', 'currencies'));
         }
         else
         {
@@ -192,10 +197,12 @@ class BillController extends Controller
                     $billProduct->bill_id     = $bill->id;
                     $billProduct->product_id  = $products[$i]['item'];
                     $billProduct->quantity    = $products[$i]['quantity'];
-                    $billProduct->tax         = $products[$i]['tax'];
-                    $billProduct->discount    = $products[$i]['discount'];
+                    $billProduct->unit        = $products[$i]['unit'] ?? '';
+                    $billProduct->currency    = $products[$i]['currency'] ?? '';
+                    $billProduct->tax         = $products[$i]['tax'] ?? '';
+                    $billProduct->discount    = $products[$i]['discount'] ?? 0;
                     $billProduct->price       = $products[$i]['price'];
-                    $billProduct->description = $products[$i]['description'];
+                    $billProduct->description = $products[$i]['description'] ?? '';
                     $billProduct->save();
                 }
 
@@ -304,7 +311,12 @@ class BillController extends Controller
                 $bill->customField = CustomField::getData($bill, 'bill');
                 $customFields      = CustomField::where('created_by', '=', \Auth::user()->creatorId())->where('module', '=', 'bill')->get();
 
-                return view('bill.view', compact('bill', 'vendor', 'items', 'billPayment', 'customFields'));
+                $units = \App\Models\ProductServiceUnit::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'name')->toArray();
+                $currencies = \App\Models\SalesCurrency::where('created_by', \Auth::user()->creatorId())->get()->pluck('code', 'code')->toArray();
+                if (empty($units)) $units = ['MT' => 'MT', 'KG' => 'KG', 'Ltr' => 'Ltr', 'Pc' => 'Pc']; else $units['Pc'] = 'Pc';
+                if (empty($currencies)) $currencies = ['USD' => 'USD', 'BDT' => 'BDT', 'EUR' => 'EUR', 'D.' => 'D.']; else $currencies['D.'] = 'D.';
+
+                return view('bill.view', compact('bill', 'vendor', 'items', 'billPayment', 'customFields', 'units', 'currencies'));
             }
             else
             {
@@ -355,8 +367,14 @@ class BillController extends Controller
                             $items[]=$val;
                         }
                     }
+
+                    $units = \App\Models\ProductServiceUnit::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'name')->toArray();
+                    $currencies = \App\Models\SalesCurrency::where('created_by', \Auth::user()->creatorId())->get()->pluck('code', 'code')->toArray();
+                    if (empty($units)) $units = ['MT' => 'MT', 'KG' => 'KG', 'Ltr' => 'Ltr', 'Pc' => 'Pc']; else $units['Pc'] = 'Pc';
+                    if (empty($currencies)) $currencies = ['USD' => 'USD', 'BDT' => 'BDT', 'EUR' => 'EUR', 'D.' => 'D.']; else $currencies['D.'] = 'D.';
+
                     return view('bill.edit', compact('venders', 'product_services', 'bill', 'bill_number', 'category',
-                        'customFields','items'));
+                        'customFields','items', 'units', 'currencies'));
                 } else {
                     return redirect()->back()->with('error', __('Permission denied.'));
                 }
@@ -421,12 +439,14 @@ class BillController extends Controller
                     }
 
                     if (isset($products[$i]['items'])) {
-                        $billProduct->product_id = $products[$i]['items'];
+                        $billProduct->product_id  = $products[$i]['items'];
                         $billProduct->quantity    = $products[$i]['quantity'];
-                        $billProduct->tax         = $products[$i]['tax'];
-                        $billProduct->discount    = $products[$i]['discount'];
+                        $billProduct->unit        = $products[$i]['unit'] ?? '';
+                        $billProduct->currency    = $products[$i]['currency'] ?? '';
+                        $billProduct->tax         = $products[$i]['tax'] ?? '';
+                        $billProduct->discount    = $products[$i]['discount'] ?? 0;
                         $billProduct->price       = $products[$i]['price'];
-                        $billProduct->description = $products[$i]['description'];
+                        $billProduct->description = $products[$i]['description'] ?? '';
                         $billProduct->save();
                     }
 

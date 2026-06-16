@@ -604,7 +604,9 @@
                                 <tr>
                                 <th width="20%">{{__('Items')}}<x-required></x-required></th>
                                 <th>{{__('Quantity')}}<x-required></x-required></th>
+                                <th>{{__('Unit')}}<x-required></x-required></th>
                                 <th>{{__('Price')}}<x-required></x-required></th>
+                                <th>{{__('Currency')}}<x-required></x-required></th>
                                 <th>{{__('Discount')}}<x-required></x-required></th>
                                 <th>{{__('Tax')}} (%)</th>
                                 <th class="text-end">{{__('Amount')}}
@@ -621,13 +623,21 @@
                                 <td>
                                     <div class="form-group price-input input-group search-form">
                                         {{ Form::number('quantity','', array('class' => 'form-control quantity','placeholder'=>__('Qty'), 'required' => 'required')) }}
-                                        <span class="unit input-group-text bg-transparent"></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="form-group">
+                                        {{ Form::select('unit', $units, null, array('class' => 'form-control unit', 'required' => 'required')) }}
                                     </div>
                                 </td>
                                 <td>
                                     <div class="form-group price-input input-group search-form">
                                         {{ Form::number('price','', array('class' => 'form-control price','placeholder'=>__('Price'), 'required' => 'required')) }}
-                                        <span class="input-group-text bg-transparent">{{\Auth::user()->currencySymbol()}}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="form-group">
+                                        {{ Form::select('currency', $currencies, 'D.', array('class' => 'form-control currency', 'required' => 'required')) }}
                                     </div>
                                 </td>
                                 <td>
@@ -666,11 +676,15 @@
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
                             </tr>
 
                             </tbody>
                             <tfoot>
                                 <tr>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
                                     <td>&nbsp;</td>
                                     <td>&nbsp;</td>
                                     <td>&nbsp;</td>
@@ -683,6 +697,8 @@
                                     <td>&nbsp;</td>
                                     <td>&nbsp;</td>
                                     <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
                                     <td></td>
                                     <td><strong>{{__('Discount')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
                                     <td class="text-end totalDiscount">0.00</td>
@@ -692,12 +708,16 @@
                                     <td>&nbsp;</td>
                                     <td>&nbsp;</td>
                                     <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
                                     <td></td>
                                     <td><strong>{{__('Tax')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
                                     <td class="text-end totalTax">0.00</td>
                                     <td></td>
                                 </tr>
                                 <tr>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>

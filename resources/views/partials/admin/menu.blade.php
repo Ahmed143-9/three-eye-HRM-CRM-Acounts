@@ -247,6 +247,31 @@
 
                             </ul>
                         </li>
+
+                        @can('Manage Purchases & Suppliers')
+                            <li
+                                class="dash-item dash-hasmenu {{ Request::segment(1) == 'vender' || Request::segment(1) == 'expense' || Request::segment(1) == 'payment' || Request::segment(1) == 'debit-note' ? 'active dash-trigger' : '' }}">
+                                <a class="dash-link" href="#">
+                                    <span class="dash-micon"><i class="ti ti-shopping-cart"></i></span>
+                                    <span class="dash-mtext">{{ __('Purchases') }}</span>
+                                    <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
+                                </a>
+                                <ul class="dash-submenu">
+                                    <li class="dash-item {{ Request::segment(1) == 'vender' ? 'active' : '' }}">
+                                        <a class="dash-link" href="{{ route('vender.index') }}">{{ __('Supplier') }}</a>
+                                    </li>
+                                    <li class="dash-item {{ Request::route()->getName() == 'expense.index' || Request::route()->getName() == 'expense.create' || Request::route()->getName() == 'expense.edit' || Request::route()->getName() == 'expense.show' ? ' active' : '' }}">
+                                        <a class="dash-link" href="{{ route('expense.index') }}">{{ __('Expense') }}</a>
+                                    </li>
+                                    <li class="dash-item {{ Request::route()->getName() == 'payment.index' || Request::route()->getName() == 'payment.create' || Request::route()->getName() == 'payment.edit' ? ' active' : '' }}">
+                                        <a class="dash-link" href="{{ route('payment.index') }}">{{ __('Payment') }}</a>
+                                    </li>
+                                    <li class="dash-item {{ Request::route()->getName() == 'debit.note' ? ' active' : '' }}">
+                                        <a class="dash-link" href="{{ route('custom-debit.note') }}">{{ __('Debit Note') }}</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endcan
                     @endif
                 @endif
 
@@ -346,37 +371,10 @@
                                 @endcan
 
                                 @can('Manage Purchases & Suppliers')
-                                    <li
-                                        class="dash-item dash-hasmenu {{ Request::segment(1) == 'bill' || Request::segment(1) == 'vender' || Request::segment(1) == 'expense' || Request::segment(1) == 'payment' || Request::segment(1) == 'debit-note' || Request::routeIs('expense-bills.index') ? 'active dash-trigger' : '' }}">
-                                        <a class="dash-link" href="#">{{ __('Purchases') }}<span
-                                                class="dash-arrow"><i data-feather="chevron-right"></i></span></a>
-                                        <ul class="dash-submenu">
-                                            <li
-                                                class="dash-item {{ Request::segment(1) == 'vender' ? 'active' : '' }}">
-                                                <a class="dash-link"
-                                                    href="{{ route('vender.index') }}">{{ __('Suppiler') }}</a>
-                                            </li>
-                                            <li
-                                                class="dash-item {{ Request::route()->getName() == 'bill.index' || Request::route()->getName() == 'bill.create' || Request::route()->getName() == 'bill.edit' || Request::route()->getName() == 'bill.show' ? ' active' : '' }}">
-                                                <a class="dash-link"
-                                                href="{{ route('bill.index') }}">{{ __('Bill') }}</a>
-                                            </li>
-                                            <li
-                                                class="dash-item {{ Request::route()->getName() == 'expense.index' || Request::route()->getName() == 'expense.create' || Request::route()->getName() == 'expense.edit' || Request::route()->getName() == 'expense.show' ? ' active' : '' }}">
-                                                <a class="dash-link"
-                                                    href="{{ route('expense.index') }}">{{ __('Expense') }}</a>
-                                            </li>
-                                            <li
-                                                class="dash-item {{ Request::route()->getName() == 'payment.index' || Request::route()->getName() == 'payment.create' || Request::route()->getName() == 'payment.edit' ? ' active' : '' }}">
-                                                <a class="dash-link"
-                                                    href="{{ route('payment.index') }}">{{ __('Payment') }}</a>
-                                            </li>
-                                            <li
-                                                class="dash-item  {{ Request::route()->getName() == 'debit.note' ? ' active' : '' }}">
-                                                <a class="dash-link"
-                                                    href="{{ route('custom-debit.note') }}">{{ __('Debit Note') }}</a>
-                                            </li>
-                                        </ul>
+                                    <li class="dash-item {{ Request::route()->getName() == 'bill.index' || Request::route()->getName() == 'bill.create' || Request::route()->getName() == 'bill.edit' || Request::route()->getName() == 'bill.show' ? ' active' : '' }}">
+                                        <a class="dash-link" href="{{ route('bill.index') }}">
+                                            <span class="dash-mtext">{{ __('Bill (Approval)') }}</span>
+                                        </a>
                                     </li>
                                 @endcan
 

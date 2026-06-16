@@ -325,6 +325,9 @@ class SalesOrderController extends Controller
             return $ci;
         });
 
+        // Notify HRM about possible transport need
+        $this->notifyHRMTransportNeed($order, $transactionResult);
+
         return redirect()->route('sales-orders.show', [$id, 'ci_id' => $transactionResult->id])->with('success', __('CI saved successfully.'))->with('jump_to_pl', true);
     }
 
@@ -504,6 +507,33 @@ class SalesOrderController extends Controller
                 ]);
             } catch (\Throwable $e) {
                 \Log::error('Notification not sent (sales_order_finalized): ' . $e->getMessage());
+            }
+        }
+    }
+
+    private function notifyHRMTransportNeed($order, $ci)
+    {
+        $recipientIds = User::whereIn('type', ['HR', 'company'])->pluck('id');
+        try {
+            $recipientIds = $recipientIds->merge(User::permission('show hrm dashboard')->pluck('id'))->unique()->values();
+        } catch (\Throwable $e) {
+            \Log::warning('notifyHRMTransportNeed permission lookup failed: ' . $e->getMessage());
+        }
+
+        foreach ($recipientIds as $userId) {
+            try {
+                Notification::create([
+                    'user_id' => $userId,
+                    'type' => 'ci_transport_need',
+                    'title' => __('Possible Transport Need'),
+                    'message' => __('A new CI has been created for Order :order. Transport may be required.', ['order' => $order->order_number]),
+                    'related_model' => 'SalesCI',
+                    'related_id' => $ci->id,
+                    'created_by' => Auth::user()->id,
+                    'is_read' => 0,
+                ]);
+            } catch (\Throwable $e) {
+                \Log::error('Notification not sent (ci_transport_need): ' . $e->getMessage());
             }
         }
     }
