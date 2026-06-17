@@ -80,11 +80,7 @@
         <div class="form-group">
             {{ Form::label('incoterm', __('Incoterms'), ['class' => 'form-label']) }}
             @php
-                $incoterms = [
-                    'CFR' => 'CFR - Cost and Freight',
-                    'FOB' => 'FOB - Free On Board',
-                    'CIF' => 'CIF - Cost, Insurance, and Freight',
-                ];
+                $incoterms = \App\Models\Incoterm::where('created_by', \Auth::user()->creatorId())->pluck('name', 'name')->toArray();
             @endphp
             {{ Form::select('incoterm', ['' => __('Select Incoterms')] + $incoterms, $order->pi->incoterm ?? null, ['class' => 'form-control select2']) }}
         </div>

@@ -8,6 +8,8 @@
 
             <a href="{{ route('consultants.index') }}" class="list-group-item list-group-item-action border-0 {{ (Request::route()->getName() == 'consultants.index' || Request::segment(1) == 'consultants' ) ? 'active' : '' }}">{{__('Consultant')}}<div class="float-end"><i class="ti ti-chevron-right"></i></div></a>
 
+            <a href="{{ route('incoterm.index') }}" class="list-group-item list-group-item-action border-0 {{ (Request::route()->getName() == 'incoterm.index' || Request::segment(1) == 'incoterm' ) ? 'active' : '' }}">{{__('Incoterms')}}<div class="float-end"><i class="ti ti-chevron-right"></i></div></a>
+
         </div>
     </div>
 </div>

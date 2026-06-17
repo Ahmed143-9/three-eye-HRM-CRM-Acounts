@@ -19,6 +19,7 @@ use App\Http\Controllers\BenefitPaymentController;
 use App\Http\Controllers\BillController;
 use App\Http\Controllers\BiometricAttendanceController;
 use App\Http\Controllers\BranchController;
+use App\Http\Controllers\IncotermController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\BugStatusController;
 use App\Http\Controllers\CashfreeController;
@@ -958,6 +959,7 @@ Route::group(['middleware' => ['verified']], function () {
     Route::resource('designation', DesignationController::class)->middleware(['auth', 'XSS']);
     Route::resource('document', DocumentController::class)->middleware(['auth', 'XSS']);
     Route::resource('branch', BranchController::class)->middleware(['auth', 'XSS']);
+    Route::resource('incoterm', IncotermController::class)->middleware(['auth', 'XSS']);
 
     // Hrm EmployeeController
 
