@@ -109,6 +109,7 @@
                 <th width="13%">{{ __('Price') }}</th>
                 <th width="13%">{{ __('Currency') }}</th>
                 <th width="13%">{{ __('Total Amount') }}</th>
+                <th width="10%">{{ __('File') }}</th>
                 <th width="5%"></th>
             </tr>
         </thead>
@@ -116,7 +117,10 @@
             @if($order->ci && $order->ci->tankers->count() > 0)
                 @foreach($order->ci->tankers as $index => $tanker)
                     <tr>
-                        <td><input type="text" name="tankers[{{$index}}][tanker_number]" class="form-control form-control-sm" value="{{$tanker->tanker_number}}" required></td>
+                        <td>
+                            <input type="text" name="tankers[{{$index}}][tanker_number]" class="form-control form-control-sm" value="{{$tanker->tanker_number}}" required>
+                            <input type="hidden" name="tankers[{{$index}}][existing_file]" value="{{ $tanker->file_path }}">
+                        </td>
                         <td><input type="number" step="0.001" name="tankers[{{$index}}][qty_mt]" class="form-control form-control-sm t-qty" value="{{$tanker->quantity_mt}}" required></td>
                         <td>
                             <select name="tankers[{{$index}}][quantity_unit]" class="form-control form-control-sm unit-select" required>
@@ -136,6 +140,12 @@
                             </select>
                         </td>
                         <td><input type="number" step="0.01" name="tankers[{{$index}}][total_amount]" class="form-control form-control-sm t-total" value="{{$tanker->total_amount_usd}}" readonly></td>
+                        <td>
+                            <input type="file" name="tankers[{{$index}}][file]" class="form-control form-control-sm" accept="image/*,application/pdf">
+                            @if($tanker->file_path)
+                                <a href="{{ asset($tanker->file_path) }}" target="_blank" class="text-info small d-block mt-1"><i class="ti ti-eye"></i> {{ __('View File') }}</a>
+                            @endif
+                        </td>
                         <td><button type="button" class="btn btn-danger btn-xs remove-tanker"><i class="ti ti-trash"></i></button></td>
                     </tr>
                 @endforeach
@@ -172,6 +182,7 @@
                 <td class="fw-bold"><span id="ci_total_qty">0.000</span></td>
                 <td colspan="3"></td>
                 <td class="fw-bold"><span id="ci_total_amount">0.00</span></td>
+                <td></td>
                 <td>
                     <button type="button" class="btn btn-primary btn-sm add-tanker"><i class="ti ti-plus"></i></button>
                 </td>
@@ -247,6 +258,7 @@
                 '<td><input type="number" step="0.01" name="tankers[' + index + '][cpt_usd]" class="form-control form-control-sm t-cpt" required></td>' +
                 '<td><select name="tankers[' + index + '][currency]" class="form-control form-control-sm curr-select" required>' + buildCurrOptions(poDefaultCurrency) + '</select></td>' +
                 '<td><input type="number" step="0.01" name="tankers[' + index + '][total_amount]" class="form-control form-control-sm t-total" readonly></td>' +
+                '<td><input type="file" name="tankers[' + index + '][file]" class="form-control form-control-sm" accept="image/*,application/pdf"></td>' +
                 '<td><button type="button" class="btn btn-danger btn-xs remove-tanker"><i class="ti ti-trash"></i></button></td>' +
                 '</tr>';
             $('#ci-tankers-table tbody').append(row);

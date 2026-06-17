@@ -13,6 +13,20 @@
 {{ Form::open(['route' => ['sales-orders.cn.store', $order->id], 'method' => 'post', 'enctype' => 'multipart/form-data']) }}
 <input type="hidden" name="ci_id" value="{{ $order->ci->id ?? '' }}">
 
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="form-group">
+            {{ Form::label('file', __('Upload Consignment Note (PDF/Image)'), ['class' => 'form-label']) }}
+            {{ Form::file('file', ['class' => 'form-control', $order->consignmentNote ? '' : 'required']) }}
+            @if($order->consignmentNote && $order->consignmentNote->file_path)
+                <div class="mt-2">
+                    <a href="{{ asset($order->consignmentNote->file_path) }}" target="_blank" class="btn btn-sm btn-info">{{ __('View Uploaded File') }}</a>
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
+
 @php
     $ciTankers = $order->ci ? $order->ci->tankers->pluck('tanker_number', 'tanker_number')->toArray() : [];
 @endphp

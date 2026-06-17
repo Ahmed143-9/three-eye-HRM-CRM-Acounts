@@ -342,13 +342,17 @@ class SalesOrderController extends Controller
 
         $ci_id = $request->ci_id ?? session('active_ci_id');
 
+        $updateData = [
+            'order_id' => $order->id,
+            'created_by' => Auth::user()->creatorId(),
+        ];
+        if (isset($filePath)) {
+            $updateData['file_path'] = $filePath;
+        }
+
         SalesPackingList::updateOrCreate(
             ['ci_id' => $ci_id],
-            [
-                'order_id' => $order->id,
-                'file_path' => $filePath ?? null,
-                'created_by' => Auth::user()->creatorId(),
-            ]
+            $updateData
         );
 
         $order->current_step = 'Consignment Note';
