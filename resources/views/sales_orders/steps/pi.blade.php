@@ -53,6 +53,12 @@
 <div class="row">
     <div class="col-md-4">
         <div class="form-group">
+            {{ Form::label('po_number_ref', __('PO Number (Ref)'), ['class' => 'form-label']) }}
+            {{ Form::text('po_number_ref', $order->po->po_number ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) }}
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
             {{ Form::label('pi_number', __('PI Reference No.'), ['class' => 'form-label']) }}
             {{ Form::text('pi_number', $order->pi->pi_number ?? 'PI-' . time(), ['class' => 'form-control', 'required' => 'required', 'readonly']) }}
         </div>

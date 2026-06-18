@@ -64,6 +64,26 @@
         <span class="fw-semibold text-dark">{{ __('CI Details') }}</span>
     </div>
     <div class="card-body px-4 py-3">
+        <div class="row g-3 mb-3">
+            <div class="col-md-4">
+                <div class="form-group">
+                    {{ Form::label('po_number_ref', __('PO Number (Ref)'), ['class' => 'form-label fw-semibold']) }}
+                    {{ Form::text('po_number_ref', $order->po->po_number ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) }}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    {{ Form::label('pi_number_ref', __('PI Number (Ref)'), ['class' => 'form-label fw-semibold']) }}
+                    {{ Form::text('pi_number_ref', optional($order->pi)->pi_number ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) }}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    {{ Form::label('lc_number_ref', __('LC Number (Ref)'), ['class' => 'form-label fw-semibold']) }}
+                    {{ Form::text('lc_number_ref', optional($order->lc)->lc_reference_no ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) }}
+                </div>
+            </div>
+        </div>
         <div class="row g-3">
             <div class="col-md-3">
                 <div class="form-group">

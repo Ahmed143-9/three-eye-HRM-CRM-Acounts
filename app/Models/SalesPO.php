@@ -10,6 +10,7 @@ class SalesPO extends Model
 
     protected $fillable = [
         'order_id',
+        'po_number',
         'client_name',
         'client_address',
         'client_email',

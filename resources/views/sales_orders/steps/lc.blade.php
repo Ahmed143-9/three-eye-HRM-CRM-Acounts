@@ -76,8 +76,20 @@
         <div class="row g-3">
             <div class="col-md-4">
                 <div class="form-group">
+                    {{ Form::label('po_number_ref', __('PO Number (Ref)'), ['class' => 'form-label fw-semibold']) }}
+                    {{ Form::text('po_number_ref', $order->po->po_number ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) }}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    {{ Form::label('pi_number_ref', __('PI Number (Ref)'), ['class' => 'form-label fw-semibold']) }}
+                    {{ Form::text('pi_number_ref', optional($order->pi)->pi_number ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) }}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
                     {{ Form::label('lc_reference_no', __('LC Reference No.'), ['class' => 'form-label fw-semibold']) }}
-                    {{ Form::text('lc_reference_no', $lc_ref, ['class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter LC reference number')]) }}
+                    {{ Form::text('lc_reference_no', $lc_ref, ['class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter LC reference number'), 'readonly' => 'readonly']) }}
                 </div>
             </div>
             <div class="col-md-4">

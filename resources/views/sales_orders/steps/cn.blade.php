@@ -3,11 +3,37 @@
 <hr class="mt-2 mb-3">
 
 {{-- Reference row --}}
-<div class="row mb-3">
-    <div class="col-md-3"><strong>{{ __('PO:') }}</strong> {{ $order->po->order_number ?? 'N/A' }}</div>
-    <div class="col-md-3"><strong>{{ __('PI:') }}</strong> {{ $order->pi->pi_number ?? 'N/A' }}</div>
-    <div class="col-md-3"><strong>{{ __('LC:') }}</strong> {{ $order->lc->lc_reference_no ?? 'N/A' }}</div>
-    <div class="col-md-3"><strong>{{ __('CI:') }}</strong> {{ $order->ci->ci_number ?? 'N/A' }}</div>
+<div class="row g-3 mb-3">
+    <div class="col-md-2">
+        <div class="form-group">
+            {{ Form::label('po_number_ref', __('PO Number'), ['class' => 'form-label fw-semibold']) }}
+            {{ Form::text('po_number_ref', $order->po->po_number ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) }}
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            {{ Form::label('pi_number_ref', __('PI Number'), ['class' => 'form-label fw-semibold']) }}
+            {{ Form::text('pi_number_ref', optional($order->pi)->pi_number ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) }}
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            {{ Form::label('lc_number_ref', __('LC Number'), ['class' => 'form-label fw-semibold']) }}
+            {{ Form::text('lc_number_ref', optional($order->lc)->lc_reference_no ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) }}
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            {{ Form::label('ci_number_ref', __('CI Number'), ['class' => 'form-label fw-semibold']) }}
+            {{ Form::text('ci_number_ref', optional($order->ci)->ci_number ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) }}
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            {{ Form::label('pl_status_ref', __('PL Status'), ['class' => 'form-label fw-semibold']) }}
+            {{ Form::text('pl_status_ref', $order->packingList ? __('Attached') : __('Pending'), ['class' => 'form-control', 'readonly' => 'readonly']) }}
+        </div>
+    </div>
 </div>
 
 {{ Form::open(['route' => ['sales-orders.cn.store', $order->id], 'method' => 'post', 'enctype' => 'multipart/form-data']) }}

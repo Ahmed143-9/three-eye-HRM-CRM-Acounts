@@ -150,6 +150,7 @@ class SalesOrderController extends Controller
             $po = SalesPO::updateOrCreate(
                 ['order_id' => $order->id],
                 [
+                    'po_number' => $request->po_number ?? 'PO-' . time(),
                     'client_name' => $request->client_name,
                     'client_address' => $request->client_address,
                     'client_email' => $request->client_email,

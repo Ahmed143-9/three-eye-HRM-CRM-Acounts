@@ -4,6 +4,12 @@
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">
+            {{ Form::label('po_number', __('PO Number'), ['class' => 'form-label']) }}
+            {{ Form::text('po_number', $order->po->po_number ?? 'PO-' . time(), ['class' => 'form-control', 'required' => 'required', 'readonly']) }}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
             {{ Form::label('client_name', __('Company Name'), ['class' => 'form-label']) }}
             {{ Form::text('client_name', $order->po->client_name ?? $order->customer->name, ['class' => 'form-control', 'required' => 'required']) }}
         </div>

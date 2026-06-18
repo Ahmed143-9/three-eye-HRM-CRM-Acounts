@@ -1,10 +1,31 @@
 <h5 class="fw-bold mb-0">{{ __('Step 5: Packing List') }}</h5>
 <p class="text-muted mb-0" style="font-size:0.85rem;">{{ __('Step 5 of 7') }}</p>
 <hr class="mt-2 mb-3">
-<div class="row mb-3">
-    <div class="col-md-4"><strong>{{ __('PO:') }}</strong> {{ $order->po->order_number ?? 'N/A' }}</div>
-    <div class="col-md-4"><strong>{{ __('PI:') }}</strong> {{ $order->pi->pi_number ?? 'N/A' }}</div>
-    <div class="col-md-4"><strong>{{ __('LC:') }}</strong> {{ $order->lc->lc_reference_no ?? 'N/A' }}</div>
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <div class="form-group">
+            {{ Form::label('po_number_ref', __('PO Number (Ref)'), ['class' => 'form-label fw-semibold']) }}
+            {{ Form::text('po_number_ref', $order->po->po_number ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) }}
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            {{ Form::label('pi_number_ref', __('PI Number (Ref)'), ['class' => 'form-label fw-semibold']) }}
+            {{ Form::text('pi_number_ref', optional($order->pi)->pi_number ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) }}
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            {{ Form::label('lc_number_ref', __('LC Number (Ref)'), ['class' => 'form-label fw-semibold']) }}
+            {{ Form::text('lc_number_ref', optional($order->lc)->lc_reference_no ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) }}
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            {{ Form::label('ci_number_ref', __('CI Number (Ref)'), ['class' => 'form-label fw-semibold']) }}
+            {{ Form::text('ci_number_ref', optional($order->ci)->ci_number ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) }}
+        </div>
+    </div>
 </div>
 
 {{ Form::open(['route' => ['sales-orders.pl.store', $order->id], 'method' => 'post', 'enctype' => 'multipart/form-data']) }}
