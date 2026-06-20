@@ -232,12 +232,7 @@
             var price = $(this).val();
             var quantity = $(el.find('.quantity')).val();
 
-            var discount = $(el.find('.discount')).val();
-            if(discount.length <= 0)
-            {
-                discount = 0 ;
-            }
-            var totalItemPrice = (quantity * price)-discount;
+            var totalItemPrice = (quantity * price);
 
             var amount = (totalItemPrice);
 
@@ -280,72 +275,10 @@
 
         })
 
-        $(document).on('keyup change', '.discount', function () {
-            var el = $(this).parent().parent().parent();
-            var discount = $(this).val();
-            if(discount.length <= 0)
-            {
-                discount = 0 ;
-            }
-
-            var price = $(el.find('.price')).val();
-            var quantity = $(el.find('.quantity')).val();
-            var totalItemPrice = (quantity * price) - discount;
 
 
-            var amount = (totalItemPrice);
 
 
-            var totalItemTaxRate = $(el.find('.itemTaxRate')).val();
-            var itemTaxPrice = parseFloat((totalItemTaxRate / 100) * (totalItemPrice));
-            $(el.find('.itemTaxPrice')).val(itemTaxPrice.toFixed(2));
-
-            $(el.find('.amount')).html(parseFloat(itemTaxPrice)+parseFloat(amount));
-
-            var totalItemTaxPrice = 0;
-            var itemTaxPriceInput = $('.itemTaxPrice');
-            for (var j = 0; j < itemTaxPriceInput.length; j++) {
-                totalItemTaxPrice += parseFloat(itemTaxPriceInput[j].value);
-            }
-
-
-            var totalItemPrice = 0;
-            var inputs_quantity = $(".quantity");
-
-            var priceInput = $('.price');
-            for (var j = 0; j < priceInput.length; j++) {
-                totalItemPrice += (parseFloat(priceInput[j].value) * parseFloat(inputs_quantity[j].value));
-            }
-
-            var inputs = $(".amount");
-            var subTotal = 0;
-            for (var i = 0; i < inputs.length; i++) {
-                subTotal = parseFloat(subTotal) + parseFloat($(inputs[i]).html());
-            }
-
-
-            var totalItemDiscountPrice = 0;
-            var itemDiscountPriceInput = $('.discount');
-            for (var k = 0; k < itemDiscountPriceInput.length; k++) {
-                if (!isNaN(parseFloat(itemDiscountPriceInput[k].value))) {
-                    totalItemDiscountPrice += parseFloat(itemDiscountPriceInput[k].value);
-                }
-            }
-
-            $('.subTotal').html((totalItemPrice).toFixed(2));
-
-            $('.totalTax').html(totalItemTaxPrice.toFixed(2));
-
-            $('.totalAmount').html((parseFloat(subTotal)).toFixed(2));
-            $('.totalDiscount').html(totalItemDiscountPrice.toFixed(2));
-
-
-            //get hidden value of totalAmount
-            var totalAmount= (parseFloat(subTotal));
-            $('.totalAmount').val(totalAmount.toFixed(2));
-
-
-        })
 
         var id = '{{$Id}}';
         if (id > 0) {
@@ -541,18 +474,7 @@
 
         })
         
-        $(document).ready(function() {
-            $(document).on('change', '#payment_status', function () {
-                if ($(this).val() == 'paid') {
-                    $('#account_div').show();
-                    $('#account_div select').prop('required', true);
-                } else {
-                    $('#account_div').hide();
-                    $('#account_div select').prop('required', false);
-                }
-            });
-            $('#payment_status').trigger('change');
-        });
+
 
     </script>
 
@@ -561,7 +483,7 @@
 @endpush
 @section('content')
     <div class="row">
-        {{ Form::open(array('url' => 'expense','class'=>'w-100', 'class'=>'needs-validation', 'novalidate')) }}
+        {{ Form::open(array('url' => 'expense','class'=>'w-100 needs-validation', 'novalidate' => 'novalidate', 'enctype' => 'multipart/form-data')) }}
         <div class="col-12">
             <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
             <div class="card">
@@ -623,14 +545,14 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        {{ Form::label('purchase_date', __('Purchase Date'),['class'=>'form-label']) }}<x-required></x-required>
-                                        {{Form::date('purchase_date',null,array('class'=>'form-control','required'=>'required'))}}
+                                        {{ Form::label('expense_number', __('Expense Number'),['class'=>'form-label']) }}
+                                        {{ Form::text('expense_number', $expense_number, array('class' => 'form-control', 'readonly' => 'readonly')) }}
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        {{ Form::label('payment_date', __('Payment Date'),['class'=>'form-label']) }}
-                                        {{Form::date('payment_date',null,array('class'=>'form-control'))}}
+                                        {{ Form::label('purchase_date', __('Purchase Date'),['class'=>'form-label']) }}<x-required></x-required>
+                                        {{Form::date('purchase_date',null,array('class'=>'form-control','required'=>'required'))}}
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -641,14 +563,8 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        {{ Form::label('payment_status', __('Payment Status'),['class'=>'form-label']) }}<x-required></x-required>
-                                        {{ Form::select('payment_status', ['unpaid' => 'Unpaid', 'paid' => 'Paid'], 'unpaid', array('class' => 'form-control select', 'id' => 'payment_status', 'required'=>'required')) }}
-                                    </div>
-                                </div>
-                                <div class="col-md-6" id="account_div" style="display:none;">
-                                    <div class="form-group">
-                                        {{ Form::label('account_id', __('Account'),['class'=>'form-label']) }}<x-required></x-required>
-                                        {{ Form::select('account_id',$accounts,null, array('class' => 'form-control')) }}
+                                        {{ Form::label('attachment', __('Attachment'),['class'=>'form-label']) }}
+                                        {{ Form::file('attachment', array('class' => 'form-control')) }}
                                     </div>
                                 </div>
                             </div>
@@ -680,7 +596,6 @@
                                 <th width="20%">{{__('Items')}}<x-required></x-required></th>
                                 <th>{{__('Quantity')}}<x-required></x-required></th>
                                 <th>{{__('Price')}}<x-required></x-required></th>
-                                <th>{{__('Discount')}}<x-required></x-required></th>
                                 <th>{{__('Tax')}} (%)</th>
                                 <th class="text-end">{{__('Amount')}}
                                     <br><small class="text-danger font-bold">{{__('after tax & discount')}}</small>
@@ -702,12 +617,6 @@
                                 <td>
                                     <div class="form-group price-input input-group search-form">
                                         {{ Form::number('price','', array('class' => 'form-control price','placeholder'=>__('Price'), 'required' => 'required')) }}
-                                        <span class="input-group-text bg-transparent">{{\Auth::user()->currencySymbol()}}</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="form-group price-input input-group search-form">
-                                        {{ Form::number('discount','', array('class' => 'form-control discount','placeholder'=>__('Discount'), 'required' => 'required')) }}
                                         <span class="input-group-text bg-transparent">{{\Auth::user()->currencySymbol()}}</span>
                                     </div>
                                 </td>
@@ -750,15 +659,7 @@
                                 <td class="text-end subTotal">0.00</td>
                                 <td></td>
                             </tr>
-                            <tr>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td></td>
-                                <td><strong>{{__('Discount')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
-                                <td class="text-end totalDiscount">0.00</td>
-                                <td></td>
-                            </tr>
+
                             <tr>
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>

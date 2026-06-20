@@ -178,14 +178,6 @@ class ExpenseController extends Controller
                 }
             }
 
-            if ($request->payment_status == 'paid') {
-                $bankAccount = BankAccount::find($request->account_id);
-                if($bankAccount && $bankAccount->chart_account_id == 0)
-                {
-                    return redirect()->back()->with('error', __('This bank account is not connect with chart of account, so please connect first.'));
-                }
-            }
-
             $expense = new Bill();
             $expense->bill_id = $this->expenseNumber();
             if ($request->type == 'employee') {
@@ -196,13 +188,27 @@ class ExpenseController extends Controller
                 $expense->vender_id = $request->vender_id;
             }
             $expense->bill_date = $request->purchase_date;
-            $expense->status = ($request->payment_status == 'paid') ? 4 : 1; // 4 = Paid, 1 = Unpaid (Draft/Sent)
+            $expense->status = 1; // 1 = Unpaid/Expense Draft
             $expense->type = 'Expense';
             $expense->user_type = $request->type;
-            $expense->due_date = $request->payment_date ?: $request->purchase_date;
+            $expense->due_date = $request->purchase_date;
             $expense->category_id = !empty($request->category_id) ? ProductServiceCategory::where('name', $request->category_id)->first()->id ?? 0 : 0;
             $expense->order_number = 0;
             $expense->created_by = \Auth::user()->creatorId();
+            
+            if ($request->hasFile('attachment')) {
+                $filenameWithExt = $request->file('attachment')->getClientOriginalName();
+                $filename        = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+                $extension       = $request->file('attachment')->getClientOriginalExtension();
+                $fileNameToStore = $filename . '_' . time() . '.' . $extension;
+                $dir             = storage_path('uploads/expense_attachment');
+                if (!file_exists($dir)) {
+                    mkdir($dir, 0777, true);
+                }
+                $path = $request->file('attachment')->storeAs('uploads/expense_attachment/', $fileNameToStore);
+                $expense->attachment = $fileNameToStore;
+            }
+            
             $expense->save();
 
             $products = $request->items;
@@ -216,7 +222,7 @@ class ExpenseController extends Controller
                     $expenseProduct->product_id = 0; // Generic item
                     $expenseProduct->quantity = $products[$i]['quantity'];
                     $expenseProduct->tax = $products[$i]['tax'] ?? '';
-                    $expenseProduct->discount = $products[$i]['discount'];
+                    $expenseProduct->discount = 0;
                     $expenseProduct->price = $products[$i]['price'];
                     $expenseProduct->description = $products[$i]['item_text'] . (!empty($products[$i]['description']) ? ' - ' . $products[$i]['description'] : '');
                     $expenseProduct->save();
@@ -227,25 +233,7 @@ class ExpenseController extends Controller
                 }
             }
 
-            if ($request->payment_status == 'paid') {
-                $expensePayment = new BillPayment();
-                $expensePayment->bill_id = $expense->id;
-                $expensePayment->date = $request->payment_date ?: $request->purchase_date;
-                $expensePayment->amount = $request->totalAmount;
-                $expensePayment->account_id = $request->account_id;
-                $expensePayment->payment_method = 0;
-                $expensePayment->reference = 'NULL';
-                $expensePayment->description = 'NULL';
-                $expensePayment->add_receipt = 'NULL';
-                $expensePayment->save();
 
-                if ($request->type == 'customer') {
-                    Utility::updateUserBalance('customer', $expense->vender_id, $request->totalAmount, 'credit');
-                } elseif ($request->type == 'vendor') {
-                    Utility::updateUserBalance('vendor', $expense->vender_id, $request->totalAmount, 'credit');
-                }
-                Utility::bankAccountBalance($request->account_id, $request->totalAmount, 'debit');
-            }
 
             //For Notification
             $setting = Utility::settings(\Auth::user()->creatorId());
@@ -304,32 +292,7 @@ class ExpenseController extends Controller
                 Utility::addTransactionLines($data);
             }
 
-            if ($request->payment_status == 'paid') {
-                $accountId = BankAccount::find($expensePayment->account_id);
 
-                $data = [
-                    'account_id'         => $accountId->chart_account_id ?? 0,
-                    'transaction_type'   => 'credit',
-                    'transaction_amount' => $expensePayment->amount,
-                    'reference'          => 'Expense Payment',
-                    'reference_id'       => $expense->id,
-                    'reference_sub_id'   => $expensePayment->id,
-                    'date'               => $expensePayment->date,
-                ];
-                Utility::addTransactionLines($data);
-
-                $account = ChartOfAccount::where('name','Accounts Payable')->where('created_by' , \Auth::user()->creatorId())->first();
-                $data    = [
-                    'account_id'         => !empty($account) ? $account->id : 0,
-                    'transaction_type'   => 'debit',
-                    'transaction_amount' => $expensePayment->amount,
-                    'reference'          => 'Expense Payment',
-                    'reference_id'       => $expense->id,
-                    'reference_sub_id'   => $expensePayment->id,
-                    'date'               => $expensePayment->date,
-                ];
-                Utility::addTransactionLines($data);
-            }
 
             $expenseNotificationArr = [
                 'expense_number' => \Auth::user()->expenseNumberFormat($expense->bill_id),

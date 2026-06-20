@@ -69,7 +69,7 @@ class VenderController extends Controller
                 'name' => 'required',
                 'contact' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/',
                 'email' => [
-                    'required',
+                    'nullable',
                     Rule::unique('venders')->where(function ($query) {
                         return $query->where('created_by', \Auth::user()->id);
                     })

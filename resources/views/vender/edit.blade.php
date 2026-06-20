@@ -15,11 +15,25 @@
 
             </div>
         </div>
+        <div class="col-lg-12 col-md-12 col-sm-12">
+            <div class="form-group">
+                {{Form::label('billing_name',__('Contact Person'),array('class'=>'form-label')) }}
+                {{Form::text('billing_name',null,array('class'=>'form-control', 'placeholder'=>__('Enter Contact Person')))}}
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="form-group">
+                {{Form::label('billing_address',__('Address'),array('class'=>'form-label')) }}
+                {{Form::textarea('billing_address',null,array('class'=>'form-control','rows'=>3, 'placeholder'=>__('Enter Address')))}}
+            </div>
+        </div>
+    </div>
+    
+    <div style="display: none;">
         <div class="col-lg-4 col-md-4 col-sm-6">
             <div class="form-group">
                 {{Form::label('tax_number',__('Tax Number'),['class'=>'form-label'])}}
                 {{Form::text('tax_number',null,array('class'=>'form-control', 'placeholder'=>__('Enter Tax Number')))}}
-
             </div>
         </div>
         <div class="col-lg-4 col-md-4 col-sm-6">
@@ -31,27 +45,8 @@
         @if(!$customFields->isEmpty())
                     @include('customFields.formBuilder')
         @endif
-    </div>
     <h5 class="sub-title mb-3">{{__('Billing Address')}}</h5>
-    <div class="row">
-        <div class="col-lg-6 col-md-6 col-sm-6">
-            <div class="form-group">
-                {{Form::label('billing_name',__('Name'),array('class'=>'form-label')) }}
-                {{Form::text('billing_name',null,array('class'=>'form-control', 'placeholder'=>__('Enter Name')))}}
-            </div>
-        </div>
-        <div class="col-lg-6 col-md-6 col-sm-6">
-            <div class="form-group">
-                {{Form::label('billing_phone',__('Phone'),array('class'=>'form-label')) }}
-                {{Form::text('billing_phone',null,array('class'=>'form-control', 'placeholder'=>__('Enter Phone')))}}
-            </div>
-        </div>
-        <div class="col-md-12">
-            <div class="form-group">
-                {{Form::label('billing_address',__('Address'),array('class'=>'form-label')) }}
-                {{Form::textarea('billing_address',null,array('class'=>'form-control','rows'=>3, 'placeholder'=>__('Enter Address')))}}
-            </div>
-        </div>
+
 
 
         <div class="col-lg-6 col-md-6 col-sm-6">
@@ -142,6 +137,7 @@
 
         </div>
     @endif
+    </div>
 
 </div>
 

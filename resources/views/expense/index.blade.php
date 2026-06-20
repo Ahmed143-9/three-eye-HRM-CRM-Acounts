@@ -107,7 +107,11 @@
                                     <td>{{ !empty($expense->category)?$expense->category->name:'-'}}</td>
                                     <td>{{ Auth::user()->dateFormat($expense->bill_date) }}</td>
                                     <td>
-                                        <span class="status_badge badge bg-primary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statues[$expense->status]) }}</span>
+                                        @if($expense->status == 4)
+                                            <span class="status_badge badge bg-success p-2 px-3 rounded">{{ __('Paid') }}</span>
+                                        @else
+                                            <span class="status_badge badge bg-danger p-2 px-3 rounded">{{ __('Unpaid') }}</span>
+                                        @endif
                                     </td>
                                     @if(Gate::check('edit bill') || Gate::check('delete bill') || Gate::check('show bill'))
                                         <td class="Action">
