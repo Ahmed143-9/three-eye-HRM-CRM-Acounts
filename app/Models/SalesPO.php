@@ -18,6 +18,7 @@ class SalesPO extends Model
         'grand_total',
         'signature',
         'hs_code',
+        'file_path',
         'created_by',
     ];
 

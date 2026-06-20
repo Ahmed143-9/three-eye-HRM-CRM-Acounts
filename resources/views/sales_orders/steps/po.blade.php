@@ -14,7 +14,18 @@
             {{ Form::file('file', ['class' => 'form-control', 'accept' => '.pdf,image/*']) }}
             @if($order->po && $order->po->file_path)
                 <div class="mt-2">
-                    <a href="{{ asset($order->po->file_path) }}" target="_blank" class="btn btn-sm btn-info">{{ __('View Uploaded PO') }}</a>
+                    @php
+                        $ext = pathinfo($order->po->file_path, PATHINFO_EXTENSION);
+                    @endphp
+                    @if(in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif', 'webp']))
+                        <img src="{{ asset($order->po->file_path) }}" alt="PO Preview" class="img-thumbnail" style="max-height: 150px; display: block; margin-bottom: 10px;">
+                    @else
+                        <div class="alert alert-info py-1 px-2 d-inline-block text-sm mb-2">
+                            <i class="ti ti-file-text me-1"></i> {{ __('Uploaded File: ') }} {{ basename($order->po->file_path) }}
+                        </div>
+                        <br>
+                    @endif
+                    <a href="{{ asset($order->po->file_path) }}" target="_blank" class="btn btn-sm btn-info"><i class="ti ti-eye me-1"></i>{{ __('View Uploaded PO Document') }}</a>
                 </div>
             @endif
         </div>
