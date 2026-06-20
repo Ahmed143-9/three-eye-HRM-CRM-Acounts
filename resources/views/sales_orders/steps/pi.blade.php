@@ -258,8 +258,8 @@
                         },
                         success: function(response) {
                             if (response.success) {
-                                let newOption = new Option(response.data.name, response.data.name, true, true);
-                                selectElem.append(newOption).trigger('change');
+                                selectElem.find('option[value="ADD_NEW_INCOTERM"]').before(`<option value="${response.data.name}">${response.data.name}</option>`);
+                                selectElem.val(response.data.name).trigger('change');
                             }
                         }
                     });
