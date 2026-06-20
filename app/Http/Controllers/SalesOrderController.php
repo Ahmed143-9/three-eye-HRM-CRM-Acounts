@@ -162,8 +162,8 @@ class SalesOrderController extends Controller
 
             if ($request->hasFile('file')) {
                 $fileName = time() . '_po_' . str_replace(' ', '_', $request->file->getClientOriginalName());
-                $request->file->storeAs('sales_orders', $fileName, 'public');
-                $updateData['file_path'] = 'storage/sales_orders/' . $fileName;
+                $request->file->storeAs('uploads/sales_orders', $fileName);
+                $updateData['file_path'] = 'uploads/sales_orders/' . $fileName;
             }
 
             $po = SalesPO::updateOrCreate(
@@ -310,8 +310,8 @@ class SalesOrderController extends Controller
                     if ($request->hasFile("tankers.$index.file")) {
                         $file = $request->file("tankers.$index.file");
                         $fileName = time() . '_tanker_' . $index . '_' . str_replace(' ', '_', $file->getClientOriginalName());
-                        $file->storeAs('sales_orders', $fileName, 'public');
-                        $filePath = 'storage/sales_orders/' . $fileName;
+                        $file->storeAs('uploads/sales_orders', $fileName);
+                        $filePath = 'uploads/sales_orders/' . $fileName;
                     }
 
                     SalesCITanker::create([
@@ -346,8 +346,8 @@ class SalesOrderController extends Controller
         $order = SalesOrder::find($id);
         if ($request->hasFile('file')) {
             $fileName = time() . '_' . str_replace(' ', '_', $request->file->getClientOriginalName());
-            $request->file->storeAs('sales_orders', $fileName, 'public');
-            $filePath = 'storage/sales_orders/' . $fileName;
+            $request->file->storeAs('uploads/sales_orders', $fileName);
+            $filePath = 'uploads/sales_orders/' . $fileName;
         }
 
         $ci_id = $request->ci_id ?? session('active_ci_id');
@@ -377,8 +377,8 @@ class SalesOrderController extends Controller
         DB::transaction(function () use ($request, $order) {
             if ($request->hasFile('file')) {
                 $fileName = time() . '_cn_' . str_replace(' ', '_', $request->file->getClientOriginalName());
-                $request->file->storeAs('sales_orders', $fileName, 'public');
-                $filePath = 'storage/sales_orders/' . $fileName;
+                $request->file->storeAs('uploads/sales_orders', $fileName);
+                $filePath = 'uploads/sales_orders/' . $fileName;
             }
 
             $ci_id = $request->ci_id ?? session('active_ci_id');
@@ -398,8 +398,8 @@ class SalesOrderController extends Controller
                         $tanker = $ci->tankers->get($idx);
                         if ($tanker) {
                             $fileName = time() . '_tanker_cn_' . $idx . '_' . str_replace(' ', '_', $file->getClientOriginalName());
-                            $file->storeAs('sales_orders', $fileName, 'public');
-                            $tanker->file_path = 'storage/sales_orders/' . $fileName;
+                            $file->storeAs('uploads/sales_orders', $fileName);
+                            $tanker->file_path = 'uploads/sales_orders/' . $fileName;
                             $tanker->save();
                         }
                     }
