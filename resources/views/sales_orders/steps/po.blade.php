@@ -184,6 +184,14 @@
     </div>
 </div>
 
+    <button type="submit" class="btn btn-success d-inline-flex align-items-center"
+        style="background-color: #6fd943; border-color: #6fd943; padding: 10px 25px; font-weight: 600;">
+        {{ __('Save & Proceed to PI') }}
+        <i class="ti ti-chevron-right ms-2"></i>
+    </button>
+</div>
+{{ Form::close() }}
+
 <!-- PO Preview Modal -->
 @if($order->po)
 <div class="modal fade" id="poPreviewModal" tabindex="-1" aria-labelledby="poPreviewModalLabel" aria-hidden="true">
@@ -197,7 +205,7 @@
         <div class="alert alert-primary mb-3">
             <small>{{ __('The details below will be included in the final generated Purchase Order PDF. Review and modify the commercial terms as needed before downloading.') }}</small>
         </div>
-        <form id="poPreviewForm" action="{{ route('sales-orders.po.download', $order->id) }}" method="POST">
+        <form id="poPreviewForm" action="{{ route('sales-orders.po.download', $order->id) }}" method="POST" target="_blank">
             @csrf
             
             <h6 class="mb-3 border-bottom pb-2">{{ __('Commercial Terms') }}</h6>
@@ -239,19 +247,10 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
-        <button type="submit" class="btn btn-info"><i class="ti ti-download me-1"></i>{{ __('Download PDF') }}</button>
+        <button type="submit" class="btn btn-info" onclick="$('#poPreviewModal').modal('hide')"><i class="ti ti-download me-1"></i>{{ __('Download PDF') }}</button>
       </div>
       </form>
     </div>
   </div>
 </div>
 @endif
-
-<div class="d-flex justify-content-end align-items-center mt-3">
-    <button type="submit" class="btn btn-success d-inline-flex align-items-center"
-        style="background-color: #6fd943; border-color: #6fd943; padding: 10px 25px; font-weight: 600;">
-        {{ __('Save & Proceed to PI') }}
-        <i class="ti ti-chevron-right ms-2"></i>
-    </button>
-</div>
-{{ Form::close() }}
