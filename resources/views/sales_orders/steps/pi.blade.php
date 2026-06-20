@@ -87,8 +87,9 @@
             {{ Form::label('incoterm', __('Incoterms'), ['class' => 'form-label']) }}
             @php
                 $incoterms = \App\Models\Incoterm::where('created_by', \Auth::user()->creatorId())->pluck('name', 'name')->toArray();
+                $incoterms['ADD_NEW_INCOTERM'] = '+ ' . __('Add New');
             @endphp
-            {{ Form::select('incoterm', ['' => __('Select Incoterms')] + $incoterms, $order->pi->incoterm ?? null, ['class' => 'form-control select2']) }}
+            {{ Form::select('incoterm', ['' => __('Select Incoterms')] + $incoterms, $order->pi->incoterm ?? null, ['class' => 'form-control select2 incoterm-select']) }}
         </div>
     </div>
     <div class="col-md-4">
@@ -240,4 +241,32 @@
         <i class="ti ti-chevron-right ms-2"></i>
     </button>
 </div>
+<script>
+    $(document).ready(function() {
+        $('.incoterm-select').on('change', function() {
+            if ($(this).val() === 'ADD_NEW_INCOTERM') {
+                let newIncoterm = prompt('{{ __('Enter new Incoterm name:') }}');
+                let selectElem = $(this);
+                if (newIncoterm && newIncoterm.trim() !== '') {
+                    $.ajax({
+                        url: '{{ route('sales-orders.add-incoterm') }}',
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            name: newIncoterm.trim()
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                let newOption = new Option(response.data.name, response.data.name, true, true);
+                                selectElem.append(newOption).trigger('change');
+                            }
+                        }
+                    });
+                } else {
+                    selectElem.val('').trigger('change');
+                }
+            }
+        });
+    });
+</script>
 {{ Form::close() }}

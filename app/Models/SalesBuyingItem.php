@@ -13,6 +13,7 @@ class SalesBuyingItem extends Model
         'quantity',
         'unit',
         'price',
+        'currency',
         'total',
     ];
 

@@ -32,7 +32,7 @@ class UserController extends Controller
     {
         $user = \Auth::user();
         if ($user->can('Manage Users')) {
-            $users = User::where('created_by', '=', $user->creatorId())->where('type', '!=', 'client')->get();
+            $users = User::where('created_by', '=', $user->creatorId())->where('type', '!=', 'client')->orderBy('type')->get();
             return view('user.index')->with('users', $users);
         } else {
             return redirect()->back()->with('error', __('Permission denied.'));

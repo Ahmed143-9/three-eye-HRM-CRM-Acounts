@@ -1910,6 +1910,7 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
     Route::post('sales-orders/{id}/ci', [SalesOrderController::class, 'ciStore'])->name('sales-orders.ci.store');
     Route::get('sales-orders/{id}/ci/print', [SalesOrderController::class, 'ciPrint'])->name('sales-orders.ci.print');
     Route::get('sales-orders/{id}/ci/download', [SalesOrderController::class, 'ciDownload'])->name('sales-orders.ci.download');
+    Route::delete('sales-orders/ci/{id}', [SalesOrderController::class, 'destroyCI'])->name('sales-orders.destroy-ci');
 
     Route::post('sales-orders/{id}/pl', [SalesOrderController::class, 'plStore'])->name('sales-orders.pl.store');
     Route::get('sales-orders/{id}/pl/print', [SalesOrderController::class, 'plPrint'])->name('sales-orders.pl.print');
@@ -1924,6 +1925,7 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
 
     Route::post('sales-orders/add-unit', [App\Http\Controllers\SalesOrderWorkflowController::class, 'addUnit'])->name('sales-orders.add-unit');
     Route::post('sales-orders/add-currency', [App\Http\Controllers\SalesOrderWorkflowController::class, 'addCurrency'])->name('sales-orders.add-currency');
+    Route::post('sales-orders/add-incoterm', [App\Http\Controllers\SalesOrderWorkflowController::class, 'addIncoterm'])->name('sales-orders.add-incoterm');
     Route::get('sales-orders/customer-detail', [SalesOrderController::class, 'customerDetail'])->name('sales-orders.customer.detail');
 
     // Expense Management Module

@@ -35,11 +35,19 @@
                         <input type="hidden" name="tankers[{{$index}}][tanker_id]" value="{{ $slip->tanker_id }}">
                         {{ $slip->tanker_id }}
                     </td>
-                    <td class="bg-light-secondary">
-                        <div class="d-flex gap-1 justify-content-center text-center">
-                           <div class="border rounded p-1 bg-white" style="min-width:50px"><small class="d-block text-muted">G</small><strong>{{ number_format($slip->gross_weight, 3) }}</strong></div>
-                           <div class="border rounded p-1 bg-white" style="min-width:50px"><small class="d-block text-muted">T</small><strong>{{ number_format($slip->tare_weight, 3) }}</strong></div>
-                           <div class="border rounded p-1 bg-white border-primary" style="min-width:50px"><small class="d-block text-muted">N</small><strong class="text-primary">{{ number_format($slip->net_weight, 3) }}</strong></div>
+                    <td class="bg-light-secondary align-middle">
+                        <div class="row g-1 mb-1 text-center">
+                           <div class="col-6">
+                               <div class="border rounded px-1 bg-white"><small class="text-muted">G:</small> <br><strong>{{ number_format($slip->gross_weight, 3) }}</strong></div>
+                           </div>
+                           <div class="col-6">
+                               <div class="border rounded px-1 bg-white"><small class="text-muted">T:</small> <br><strong>{{ number_format($slip->tare_weight, 3) }}</strong></div>
+                           </div>
+                        </div>
+                        <div class="row g-1 text-center">
+                           <div class="col-12">
+                               <div class="border rounded px-1 bg-white border-primary"><small class="text-muted">Net:</small> <strong class="text-primary">{{ number_format($slip->net_weight, 3) }}</strong></div>
+                           </div>
                         </div>
                         <input type="hidden" class="seller-gross" value="{{ $slip->gross_weight }}">
                         <input type="hidden" class="seller-tare" value="{{ $slip->tare_weight }}">
@@ -47,31 +55,53 @@
                     </td>
                     
                     {{-- Loading Inputs --}}
-                    <td class="bg-light-primary">
+                    <td class="bg-light-primary align-middle">
+                        <div class="row g-1 mb-1">
+                            <div class="col-6">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text px-1" title="Gross">Gr</span>
+                                    <input type="number" step="0.001" name="tankers[{{$index}}][loading_gross]" class="form-control loading-gross" value="{{ $row['loading_gross'] ?? '' }}" style="min-width: 60px;">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text px-1" title="Tare">Ta</span>
+                                    <input type="number" step="0.001" name="tankers[{{$index}}][loading_tare]" class="form-control loading-tare" value="{{ $row['loading_tare'] ?? '' }}" style="min-width: 60px;">
+                                </div>
+                            </div>
+                        </div>
                         <div class="row g-1">
-                            <div class="col-4">
-                                <input type="number" step="0.001" name="tankers[{{$index}}][loading_gross]" class="form-control form-control-sm loading-gross" value="{{ $row['loading_gross'] ?? '' }}" placeholder="Gross">
-                            </div>
-                            <div class="col-4">
-                                <input type="number" step="0.001" name="tankers[{{$index}}][loading_tare]" class="form-control form-control-sm loading-tare" value="{{ $row['loading_tare'] ?? '' }}" placeholder="Tare">
-                            </div>
-                            <div class="col-4">
-                                <input type="number" step="0.001" name="tankers[{{$index}}][loading_net]" class="form-control-plaintext form-control-sm loading-net fw-bold text-primary" value="{{ $row['loading_net'] ?? '0.000' }}" readonly>
+                            <div class="col-12">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text px-1 bg-white border-primary text-primary" style="width: 45px;">Net</span>
+                                    <input type="number" step="0.001" name="tankers[{{$index}}][loading_net]" class="form-control bg-white loading-net fw-bold text-primary border-primary" value="{{ $row['loading_net'] ?? '0.000' }}" readonly>
+                                </div>
                             </div>
                         </div>
                     </td>
                     
                     {{-- Discharge Inputs --}}
-                    <td class="bg-light-success">
+                    <td class="bg-light-success align-middle">
+                        <div class="row g-1 mb-1">
+                            <div class="col-6">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text px-1" title="Gross">Gr</span>
+                                    <input type="number" step="0.001" name="tankers[{{$index}}][discharge_gross]" class="form-control discharge-gross" value="{{ $row['discharge_gross'] ?? '' }}" style="min-width: 60px;">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text px-1" title="Tare">Ta</span>
+                                    <input type="number" step="0.001" name="tankers[{{$index}}][discharge_tare]" class="form-control discharge-tare" value="{{ $row['discharge_tare'] ?? '' }}" style="min-width: 60px;">
+                                </div>
+                            </div>
+                        </div>
                         <div class="row g-1">
-                            <div class="col-4">
-                                <input type="number" step="0.001" name="tankers[{{$index}}][discharge_gross]" class="form-control form-control-sm discharge-gross" value="{{ $row['discharge_gross'] ?? '' }}" placeholder="Gross">
-                            </div>
-                            <div class="col-4">
-                                <input type="number" step="0.001" name="tankers[{{$index}}][discharge_tare]" class="form-control form-control-sm discharge-tare" value="{{ $row['discharge_tare'] ?? '' }}" placeholder="Tare">
-                            </div>
-                            <div class="col-4">
-                                <input type="number" step="0.001" name="tankers[{{$index}}][discharge_net]" class="form-control-plaintext form-control-sm discharge-net fw-bold text-success" value="{{ $row['discharge_net'] ?? '0.000' }}" readonly>
+                            <div class="col-12">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text px-1 bg-white border-success text-success" style="width: 45px;">Net</span>
+                                    <input type="number" step="0.001" name="tankers[{{$index}}][discharge_net]" class="form-control bg-white discharge-net fw-bold text-success border-success" value="{{ $row['discharge_net'] ?? '0.000' }}" readonly>
+                                </div>
                             </div>
                         </div>
                     </td>

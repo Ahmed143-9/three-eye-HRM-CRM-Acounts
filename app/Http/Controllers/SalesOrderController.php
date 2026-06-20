@@ -129,6 +129,7 @@ class SalesOrderController extends Controller
                     'quantity' => $item['qty'],
                     'unit' => $item['unit'],
                     'price' => $item['price'],
+                    'currency' => $item['currency'] ?? 'D.',
                     'total' => $item['total'],
                 ]);
             }
@@ -147,19 +148,27 @@ class SalesOrderController extends Controller
     {
         $order = SalesOrder::find($id);
         DB::transaction(function () use ($request, $order) {
+            $updateData = [
+                'po_number' => $request->po_number ?? 'PO-' . time(),
+                'client_name' => $request->client_name,
+                'client_address' => $request->client_address,
+                'client_email' => $request->client_email,
+                'client_phone' => $request->client_phone,
+                'hs_code' => $request->hs_code,
+                'grand_total' => $request->grand_total,
+                'signature' => $request->signature,
+                'created_by' => Auth::user()->creatorId(),
+            ];
+
+            if ($request->hasFile('file')) {
+                $fileName = time() . '_po_' . str_replace(' ', '_', $request->file->getClientOriginalName());
+                $request->file->storeAs('public/sales_orders', $fileName);
+                $updateData['file_path'] = 'storage/sales_orders/' . $fileName;
+            }
+
             $po = SalesPO::updateOrCreate(
                 ['order_id' => $order->id],
-                [
-                    'po_number' => $request->po_number ?? 'PO-' . time(),
-                    'client_name' => $request->client_name,
-                    'client_address' => $request->client_address,
-                    'client_email' => $request->client_email,
-                    'client_phone' => $request->client_phone,
-                    'hs_code' => $request->hs_code,
-                    'grand_total' => $request->grand_total,
-                    'signature' => $request->signature,
-                    'created_by' => Auth::user()->creatorId(),
-                ]
+                $updateData
             );
 
             $po->items()->delete();
@@ -300,7 +309,7 @@ class SalesOrderController extends Controller
 
                     if ($request->hasFile("tankers.$index.file")) {
                         $file = $request->file("tankers.$index.file");
-                        $fileName = time() . '_tanker_' . $index . '_' . $file->getClientOriginalName();
+                        $fileName = time() . '_tanker_' . $index . '_' . str_replace(' ', '_', $file->getClientOriginalName());
                         $file->storeAs('public/sales_orders', $fileName);
                         $filePath = 'storage/sales_orders/' . $fileName;
                     }
@@ -336,7 +345,7 @@ class SalesOrderController extends Controller
     {
         $order = SalesOrder::find($id);
         if ($request->hasFile('file')) {
-            $fileName = time() . '_' . $request->file->getClientOriginalName();
+            $fileName = time() . '_' . str_replace(' ', '_', $request->file->getClientOriginalName());
             $request->file->storeAs('public/sales_orders', $fileName);
             $filePath = 'storage/sales_orders/' . $fileName;
         }
@@ -367,7 +376,7 @@ class SalesOrderController extends Controller
         $order = SalesOrder::find($id);
         DB::transaction(function () use ($request, $order) {
             if ($request->hasFile('file')) {
-                $fileName = time() . '_cn_' . $request->file->getClientOriginalName();
+                $fileName = time() . '_cn_' . str_replace(' ', '_', $request->file->getClientOriginalName());
                 $request->file->storeAs('public/sales_orders', $fileName);
                 $filePath = 'storage/sales_orders/' . $fileName;
             }
@@ -388,7 +397,7 @@ class SalesOrderController extends Controller
                     foreach ($request->file('tanker_files') as $idx => $file) {
                         $tanker = $ci->tankers->get($idx);
                         if ($tanker) {
-                            $fileName = time() . '_tanker_cn_' . $idx . '_' . $file->getClientOriginalName();
+                            $fileName = time() . '_tanker_cn_' . $idx . '_' . str_replace(' ', '_', $file->getClientOriginalName());
                             $file->storeAs('public/sales_orders', $fileName);
                             $tanker->file_path = 'storage/sales_orders/' . $fileName;
                             $tanker->save();
@@ -541,6 +550,16 @@ class SalesOrderController extends Controller
                 \Log::error('Notification not sent (ci_transport_need): ' . $e->getMessage());
             }
         }
+    }
+
+    public function destroyCI($id)
+    {
+        $ci = SalesCI::find($id);
+        if ($ci) {
+            $ci->delete();
+            return redirect()->back()->with('success', __('Shipment batch deleted successfully.'));
+        }
+        return redirect()->back()->with('error', __('Shipment batch not found.'));
     }
 
     // Print & Download Methods

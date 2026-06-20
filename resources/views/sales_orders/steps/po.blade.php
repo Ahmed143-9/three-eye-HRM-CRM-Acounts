@@ -1,6 +1,6 @@
 <h5>{{ __('Step 1: Purchase Order (PO)') }}</h5>
 <hr>
-{{ Form::open(['route' => ['sales-orders.po.store', $order->id], 'method' => 'post']) }}
+{{ Form::open(['route' => ['sales-orders.po.store', $order->id], 'method' => 'post', 'enctype' => 'multipart/form-data']) }}
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">
@@ -10,19 +10,30 @@
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            {{ Form::label('client_name', __('Company Name'), ['class' => 'form-label']) }}
+            {{ Form::label('file', __('PO PDF Upload'), ['class' => 'form-label']) }}
+            {{ Form::file('file', ['class' => 'form-control', 'accept' => '.pdf,image/*']) }}
+            @if($order->po && $order->po->file_path)
+                <div class="mt-2">
+                    <a href="{{ asset($order->po->file_path) }}" target="_blank" class="btn btn-sm btn-info">{{ __('View Uploaded PO') }}</a>
+                </div>
+            @endif
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
+            {{ Form::label('client_name', __('Client Name'), ['class' => 'form-label']) }}
             {{ Form::text('client_name', $order->po->client_name ?? $order->customer->name, ['class' => 'form-control', 'required' => 'required']) }}
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            {{ Form::label('client_email', __('Company Email'), ['class' => 'form-label']) }}
+            {{ Form::label('client_email', __('Client Email'), ['class' => 'form-label']) }}
             {{ Form::email('client_email', $order->po->client_email ?? $order->customer->contact_person_email, ['class' => 'form-control']) }}
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            {{ Form::label('client_phone', __('Company Phone'), ['class' => 'form-label']) }}
+            {{ Form::label('client_phone', __('Client Phone'), ['class' => 'form-label']) }}
             {{ Form::text('client_phone', $order->po->client_phone ?? $order->customer->contact_person_number, ['class' => 'form-control']) }}
         </div>
     </div>
@@ -34,7 +45,7 @@
     </div>
     <div class="col-md-12">
         <div class="form-group">
-            {{ Form::label('client_address', __('Company Address'), ['class' => 'form-label']) }}
+            {{ Form::label('client_address', __('Client Address'), ['class' => 'form-label']) }}
             {{ Form::textarea('client_address', $order->po->client_address ?? $order->customer->billing_address, ['class' => 'form-control', 'rows' => 2]) }}
         </div>
     </div>

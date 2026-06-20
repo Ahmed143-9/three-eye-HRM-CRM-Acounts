@@ -35,4 +35,17 @@ class SalesOrderWorkflowController extends Controller
             'data' => $currency,
         ]);
     }
+
+    public function addIncoterm(Request $request)
+    {
+        $incoterm = \App\Models\Incoterm::create([
+            'name' => $request->name,
+            'created_by' => Auth::user()->creatorId(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $incoterm,
+        ]);
+    }
 }

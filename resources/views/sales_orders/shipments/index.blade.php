@@ -17,6 +17,17 @@
             $defaultCurrency = $order->po && $order->po->items ? $order->po->items->first()->currency : 'USD';
         @endphp
 
+        <!-- Reference Numbers Info Box -->
+        <div class="alert alert-secondary py-2 mb-3 d-flex flex-wrap justify-content-between align-items-center shadow-sm">
+            <div><strong class="text-dark">{{ __('Order:') }}</strong> <span class="text-primary">{{ $order->order_number }}</span></div>
+            <div><strong class="text-dark">{{ __('PO:') }}</strong> <span class="text-primary">{{ $order->po->po_number ?? 'N/A' }}</span></div>
+            <div><strong class="text-dark">{{ __('PI:') }}</strong> <span class="text-primary">{{ $order->pi->pi_number ?? 'N/A' }}</span></div>
+            <div><strong class="text-dark">{{ __('LC:') }}</strong> <span class="text-primary">{{ $order->lc->lc_no ?? 'N/A' }}</span></div>
+            @if($active_ci)
+            <div><strong class="text-dark">{{ __('Active CI:') }}</strong> <span class="text-success">{{ $active_ci->ci_number }}</span></div>
+            @endif
+        </div>
+
         <!-- Shipment Summary Matrix -->
         <div class="row g-3 mb-4">
             <div class="col-md-4">
@@ -100,8 +111,15 @@
                                 @endif
                             </h6>
                             @if($active_ci)
-                                <div class="badge bg-{{ $active_ci->delivery ? 'success' : 'warning' }}">
-                                    {{ $active_ci->delivery ? __('Ready for Transport') : __('Processing...') }}
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="badge bg-{{ $active_ci->delivery ? 'success' : 'warning' }}">
+                                        {{ $active_ci->delivery ? __('Ready for Transport') : __('Processing...') }}
+                                    </div>
+                                    <form action="{{ route('sales-orders.destroy-ci', $active_ci->id) }}" method="POST" onsubmit="return confirm('{{ __('Are you sure you want to delete this shipment batch? This will delete all related packing lists, consignment notes, and deliveries.') }}');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger py-0 px-2" title="{{ __('Delete Shipment') }}"><i class="ti ti-trash"></i></button>
+                                    </form>
                                 </div>
                             @endif
                         </div>

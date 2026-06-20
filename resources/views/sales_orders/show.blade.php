@@ -35,31 +35,42 @@
 @section('content')
     <div class="row">
         <div class="col-12">
+            <div class="alert alert-info py-2 mb-2 d-flex justify-content-between align-items-center shadow-sm">
+                <strong class="text-dark"><i class="ti ti-user me-1"></i>{{ __('Client Name:') }} <span class="text-primary">{{ $order->customer->name ?? 'N/A' }}</span></strong>
+                <span class="badge bg-primary">{{ __('Order #') }}: {{ $order->order_number }}</span>
+            </div>
             <div class="card mt-3">
                 <div class="card-body">
+                    @php
+                        $isBuyingActive = ($order->current_step == 'Buying' && !request()->ci_id && !request()->new_ci);
+                        $isPoActive = ($order->current_step == 'PO' && !request()->ci_id && !request()->new_ci);
+                        $isPiActive = ($order->current_step == 'PI' && !request()->ci_id && !request()->new_ci);
+                        $isLcActive = ($order->current_step == 'LC' && !request()->ci_id && !request()->new_ci);
+                        $isShipmentsActive = (in_array($order->current_step, ['CI', 'Packing List', 'Consignment Note', 'Received Details', 'Delivery']) || request()->ci_id || request()->new_ci);
+                    @endphp
                     <ul class="nav nav-pills mb-3 justify-content-center" id="pills-tab" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ ($order->current_step == 'Buying' && !request()->ci_id && !request()->new_ci) ? 'active' : '' }} {{ $order->buying ? 'text-success' : '' }}" id="pills-buying-tab" data-bs-toggle="pill" data-bs-target="#pills-buying" type="button" role="tab">
+                            <button class="nav-link {{ $isBuyingActive ? 'active' : ($order->buying ? 'text-success fw-bold' : 'text-dark') }}" id="pills-buying-tab" data-bs-toggle="pill" data-bs-target="#pills-buying" type="button" role="tab">
                                 @if($order->buying) <i class="ti ti-circle-check me-1"></i> @endif {{ __('1. Buying') }}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ ($order->current_step == 'PO' && !request()->ci_id && !request()->new_ci) ? 'active' : '' }} {{ !$order->buying ? 'disabled' : ($order->po ? 'text-success' : '') }}" id="pills-po-tab" data-bs-toggle="pill" data-bs-target="#pills-po" type="button" role="tab">
+                            <button class="nav-link {{ $isPoActive ? 'active' : (!$order->buying ? 'disabled text-muted' : ($order->po ? 'text-success fw-bold' : 'text-dark')) }}" id="pills-po-tab" data-bs-toggle="pill" data-bs-target="#pills-po" type="button" role="tab">
                                 @if($order->po) <i class="ti ti-circle-check me-1"></i> @endif {{ __('2. PO') }}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ ($order->current_step == 'PI' && !request()->ci_id && !request()->new_ci) ? 'active' : '' }} {{ !$order->po ? 'disabled' : ($order->pi ? 'text-success' : '') }}" id="pills-pi-tab" data-bs-toggle="pill" data-bs-target="#pills-pi" type="button" role="tab">
+                            <button class="nav-link {{ $isPiActive ? 'active' : (!$order->po ? 'disabled text-muted' : ($order->pi ? 'text-success fw-bold' : 'text-dark')) }}" id="pills-pi-tab" data-bs-toggle="pill" data-bs-target="#pills-pi" type="button" role="tab">
                                 @if($order->pi) <i class="ti ti-circle-check me-1"></i> @endif {{ __('3. PI') }}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ ($order->current_step == 'LC' && !request()->ci_id && !request()->new_ci) ? 'active' : '' }} {{ !$order->pi ? 'disabled' : ($order->lc ? 'text-success' : '') }}" id="pills-lc-tab" data-bs-toggle="pill" data-bs-target="#pills-lc" type="button" role="tab">
+                            <button class="nav-link {{ $isLcActive ? 'active' : (!$order->pi ? 'disabled text-muted' : ($order->lc ? 'text-success fw-bold' : 'text-dark')) }}" id="pills-lc-tab" data-bs-toggle="pill" data-bs-target="#pills-lc" type="button" role="tab">
                                 @if($order->lc) <i class="ti ti-circle-check me-1"></i> @endif {{ __('4. LC') }}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ (in_array($order->current_step, ['CI', 'Packing List', 'Consignment Note', 'Received Details', 'Delivery']) || request()->ci_id || request()->new_ci) ? 'active' : '' }} {{ !$order->lc ? 'disabled' : ($order->cis->count() > 0 ? 'text-success' : '') }}" id="pills-shipments-tab" data-bs-toggle="pill" data-bs-target="#pills-shipments" type="button" role="tab">
+                            <button class="nav-link {{ $isShipmentsActive ? 'active' : (!$order->lc ? 'disabled text-muted' : ($order->cis->count() > 0 ? 'text-success fw-bold' : 'text-dark')) }}" id="pills-shipments-tab" data-bs-toggle="pill" data-bs-target="#pills-shipments" type="button" role="tab">
                                 @if($order->cis->count() > 0) <i class="ti ti-package me-1"></i> @endif {{ __('5. Shipments') }}
                             </button>
                         </li>

@@ -58,6 +58,10 @@
                                     {!! Form::label('email', __('Email'), ['class' => 'form-label']) !!}<x-required></x-required>
                                     {!! Form::email('email', old('email'), ['class' => 'form-control', 'required' => 'required' ,'placeholder'=>'Enter employee email']) !!}
                                 </div>
+                                <div class="form-group col-md-6">
+                                    {!! Form::label('password', __('Password'), ['class' => 'form-label']) !!}<x-required></x-required>
+                                    {!! Form::text('password', old('password'), ['class' => 'form-control', 'required' => 'required' ,'placeholder'=>'Enter employee password']) !!}
+                                </div>
                             </div>
                             <div class="form-group mb-0">
                                 {!! Form::label('address', __('Address'), ['class' => 'form-label']) !!}<x-required></x-required>

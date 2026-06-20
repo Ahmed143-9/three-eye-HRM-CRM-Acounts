@@ -91,6 +91,7 @@ class EmployeeController extends Controller
                                    'phone' => 'required',
                                    'address' => 'required',
                                    'email' => 'required|unique:users',
+                                   'password' => 'required',
                                    'department_id' => 'required',
                                    'designation_id' => 'required',
                                    'joining_salary' => 'required|numeric',
@@ -294,7 +295,7 @@ class EmployeeController extends Controller
             {
                 $userArr = [
                     'email' => $user->email,
-                    'password' => $user->password,
+                    'password' => $request->password,
                 ];
 
                 try {
