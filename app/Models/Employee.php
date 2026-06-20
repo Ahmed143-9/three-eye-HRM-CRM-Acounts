@@ -306,8 +306,109 @@ class Employee extends Model
         }
     }
 
+    public function getLeaveEntitlement($leaveTypeTitle, $year = null)
+    {
+        if (!$year) {
+            $year = date('Y');
+        }
+        if (empty($this->company_doj)) {
+            return 0;
+        }
+        $doj = \Carbon\Carbon::parse($this->company_doj);
+        $dojYear = $doj->year;
 
+        if ($dojYear > $year) {
+            return 0;
+        }
 
+        $annualDays = ($leaveTypeTitle === 'Casual Leave') ? 10 : (($leaveTypeTitle === 'Sick Leave') ? 14 : 0);
+        if ($annualDays === 0) {
+            $leaveType = \App\Models\LeaveType::where('title', $leaveTypeTitle)->first();
+            $annualDays = $leaveType ? $leaveType->days : 0;
+        }
 
+        if ($dojYear == $year) {
+            // Pro-rate
+            $startOfYear = \Carbon\Carbon::parse("$year-01-01");
+            $endOfYear = \Carbon\Carbon::parse("$year-12-31");
+            $totalDaysInYear = $startOfYear->diffInDays($endOfYear) + 1;
+            $daysFromDojToEndOfYear = $doj->diffInDays($endOfYear) + 1;
+            
+            $entitlement = ($annualDays * $daysFromDojToEndOfYear) / $totalDaysInYear;
+            return round($entitlement, 2);
+        }
 
+        // Joined before this year
+        return $annualDays;
+    }
+
+    public function getApprovedLeaveDays($leaveTypeTitle, $year = null)
+    {
+        if (!$year) {
+            $year = date('Y');
+        }
+        
+        $leaveType = \App\Models\LeaveType::where('title', $leaveTypeTitle)->first();
+        if (!$leaveType) {
+            return 0;
+        }
+
+        return \App\Models\Leave::where('employee_id', $this->id)
+            ->where('leave_type_id', $leaveType->id)
+            ->where('status', 'Approved')
+            ->where(function($q) use ($year) {
+                $q->whereYear('start_date', $year)
+                  ->orWhereYear('end_date', $year);
+            })
+            ->sum('total_leave_days');
+    }
+
+    public function getMonthlyAttendanceStats($month = null)
+    {
+        if (!$month) {
+            $month = date('Y-m');
+        }
+        
+        $startDate = $month . '-01';
+        $endDate = date('Y-m-t', strtotime($startDate));
+        
+        $attendances = \App\Models\AttendanceEmployee::where('employee_id', $this->id)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->get();
+            
+        $pCount = 0;
+        $aCount = 0;
+        $lCount = 0;
+        $lvCount = 0;
+        
+        foreach ($attendances as $att) {
+            if ($att->status == 'Present') {
+                $pCount++;
+            } elseif ($att->status == 'Late') {
+                $lCount++;
+            } elseif ($att->status == 'Leave') {
+                $lvCount++;
+            } elseif ($att->status == 'Absent') {
+                // Check if approved leave exists for this date
+                $hasApprovedLeave = \App\Models\Leave::where('employee_id', $this->id)
+                    ->where('status', 'Approved')
+                    ->whereDate('start_date', '<=', $att->date)
+                    ->whereDate('end_date', '>=', $att->date)
+                    ->exists();
+                    
+                if ($hasApprovedLeave) {
+                    $lvCount++;
+                } else {
+                    $aCount++;
+                }
+            }
+        }
+        
+        return [
+            'present' => $pCount,
+            'absent' => $aCount,
+            'late' => $lCount,
+            'leave' => $lvCount,
+        ];
+    }
 }

@@ -185,6 +185,7 @@ class EmployeeController extends Controller
                     'designation_id' => $request['designation_id'],
                     'company_doj' => $request['company_doj'],
                     'joining_salary' => $request['joining_salary'],
+                    'salary' => $request['salary'] ?? ($request['joining_salary'] * 0.60),
                     'documents' => $document_implode,
                     'profile_image' => $profileImageName,
                     'facebook' => $request['facebook'] ?? null,
@@ -197,6 +198,47 @@ class EmployeeController extends Controller
                     'created_by' => \Auth::user()->creatorId(),
                 ]
             );
+
+            // Save Allowances (HRA, Conveyance, Medical)
+            $hraOpt = \App\Models\AllowanceOption::firstOrCreate([
+                'name' => 'House Rent Allowance',
+                'created_by' => \Auth::user()->creatorId()
+            ]);
+            $convOpt = \App\Models\AllowanceOption::firstOrCreate([
+                'name' => 'Conveyance Allowance',
+                'created_by' => \Auth::user()->creatorId()
+            ]);
+            $medOpt = \App\Models\AllowanceOption::firstOrCreate([
+                'name' => 'Medical Allowance',
+                'created_by' => \Auth::user()->creatorId()
+            ]);
+
+            \App\Models\Allowance::create([
+                'employee_id' => $employee->id,
+                'allowance_option' => $hraOpt->id,
+                'title' => 'House Rent Allowance',
+                'amount' => $request->hra ?? ($request->joining_salary * 0.20),
+                'type' => 'fixed',
+                'created_by' => \Auth::user()->creatorId()
+            ]);
+
+            \App\Models\Allowance::create([
+                'employee_id' => $employee->id,
+                'allowance_option' => $convOpt->id,
+                'title' => 'Conveyance Allowance',
+                'amount' => $request->conveyance ?? ($request->joining_salary * 0.10),
+                'type' => 'fixed',
+                'created_by' => \Auth::user()->creatorId()
+            ]);
+
+            \App\Models\Allowance::create([
+                'employee_id' => $employee->id,
+                'allowance_option' => $medOpt->id,
+                'title' => 'Medical Allowance',
+                'amount' => $request->medical ?? ($request->joining_salary * 0.10),
+                'type' => 'fixed',
+                'created_by' => \Auth::user()->creatorId()
+            ]);
             if($request->hasFile('document'))
             {
                 foreach($request->file('document') as $key => $documentData)
@@ -349,7 +391,17 @@ class EmployeeController extends Controller
                 ->orderBy('id', 'asc')
                 ->get();
 
-            return view('employee.edit', compact('employee', 'employeesId', 'branches', 'departments', 'designations', 'documents','departmentData', 'emergencyContacts'));
+            // Fetch existing allowances for HRA, Conveyance, Medical
+            $allowance_options = \App\Models\AllowanceOption::where('created_by', \Auth::user()->creatorId())->get();
+            $hra_opt = $allowance_options->where('name', 'House Rent Allowance')->first();
+            $conv_opt = $allowance_options->where('name', 'Conveyance Allowance')->first();
+            $med_opt = $allowance_options->where('name', 'Medical Allowance')->first();
+
+            $hra_allowance = $hra_opt ? \App\Models\Allowance::where('employee_id', $employee->id)->where('allowance_option', $hra_opt->id)->first() : null;
+            $conv_allowance = $conv_opt ? \App\Models\Allowance::where('employee_id', $employee->id)->where('allowance_option', $conv_opt->id)->first() : null;
+            $med_allowance = $med_opt ? \App\Models\Allowance::where('employee_id', $employee->id)->where('allowance_option', $med_opt->id)->first() : null;
+
+            return view('employee.edit', compact('employee', 'employeesId', 'branches', 'departments', 'designations', 'documents','departmentData', 'emergencyContacts', 'hra_allowance', 'conv_allowance', 'med_allowance'));
         }
         else
         {
@@ -479,6 +531,7 @@ class EmployeeController extends Controller
                 'facebook', 'linkedin', 'twitter', 'instagram',
                 'probation_period', 'notice_period'
             ]);
+            $input['salary'] = $request->salary ?? ($request->joining_salary * 0.60);
 
             // Handle profile image upload
             if ($request->hasFile('profile_image')) {
@@ -502,6 +555,59 @@ class EmployeeController extends Controller
             // Save is_fresher
             $employee->is_fresher = $request->has('is_fresher') ? 1 : 0;
             $employee->save();
+
+            // Save/Update Allowances (HRA, Conveyance, Medical)
+            $hraOpt = \App\Models\AllowanceOption::firstOrCreate([
+                'name' => 'House Rent Allowance',
+                'created_by' => \Auth::user()->creatorId()
+            ]);
+            $convOpt = \App\Models\AllowanceOption::firstOrCreate([
+                'name' => 'Conveyance Allowance',
+                'created_by' => \Auth::user()->creatorId()
+            ]);
+            $medOpt = \App\Models\AllowanceOption::firstOrCreate([
+                'name' => 'Medical Allowance',
+                'created_by' => \Auth::user()->creatorId()
+            ]);
+
+            \App\Models\Allowance::updateOrCreate(
+                [
+                    'employee_id' => $employee->id,
+                    'allowance_option' => $hraOpt->id,
+                ],
+                [
+                    'title' => 'House Rent Allowance',
+                    'amount' => $request->hra ?? ($request->joining_salary * 0.20),
+                    'type' => 'fixed',
+                    'created_by' => \Auth::user()->creatorId()
+                ]
+            );
+
+            \App\Models\Allowance::updateOrCreate(
+                [
+                    'employee_id' => $employee->id,
+                    'allowance_option' => $convOpt->id,
+                ],
+                [
+                    'title' => 'Conveyance Allowance',
+                    'amount' => $request->conveyance ?? ($request->joining_salary * 0.10),
+                    'type' => 'fixed',
+                    'created_by' => \Auth::user()->creatorId()
+                ]
+            );
+
+            \App\Models\Allowance::updateOrCreate(
+                [
+                    'employee_id' => $employee->id,
+                    'allowance_option' => $medOpt->id,
+                ],
+                [
+                    'title' => 'Medical Allowance',
+                    'amount' => $request->medical ?? ($request->joining_salary * 0.10),
+                    'type' => 'fixed',
+                    'created_by' => \Auth::user()->creatorId()
+                ]
+            );
 
             // Handle document removal
             if ($request->has('remove_doc')) {

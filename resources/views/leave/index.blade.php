@@ -90,10 +90,12 @@
                                                 @endcan
                                             @endif
                                         @else
+                                        @if(\Auth::user()->type == 'company')
                                         <div class="action-btn me-2">
                                             <a href="#" data-url="{{ URL::to('leave/'.$item->id.'/action') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Leave Action')}}" class="mx-3 btn btn-sm  align-items-center bg-warning" data-bs-toggle="tooltip" title="{{__('Leave Action')}}" data-original-title="{{__('Leave Action')}}">
                                                 <i class="ti ti-caret-right text-white"></i> </a>
                                         </div>
+                                        @endif
                                             @can('Manage Leaves')
                                             <div class="action-btn me-2">
                                                 <a href="#" data-url="{{ URL::to('leave/'.$item->id.'/edit') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Leave')}}" class="mx-3 btn btn-sm  align-items-center bg-info" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">

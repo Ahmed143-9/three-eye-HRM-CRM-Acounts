@@ -18,8 +18,8 @@ class LeaveTypesSeeder extends Seeder
 
         $leaveTypes = [
             ['title' => 'Annual Leave', 'days' => 20, 'created_by' => $created_by],
-            ['title' => 'Sick Leave', 'days' => 10, 'created_by' => $created_by],
-            ['title' => 'Casual Leave', 'days' => 5, 'created_by' => $created_by],
+            ['title' => 'Sick Leave', 'days' => 14, 'created_by' => $created_by],
+            ['title' => 'Casual Leave', 'days' => 10, 'created_by' => $created_by],
             ['title' => 'Maternity Leave', 'days' => 90, 'created_by' => $created_by],
             ['title' => 'Paternity Leave', 'days' => 7, 'created_by' => $created_by],
             ['title' => 'Bereavement Leave', 'days' => 3, 'created_by' => $created_by],

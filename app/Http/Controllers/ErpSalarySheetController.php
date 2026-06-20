@@ -68,28 +68,74 @@ class ErpSalarySheetController extends Controller
 
             $totalBatchPayable = 0;
 
+            // Fetch allowance options to lookup custom values
+            $allowanceOptions = \App\Models\AllowanceOption::where('created_by', Auth::user()->creatorId())->get();
+            $hraOpt = $allowanceOptions->where('name', 'House Rent Allowance')->first();
+            $convOpt = $allowanceOptions->where('name', 'Conveyance Allowance')->first();
+            if (!$convOpt) {
+                $convOpt = $allowanceOptions->where('name', 'Transport Allowance')->first();
+            }
+            $medOpt = $allowanceOptions->where('name', 'Medical Allowance')->first();
+
             foreach($employees as $employee) {
                 $attendances = AttendanceEmployee::where('employee_id', $employee->id)
                     ->whereBetween('date', [$startDate, $endDate])
                     ->get();
 
-                $pCount  = $attendances->where('status', 'Present')->count();
-                $aCount  = $attendances->where('status', 'Absent')->count();
-                $lCount  = $attendances->where('status', 'Late')->count();
-                $lvCount = $attendances->where('status', 'Leave')->count();
+                $pCount  = 0;
+                $aCount  = 0;
+                $lCount  = 0;
+                $lvCount = 0;
                 $hrs     = $attendances->sum('working_hours');
 
+                foreach ($attendances as $att) {
+                    if ($att->status == 'Present') {
+                        $pCount++;
+                    } elseif ($att->status == 'Late') {
+                        $lCount++;
+                    } elseif ($att->status == 'Leave') {
+                        $lvCount++;
+                    } elseif ($att->status == 'Absent') {
+                        // Check if approved leave exists for this date
+                        $hasApprovedLeave = \App\Models\Leave::where('employee_id', $employee->id)
+                            ->where('status', 'Approved')
+                            ->whereDate('start_date', '<=', $att->date)
+                            ->whereDate('end_date', '>=', $att->date)
+                            ->exists();
+
+                        if ($hasApprovedLeave) {
+                            $lvCount++;
+                        } else {
+                            $aCount++;
+                        }
+                    }
+                }
+
                 $ctc = (float)($employee->joining_salary ?? 0);
-                $basic = round($ctc * 0.60, 2);
-                $hra   = round($ctc * 0.20, 2);
-                $conv  = round($ctc * 0.10, 2);
-                $med   = round($ctc * 0.10, 2);
+
+                // Fetch custom allowance amounts if saved, else fallback to standard percentages
+                $hraVal = $hraOpt ? \App\Models\Allowance::where('employee_id', $employee->id)->where('allowance_option', $hraOpt->id)->value('amount') : null;
+                $convVal = $convOpt ? \App\Models\Allowance::where('employee_id', $employee->id)->where('allowance_option', $convOpt->id)->value('amount') : null;
+                $medVal = $medOpt ? \App\Models\Allowance::where('employee_id', $employee->id)->where('allowance_option', $medOpt->id)->value('amount') : null;
+
+                $basic = $employee->salary > 0 ? (float)$employee->salary : round($ctc * 0.60, 2);
+                $hra   = !is_null($hraVal) ? (float)$hraVal : round($ctc * 0.20, 2);
+                $conv  = !is_null($convVal) ? (float)$convVal : round($ctc * 0.10, 2);
+                $med   = !is_null($medVal) ? (float)$medVal : round($ctc * 0.10, 2);
 
                 $dailyPay = $daysInMonth > 0 ? ($ctc / $daysInMonth) : 0;
                 
-                // ERP Policy: Present, Late, and Approved Leaves are paid.
-                $payableDays = $pCount + $lCount + $lvCount;
-                $payable  = round($dailyPay * $payableDays, 2);
+                // Late attendance policy: 3 late marks = 1 absent day
+                $lateDeductions = (int)floor($lCount / 3);
+                $payableDays = $pCount + $lvCount + $lCount - $lateDeductions;
+                if ($payableDays > $daysInMonth) {
+                    $payableDays = $daysInMonth;
+                }
+                if ($payableDays < 0) {
+                    $payableDays = 0;
+                }
+                
+                $payable = round($dailyPay * $payableDays, 2);
 
                 ErpSalarySheet::create([
                     'batch_id'             => $batch->id,
@@ -104,7 +150,7 @@ class ErpSalarySheetController extends Controller
                     'conveyance_allowance' => $conv,
                     'medical_allowance'    => $med,
                     'present_days'         => $pCount,
-                    'absent_days'          => $aCount,
+                    'absent_days'          => $aCount + $lateDeductions, // Actual Absences + Late Converted Absences
                     'late_count'           => $lCount,
                     'leave_count'          => $lvCount,
                     'working_hours'        => round($hrs, 2),

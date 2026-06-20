@@ -36,6 +36,12 @@
                                 <th>{{__('Employee ID')}}</th>
                                 <th>{{__('Name')}}</th>
                                 <th>{{__('Email')}}</th>
+                                <th>{{__('Leave Balance')}}</th>
+                                <th>{{__('Casual Left')}}</th>
+                                <th>{{__('Sick Left')}}</th>
+                                <th>{{__('Present')}}</th>
+                                <th>{{__('Absent')}}</th>
+                                <th>{{__('Late')}}</th>
                                 <th>{{__('Department') }}</th>
                                 <th>{{__('Designation') }}</th>
                                 <th>{{__('Date Of Joining') }}</th>
@@ -56,6 +62,25 @@
                                     </td>
                                     <td class="font-style">{{ $employee->name }}</td>
                                     <td>{{ $employee->email }}</td>
+                                    @php
+                                        $casualEnt = $employee->getLeaveEntitlement('Casual Leave');
+                                        $casualApproved = $employee->getApprovedLeaveDays('Casual Leave');
+                                        $casualRem = max(0, $casualEnt - $casualApproved);
+
+                                        $sickEnt = $employee->getLeaveEntitlement('Sick Leave');
+                                        $sickApproved = $employee->getApprovedLeaveDays('Sick Leave');
+                                        $sickRem = max(0, $sickEnt - $sickApproved);
+
+                                        $totalRem = $casualRem + $sickRem;
+                                        
+                                        $stats = $employee->getMonthlyAttendanceStats();
+                                    @endphp
+                                    <td>{{ $totalRem }} {{__('Days')}}</td>
+                                    <td>{{ $casualRem }} {{__('Days')}}</td>
+                                    <td>{{ $sickRem }} {{__('Days')}}</td>
+                                    <td><span class="badge bg-success">{{ $stats['present'] }}</span></td>
+                                    <td><span class="badge bg-danger">{{ $stats['absent'] }}</span></td>
+                                    <td><span class="badge bg-warning">{{ $stats['late'] }}</span></td>
                                     @if($employee->department_id)
                                         <td class="font-style">{{$employee->department ? $employee->department->name:''}}</td>
                                     @else

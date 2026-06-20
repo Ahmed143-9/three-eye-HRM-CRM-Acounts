@@ -352,8 +352,8 @@ class LeaveController extends Controller
 
     public function changeaction(Request $request)
     {
-        if (!\Auth::user()->can('Manage Leaves')) {
-            return redirect()->back()->with('error', __('Permission denied.'));
+        if (!\Auth::user()->can('Manage Leaves') || \Auth::user()->type !== 'company') {
+            return redirect()->back()->with('error', __('Permission denied. Only Admin can approve or reject leaves.'));
         }
 
         $leave = Leave::find($request->leave_id);

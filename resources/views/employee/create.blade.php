@@ -108,7 +108,23 @@
                                 </div>
                                 <div class="form-group col-md-6">
                                     {!! Form::label('joining_salary', __('Joining Salary'), ['class' => 'form-label']) !!}<x-required></x-required>
-                                    {!! Form::number('joining_salary', null, ['class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter joining salary'), 'step' => '0.01']) !!}
+                                    {!! Form::number('joining_salary', null, ['class' => 'form-control', 'id' => 'joining_salary', 'required' => 'required', 'placeholder' => __('Enter joining salary'), 'step' => '0.01']) !!}
+                                </div>
+                                <div class="form-group col-md-6">
+                                    {!! Form::label('salary', __('Basic Salary (60%)'), ['class' => 'form-label']) !!}<x-required></x-required>
+                                    {!! Form::number('salary', null, ['class' => 'form-control', 'id' => 'salary', 'required' => 'required', 'placeholder' => __('Basic Salary'), 'step' => '0.01']) !!}
+                                </div>
+                                <div class="form-group col-md-6">
+                                    {!! Form::label('hra', __('House Rent Allowance (HRA) (20%)'), ['class' => 'form-label']) !!}<x-required></x-required>
+                                    {!! Form::number('hra', null, ['class' => 'form-control', 'id' => 'hra', 'required' => 'required', 'placeholder' => __('HRA'), 'step' => '0.01']) !!}
+                                </div>
+                                <div class="form-group col-md-6">
+                                    {!! Form::label('conveyance', __('Conveyance Allowance (10%)'), ['class' => 'form-label']) !!}<x-required></x-required>
+                                    {!! Form::number('conveyance', null, ['class' => 'form-control', 'id' => 'conveyance', 'required' => 'required', 'placeholder' => __('Conveyance Allowance'), 'step' => '0.01']) !!}
+                                </div>
+                                <div class="form-group col-md-6">
+                                    {!! Form::label('medical', __('Medical Allowance (10%)'), ['class' => 'form-label']) !!}<x-required></x-required>
+                                    {!! Form::number('medical', null, ['class' => 'form-control', 'id' => 'medical', 'required' => 'required', 'placeholder' => __('Medical Allowance'), 'step' => '0.01']) !!}
                                 </div>
 
                             </div>
@@ -548,6 +564,21 @@
                     }
                 });
             }
+
+            $(document).on('input', '#joining_salary', function() {
+                var joining_salary = parseFloat($(this).val());
+                if (!isNaN(joining_salary)) {
+                    $('#salary').val((joining_salary * 0.60).toFixed(2));
+                    $('#hra').val((joining_salary * 0.20).toFixed(2));
+                    $('#conveyance').val((joining_salary * 0.10).toFixed(2));
+                    $('#medical').val((joining_salary * 0.10).toFixed(2));
+                } else {
+                    $('#salary').val('');
+                    $('#hra').val('');
+                    $('#conveyance').val('');
+                    $('#medical').val('');
+                }
+            });
         });
     </script>
 @endpush
