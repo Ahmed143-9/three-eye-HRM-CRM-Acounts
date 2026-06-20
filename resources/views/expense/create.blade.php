@@ -540,6 +540,19 @@
             $('#employee_detail').addClass('d-none');
 
         })
+        
+        $(document).ready(function() {
+            $(document).on('change', '#payment_status', function () {
+                if ($(this).val() == 'paid') {
+                    $('#account_div').show();
+                    $('#account_div select').prop('required', true);
+                } else {
+                    $('#account_div').hide();
+                    $('#account_div select').prop('required', false);
+                }
+            });
+            $('#payment_status').trigger('change');
+        });
 
     </script>
 
@@ -610,23 +623,32 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        {{ Form::label('payment_date', __('Payment Date'),['class'=>'form-label']) }}<x-required></x-required>
-                                        {{Form::date('payment_date',null,array('class'=>'form-control','required'=>'required'))}}
+                                        {{ Form::label('purchase_date', __('Purchase Date'),['class'=>'form-label']) }}<x-required></x-required>
+                                        {{Form::date('purchase_date',null,array('class'=>'form-control','required'=>'required'))}}
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        {{ Form::label('category_id', __('Category'),['class'=>'form-label']) }}
-                                        {{ Form::select('category_id', $category,null, array('class' => 'form-control select')) }}
-                                        <div class="text-xs mt-1">
-                                            {{ __('Create category here.') }} <a href="{{ route('product-category.index') }}"><b>{{ __('Create category') }}</b></a>
-                                        </div>
+                                        {{ Form::label('payment_date', __('Payment Date'),['class'=>'form-label']) }}
+                                        {{Form::date('payment_date',null,array('class'=>'form-control'))}}
                                     </div>
                                 </div>
                                 <div class="col-md-6">
+                                    <div class="form-group">
+                                        {{ Form::label('category_id', __('Category'),['class'=>'form-label']) }}<x-required></x-required>
+                                        {{ Form::select('category_id', ['Stationary' => 'Stationary', 'Entertainment' => 'Entertainment', 'MISC' => 'MISC'], null, array('class' => 'form-control select', 'required'=>'required')) }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        {{ Form::label('payment_status', __('Payment Status'),['class'=>'form-label']) }}<x-required></x-required>
+                                        {{ Form::select('payment_status', ['unpaid' => 'Unpaid', 'paid' => 'Paid'], 'unpaid', array('class' => 'form-control select', 'id' => 'payment_status', 'required'=>'required')) }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6" id="account_div" style="display:none;">
                                     <div class="form-group">
                                         {{ Form::label('account_id', __('Account'),['class'=>'form-label']) }}<x-required></x-required>
-                                        {{ Form::select('account_id',$accounts,null, array('class' => 'form-control ','required'=>'required')) }}
+                                        {{ Form::select('account_id',$accounts,null, array('class' => 'form-control')) }}
                                     </div>
                                 </div>
                             </div>
@@ -669,7 +691,7 @@
                             <tbody class="ui-sortable" data-repeater-item>
                             <tr>
                                 <td width="25%" class="form-group pt-0">
-                                    {{ Form::select('item', $product_services,'', array('class' => 'form-control select2 item','data-url'=>route('expense.product'), 'required' => 'required')) }}
+                                    {{ Form::text('item_text', null, array('class' => 'form-control item_text', 'placeholder' => __('Enter Item Name'), 'required' => 'required')) }}
                                 </td>
                                 <td>
                                     <div class="form-group price-input input-group search-form">

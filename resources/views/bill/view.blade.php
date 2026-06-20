@@ -121,14 +121,7 @@
         @if ($bill->status != 0)
             <div class="row justify-content-between align-items-center mb-3">
                 <div class="col-md-12 d-flex flex-wrap gap-2 align-items-center justify-content-end">
-                    @if ($bill->status != 4)
-                        <div class="all-button-box">
-                            <a href="#" data-url="{{ route('bill.debit.note', $bill->id) }}" data-ajax-popup="true"
-                                data-title="{{ __('Apply Debit Note') }}" class="btn btn-sm btn-primary">
-                                {{ __('Apply Debit Note') }}
-                            </a>
-                        </div>
-                    @endif
+
                     <div class="all-button-box">
                         <a href="{{ route('bill.resent', $bill->id) }}" class="btn btn-sm btn-primary">
                             {{ __('Resend Bill') }}
@@ -476,21 +469,7 @@
                                                     <td colspan="9"></td>
                                                     <td class="text-center"><b>{{ __('Paid') }}</b></td>
                                                     <td class="text-end">
-                                                        {{ \Auth::user()->priceFormat($bill->getTotal() - $bill->getDue() - $bill->billTotalDebitNote()) }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td colspan="9"></td>
-                                                    <td class="text-center"><b>{{ __('Debit Note Applied') }}</b></td>
-                                                    <td class="text-end">
-                                                        {{ \Auth::user()->priceFormat($bill->billTotalDebitNote()) }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td colspan="9"></td>
-                                                    <td class="text-center"><b>{{ __('Debit Note Issued') }}</b></td>
-                                                    <td class="text-end">
-                                                        {{ \Auth::user()->priceFormat($bill->billTotalCustomerDebitNote()) }}
+                                                        {{ \Auth::user()->priceFormat($bill->getTotal() - $bill->getDue()) }}
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -583,73 +562,5 @@
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body table-border-style">
-                    <h5 class="d-inline-block mb-5">{{ __('Debit Note Summary') }}</h5>
 
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th class="text-dark">{{__('Debit Note')}}</th>
-                                    <th class="text-dark">{{ __('Date') }}</th>
-                                    <th class="text-dark">{{ __('Amount') }}</th>
-                                    <th class="text-dark">{{ __('Description') }}</th>
-                                    @if (Gate::check('edit debit note') || Gate::check('delete debit note'))
-                                        <th class="text-dark">{{ __('Action') }}</th>
-                                    @endif
-                                </tr>
-                            </thead>
-                            @forelse($bill->debitNote as $key =>$debitNote)
-                                <tr>
-                                    <td><span class="btn btn-outline-primary">{{ !empty($debitNote->debitNote) ? \App\Models\CustomerDebitNotes::debitNumberFormat($debitNote->debitNote->debit_id) : '---'}}</span></td>
-                                    <td>{{ \Auth::user()->dateFormat($debitNote->date) }}</td>
-                                    <td>{{ \Auth::user()->priceFormat($debitNote->amount) }}</td>
-                                    <td>{{ $debitNote->description }}</td>
-                                    <td>
-                                        @can('edit debit note')
-                                            <div class="action-btn me-2">
-                                                <a data-url="{{ route('bill.edit.debit.note', [$debitNote->bill, $debitNote->id]) }}"
-                                                    data-ajax-popup="true" data-title="{{ __('Edit Debit Note') }}"
-                                                    href="#" class="mx-3 btn btn-sm align-items-center bg-info"
-                                                    data-bs-toggle="tooltip" data-bs-original-title="{{ __('Edit') }}">
-                                                    <i class="ti ti-pencil text-white"></i>
-                                                </a>
-                                            </div>
-                                        @endcan
-                                        @can('delete debit note')
-                                            <div class="action-btn ">
-                                                {!! Form::open([
-                                                    'method' => 'DELETE',
-                                                    'route' => ['bill.delete.debit.note', $debitNote->bill, $debitNote->id],
-                                                    'id' => 'delete-form-' . $debitNote->id,
-                                                ]) !!}
-                                                <a href="#"
-                                                    class="mx-3 btn btn-sm  align-items-center bs-pass-para bg-danger"
-                                                    data-bs-toggle="tooltip" title="{{ __('Delete') }}"
-                                                    data-original-title="{{ __('Delete') }}"
-                                                    data-confirm="{{ __('Are You Sure?') . '|' . __('This action can not be undone. Do you want to continue?') }}"
-                                                    data-confirm-yes="document.getElementById('delete-form-{{ $debitNote->id }}').submit();">
-                                                    <i class="ti ti-trash text-white text-white"></i>
-                                                </a>
-                                                {!! Form::close() !!}
-                                            </div>
-                                        @endcan
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="text-center text-dark">
-                                        <p>{{ __('No Data Found') }}</p>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 @endsection

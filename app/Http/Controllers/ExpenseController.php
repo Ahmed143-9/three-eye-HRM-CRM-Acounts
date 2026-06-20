@@ -141,11 +141,11 @@ class ExpenseController extends Controller
             $product_services = ProductService::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $product_services->prepend('Select Item', '');
 
-            $accounts = BankAccount::select('*', \DB::raw("CONCAT(bank_name,' ',holder_name) AS name"))
+            $accounts = BankAccount::select('*', \DB::raw("IF(bank_name = holder_name, bank_name, CONCAT(bank_name, ' - ', holder_name)) AS name"))
                 ->where('created_by', \Auth::user()->creatorId())
                 ->get()->pluck('name', 'id');
 
-            return view('expense.create', compact('employees', 'customers', 'venders', 'expense_number', 'product_services', 'category', 'customFields', 'Id', 'accounts'));
+            return view('expense.create', compact('employees', 'customers', 'venders', 'expense_number', 'product_services', 'customFields', 'Id', 'accounts'));
         } else {
             return response()->json(['error' => __('Permission denied.')], 401);
         }
@@ -158,7 +158,7 @@ class ExpenseController extends Controller
 
             $validator = \Validator::make(
                 $request->all(), [
-                    'payment_date' => 'required',
+                    'purchase_date' => 'required',
                 ]
             );
             if ($validator->fails()) {
@@ -178,10 +178,12 @@ class ExpenseController extends Controller
                 }
             }
 
-            $bankAccount = BankAccount::find($request->account_id);
-            if($bankAccount->chart_account_id == 0)
-            {
-                return redirect()->back()->with('error', __('This bank account is not connect with chart of account, so please connect first.'));
+            if ($request->payment_status == 'paid') {
+                $bankAccount = BankAccount::find($request->account_id);
+                if($bankAccount && $bankAccount->chart_account_id == 0)
+                {
+                    return redirect()->back()->with('error', __('This bank account is not connect with chart of account, so please connect first.'));
+                }
             }
 
             $expense = new Bill();
@@ -193,12 +195,12 @@ class ExpenseController extends Controller
             } else {
                 $expense->vender_id = $request->vender_id;
             }
-            $expense->bill_date = $request->payment_date;
-            $expense->status = 4;
+            $expense->bill_date = $request->purchase_date;
+            $expense->status = ($request->payment_status == 'paid') ? 4 : 1; // 4 = Paid, 1 = Unpaid (Draft/Sent)
             $expense->type = 'Expense';
             $expense->user_type = $request->type;
-            $expense->due_date = $request->payment_date;
-            $expense->category_id = !empty($request->category_id) ? $request->category_id : 0;
+            $expense->due_date = $request->payment_date ?: $request->purchase_date;
+            $expense->category_id = !empty($request->category_id) ? ProductServiceCategory::where('name', $request->category_id)->first()->id ?? 0 : 0;
             $expense->order_number = 0;
             $expense->created_by = \Auth::user()->creatorId();
             $expense->save();
@@ -208,50 +210,42 @@ class ExpenseController extends Controller
             $total_amount = 0;
 
             for ($i = 0; $i < count($products); $i++) {
-                if (!empty($products[$i]['item'])) {
+                if (!empty($products[$i]['item_text'])) {
                     $expenseProduct = new BillProduct();
                     $expenseProduct->bill_id = $expense->id;
-                    $expenseProduct->product_id = $products[$i]['item'];
+                    $expenseProduct->product_id = 0; // Generic item
                     $expenseProduct->quantity = $products[$i]['quantity'];
-                    $expenseProduct->tax = $products[$i]['tax'];
+                    $expenseProduct->tax = $products[$i]['tax'] ?? '';
                     $expenseProduct->discount = $products[$i]['discount'];
                     $expenseProduct->price = $products[$i]['price'];
-                    $expenseProduct->description = $products[$i]['description'];
+                    $expenseProduct->description = $products[$i]['item_text'] . (!empty($products[$i]['description']) ? ' - ' . $products[$i]['description'] : '');
                     $expenseProduct->save();
                 }
 
-                //inventory management (Quantity)
-                if (!empty($expenseProduct)) {
-                    Utility::total_quantity('plus', $expenseProduct->quantity, $expenseProduct->product_id);
-                }
-
-                //Product Stock Redashboardrt
-                if (!empty($products[$i]['item'])) {
-                    $type = 'bill';
-                    $type_id = $expense->id;
-                    $description = $products[$i]['quantity'] . '  ' . __('quantity purchase in bill') . ' ' . \Auth::user()->expenseNumberFormat($expense->bill_id);
-                    Utility::addProductStock($products[$i]['item'], $products[$i]['quantity'], $type, $description, $type_id);
+                if (!empty($products[$i]['item_text'])) {
                     $total_amount += ($expenseProduct->quantity * $expenseProduct->price);
                 }
             }
 
-            $expensePayment = new BillPayment();
-            $expensePayment->bill_id = $expense->id;
-            $expensePayment->date = $request->payment_date;
-            $expensePayment->amount = $request->totalAmount;
-            $expensePayment->account_id = $request->account_id;
-            $expensePayment->payment_method = 0;
-            $expensePayment->reference = 'NULL';
-            $expensePayment->description = 'NULL';
-            $expensePayment->add_receipt = 'NULL';
-            $expensePayment->save();
+            if ($request->payment_status == 'paid') {
+                $expensePayment = new BillPayment();
+                $expensePayment->bill_id = $expense->id;
+                $expensePayment->date = $request->payment_date ?: $request->purchase_date;
+                $expensePayment->amount = $request->totalAmount;
+                $expensePayment->account_id = $request->account_id;
+                $expensePayment->payment_method = 0;
+                $expensePayment->reference = 'NULL';
+                $expensePayment->description = 'NULL';
+                $expensePayment->add_receipt = 'NULL';
+                $expensePayment->save();
 
-            if ($request->type == 'customer') {
-                Utility::updateUserBalance('customer', $expense->vender_id, $request->totalAmount, 'credit');
-            } elseif ($request->type == 'vendor') {
-                Utility::updateUserBalance('vendor', $expense->vender_id, $request->totalAmount, 'credit');
+                if ($request->type == 'customer') {
+                    Utility::updateUserBalance('customer', $expense->vender_id, $request->totalAmount, 'credit');
+                } elseif ($request->type == 'vendor') {
+                    Utility::updateUserBalance('vendor', $expense->vender_id, $request->totalAmount, 'credit');
+                }
+                Utility::bankAccountBalance($request->account_id, $request->totalAmount, 'debit');
             }
-            Utility::bankAccountBalance($request->account_id, $request->totalAmount, 'debit');
 
             //For Notification
             $setting = Utility::settings(\Auth::user()->creatorId());
@@ -270,10 +264,12 @@ class ExpenseController extends Controller
 
             $bill_products = BillProduct::where('bill_id', $expense->id)->get();
             foreach ($bill_products as $bill_product) {
-                $product = ProductService::find($bill_product->product_id);
+                // Since product is generic, use a default expense account or skip if none
+                $account = ChartOfAccount::where('name', 'Accounts Payable')->where('created_by', \Auth::user()->creatorId())->first();
+                $expense_account = ChartOfAccount::where('name', 'Expenses')->where('created_by', \Auth::user()->creatorId())->first();
+                
                 $totalTaxPrice = 0;
-                if($bill_product->tax != null)
-                {
+                if ($bill_product->tax != null && $bill_product->tax != '') {
                     $taxes = \App\Models\Utility::tax($bill_product->tax);
                     foreach ($taxes as $tax) {
                         $taxPrice = \App\Models\Utility::taxRate($tax->rate, $bill_product->price, $bill_product->quantity, $bill_product->discount);
@@ -283,54 +279,57 @@ class ExpenseController extends Controller
 
                 $itemAmount = ($bill_product->price * $bill_product->quantity) - ($bill_product->discount) + $totalTaxPrice;
 
-                $data = [
-                    'account_id'         => $product->expense_chartaccount_id,
-                    'transaction_type'   => 'debit',
-                    'transaction_amount' => $itemAmount,
-                    'reference'          => 'Expense',
-                    'reference_id'       => $expense->id,
-                    'reference_sub_id'   => $product->id,
-                    'date'               => $expense->bill_date,
-                ];
-                Utility::addTransactionLines($data);
+                if ($expense_account) {
+                    $data = [
+                        'account_id'         => $expense_account->id,
+                        'transaction_type'   => 'debit',
+                        'transaction_amount' => $itemAmount,
+                        'reference'          => 'Expense',
+                        'reference_id'       => $expense->id,
+                        'reference_sub_id'   => $bill_product->id,
+                        'date'               => $expense->bill_date,
+                    ];
+                    Utility::addTransactionLines($data);
+                }
 
-                $account = ChartOfAccount::where('name','Accounts Payable')->where('created_by' , \Auth::user()->creatorId())->first();
                 $data    = [
                     'account_id'         => !empty($account) ? $account->id : 0,
                     'transaction_type'   => 'credit',
                     'transaction_amount' => $itemAmount,
                     'reference'          => 'Expense',
                     'reference_id'       => $expense->id,
-                    'reference_sub_id'   => $product->id,
+                    'reference_sub_id'   => $bill_product->id,
                     'date'               => $expense->bill_date,
                 ];
                 Utility::addTransactionLines($data);
             }
 
-            $accountId = BankAccount::find($expensePayment->account_id);
+            if ($request->payment_status == 'paid') {
+                $accountId = BankAccount::find($expensePayment->account_id);
 
-            $data = [
-                'account_id'         => $accountId->chart_account_id,
-                'transaction_type'   => 'credit',
-                'transaction_amount' => $expensePayment->amount,
-                'reference'          => 'Expense Payment',
-                'reference_id'       => $expense->id,
-                'reference_sub_id'   => $expensePayment->id,
-                'date'               => $expensePayment->date,
-            ];
-            Utility::addTransactionLines($data);
+                $data = [
+                    'account_id'         => $accountId->chart_account_id ?? 0,
+                    'transaction_type'   => 'credit',
+                    'transaction_amount' => $expensePayment->amount,
+                    'reference'          => 'Expense Payment',
+                    'reference_id'       => $expense->id,
+                    'reference_sub_id'   => $expensePayment->id,
+                    'date'               => $expensePayment->date,
+                ];
+                Utility::addTransactionLines($data);
 
-            $account = ChartOfAccount::where('name','Accounts Payable')->where('created_by' , \Auth::user()->creatorId())->first();
-            $data    = [
-                'account_id'         => !empty($account) ? $account->id : 0,
-                'transaction_type'   => 'debit',
-                'transaction_amount' => $expensePayment->amount,
-                'reference'          => 'Expense Payment',
-                'reference_id'       => $expense->id,
-                'reference_sub_id'   => $expensePayment->id,
-                'date'               => $expensePayment->date,
-            ];
-            Utility::addTransactionLines($data);
+                $account = ChartOfAccount::where('name','Accounts Payable')->where('created_by' , \Auth::user()->creatorId())->first();
+                $data    = [
+                    'account_id'         => !empty($account) ? $account->id : 0,
+                    'transaction_type'   => 'debit',
+                    'transaction_amount' => $expensePayment->amount,
+                    'reference'          => 'Expense Payment',
+                    'reference_id'       => $expense->id,
+                    'reference_sub_id'   => $expensePayment->id,
+                    'date'               => $expensePayment->date,
+                ];
+                Utility::addTransactionLines($data);
+            }
 
             $expenseNotificationArr = [
                 'expense_number' => \Auth::user()->expenseNumberFormat($expense->bill_id),
@@ -453,7 +452,7 @@ class ExpenseController extends Controller
 
                 $product_services = ProductService::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
 
-                $bank_Account = BankAccount::select('*', \DB::raw("CONCAT(bank_name,' ',holder_name) AS name"))
+                $bank_Account = BankAccount::select('*', \DB::raw("IF(bank_name = holder_name, bank_name, CONCAT(bank_name, ' - ', holder_name)) AS name"))
                     ->where('created_by', \Auth::user()->creatorId())
                     ->get()->pluck('name', 'id');
                 // $bank_Account->prepend('Select Account', '');
