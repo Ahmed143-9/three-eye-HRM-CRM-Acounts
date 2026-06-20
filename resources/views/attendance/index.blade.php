@@ -173,7 +173,16 @@
                                             <td>{{ !empty($attendance->employee) ? $attendance->employee->name : '' }}</td>
                                         @endif
                                         <td>{{ \Auth::user()->dateFormat($attendance->date) }}</td>
-                                        <td>{{ $attendance->status }}</td>
+                                        <td>
+                                            @php
+                                                $badgeClass = 'bg-primary';
+                                                if($attendance->status == 'Present') $badgeClass = 'bg-success';
+                                                elseif($attendance->status == 'Absent') $badgeClass = 'bg-danger';
+                                                elseif($attendance->status == 'Late') $badgeClass = 'bg-warning';
+                                                elseif($attendance->status == 'Leave') $badgeClass = 'bg-info';
+                                            @endphp
+                                            <span class="badge {{ $badgeClass }}">{{ __($attendance->status) }}</span>
+                                        </td>
                                         <td>{{ $attendance->clock_in != '00:00:00' ? \Auth::user()->timeFormat($attendance->clock_in) : '00:00' }}
                                         </td>
                                         <td>{{ $attendance->clock_out != '00:00:00' ? \Auth::user()->timeFormat($attendance->clock_out) : '00:00' }}

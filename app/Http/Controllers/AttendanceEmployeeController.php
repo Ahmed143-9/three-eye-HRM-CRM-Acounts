@@ -238,7 +238,8 @@ class AttendanceEmployeeController extends Controller
                     $this->notifyAdminLateAttendance($employeeAttendance, 'created');
                 }
 
-                return redirect()->route('attendanceemployee.index')->with('success', __('Employee attendance successfully created.'));
+                $month = date('Y-m', strtotime($request->date));
+                return redirect()->route('attendanceemployee.index', ['type' => 'monthly', 'month' => $month])->with('success', __('Employee attendance successfully created.'));
             }
         } else {
             return redirect()->back()->with('error', __('Permission denied.'));
@@ -341,7 +342,8 @@ class AttendanceEmployeeController extends Controller
                 $this->notifyAdminLateAttendance($attendanceEmployee, 'updated');
             }
 
-            return redirect()->route('attendanceemployee.index')->with('success', __('Employee attendance successfully updated.'));
+            $month = date('Y-m', strtotime($request->date));
+            return redirect()->route('attendanceemployee.index', ['type' => 'monthly', 'month' => $month])->with('success', __('Employee attendance successfully updated.'));
         }
 
         $employeeId = !empty(\Auth::user()->employee) ? \Auth::user()->employee->id : 0;

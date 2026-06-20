@@ -175,7 +175,7 @@
 
             function fetchNotifications() {
                 $.ajax({
-                    url: '{{ route('notifications.latest') }}',
+                    url: '{{ route('notifications.latest', [], false) }}',
                     type: 'GET',
                     timeout: 10000, // 10 second timeout
                     success: function(response) {
@@ -203,7 +203,7 @@
                                     
                                     var title = n.title || 'Notification';
                                     var message = n.message || '';
-                                    var redirectUrl = '{{ url('notifications/read-redirect') }}/' + n.id;
+                                    var redirectUrl = '/notifications/' + n.id + '/read-and-redirect';
                                     
                                     var toastHtml = '<b>' + title + '</b><br>' + message + '<br>' + 
                                                    '<a href="' + redirectUrl + '" class="btn btn-sm btn-primary mt-2 text-white toast-action-btn">View Details</a>';

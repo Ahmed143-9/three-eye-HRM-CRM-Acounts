@@ -32,7 +32,9 @@ class Notification extends Model
         $subtext    = '';
 
         if ($this->related_model == 'ErpExpense') {
-            $expense = ErpExpense::find($this->related_id);
+            $expense = \Cache::remember("noti_expense_{$this->related_id}", 3600, function() {
+                return ErpExpense::with('employee')->find($this->related_id);
+            });
             if ($expense) {
                 $icon = 'ti ti-report-money';
                 $empName = optional($expense->employee)->name ?? '-';
@@ -43,7 +45,9 @@ class Notification extends Model
                            __('Amount') . ": " . $amount;
             }
         } elseif ($this->related_model == 'Transport') {
-            $transport = Transport::find($this->related_id);
+            $transport = \Cache::remember("noti_transport_{$this->related_id}", 3600, function() {
+                return Transport::with('client')->find($this->related_id);
+            });
             if ($transport) {
                 $icon = 'ti ti-truck-delivery';
                 $text = "<b>" . __($this->title) . "</b>";
@@ -52,7 +56,9 @@ class Notification extends Model
                            __('Client') . ": " . ($transport->manual_client_name ?: (optional($transport->client)->name ?? '-'));
             }
         } elseif ($this->related_model == 'SalesOrder') {
-            $order = SalesOrder::find($this->related_id);
+            $order = \Cache::remember("noti_order_{$this->related_id}", 3600, function() {
+                return SalesOrder::with('customer')->find($this->related_id);
+            });
             if ($order) {
                 $icon = 'ti ti-shopping-cart';
                 $text = "<b>" . __($this->title) . "</b>";

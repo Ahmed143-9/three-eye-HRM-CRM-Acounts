@@ -30,7 +30,7 @@
                 <div class="row align-items-end g-3">
                     <div class="col-md-3">
                         <label class="form-label text-muted small fw-bold text-uppercase">{{ __('Recording Date') }}</label>
-                        {{ Form::date('date', isset($_GET['date']) ? $_GET['date'] : date('Y-m-d'), ['class' => 'p-input w-100']) }}
+                        {{ Form::date('date', isset($_GET['date']) ? $_GET['date'] : date('Y-m-d'), ['class' => 'p-input w-100', 'onchange' => 'this.form.submit();']) }}
                     </div>
                     <div class="col-md-4">
                         <label class="form-label text-muted small fw-bold text-uppercase">{{ __('Department Focus') }}</label>
@@ -102,11 +102,22 @@
                                         </td>
                                         <td class="text-center">
                                             <div class="btn-group btn-group-sm bg-light p-1 rounded-pill" role="group">
+                                                @php
+                                                    $statusColors = [
+                                                        'Present' => 'success',
+                                                        'Absent'  => 'danger',
+                                                        'Late'    => 'warning',
+                                                        'Leave'   => 'info',
+                                                    ];
+                                                @endphp
                                                 @foreach(['Present', 'Absent', 'Late', 'Leave'] as $st)
+                                                    @php
+                                                        $color = $statusColors[$st] ?? 'white';
+                                                    @endphp
                                                     <input type="radio" class="btn-check status-trigger" name="status-{{ $employee->id }}" 
                                                         id="st-{{ $st }}-{{ $employee->id }}" value="{{ $st }}" 
                                                         {{ $status == $st ? 'checked' : '' }} data-id="{{ $employee->id }}">
-                                                    <label class="btn btn-outline-white border-0 rounded-pill px-3 text-muted" for="st-{{ $st }}-{{ $employee->id }}">{{ __($st) }}</label>
+                                                    <label class="btn btn-outline-{{ $color }} border-0 rounded-pill px-3 text-muted" for="st-{{ $st }}-{{ $employee->id }}">{{ __($st) }}</label>
                                                 @endforeach
                                             </div>
                                         </td>
@@ -158,6 +169,12 @@
 
 @push('script-page')
 <script>
+    $(document).ready(function() {
+        $('.select2').on('change', function() {
+            $('#att_filter').submit();
+        });
+    });
+
     $(document).on('change', '.status-trigger', function() {
         const id = this.dataset.id;
         const box = $(`.time-box-${id}`);
