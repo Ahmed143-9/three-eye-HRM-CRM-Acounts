@@ -241,9 +241,10 @@
         <i class="ti ti-chevron-right ms-2"></i>
     </button>
 </div>
+@push('script-page')
 <script>
     $(document).ready(function() {
-        $('.incoterm-select').on('change', function() {
+        $(document).on('change', '.incoterm-select', function() {
             if ($(this).val() === 'ADD_NEW_INCOTERM') {
                 let newIncoterm = prompt('{{ __('Enter new Incoterm name:') }}');
                 let selectElem = $(this);
@@ -269,4 +270,5 @@
         });
     });
 </script>
+@endpush
 {{ Form::close() }}
