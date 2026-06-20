@@ -1897,7 +1897,7 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
     Route::post('sales-orders/{id}/buying', [SalesOrderController::class, 'buyingStore'])->name('sales-orders.buying.store');
     Route::post('sales-orders/{id}/po', [SalesOrderController::class, 'poStore'])->name('sales-orders.po.store');
     Route::get('sales-orders/{id}/po/print', [SalesOrderController::class, 'poPrint'])->name('sales-orders.po.print');
-    Route::get('sales-orders/{id}/po/download', [SalesOrderController::class, 'poDownload'])->name('sales-orders.po.download');
+    Route::match(['get', 'post'], 'sales-orders/{id}/po/download', [SalesOrderController::class, 'poDownload'])->name('sales-orders.po.download');
 
     Route::post('sales-orders/{id}/pi', [SalesOrderController::class, 'piStore'])->name('sales-orders.pi.store');
     Route::get('sales-orders/{id}/pi/print', [SalesOrderController::class, 'piPrint'])->name('sales-orders.pi.print');

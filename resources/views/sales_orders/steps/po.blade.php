@@ -177,10 +177,77 @@
         @if($order->po)
             <a href="{{ route('sales-orders.po.print', $order->id) }}" target="_blank" class="btn btn-secondary"><i
                     class="ti ti-printer me-1"></i>{{ __('Print') }}</a>
-            <a href="{{ route('sales-orders.po.download', $order->id) }}" class="btn btn-info"><i
-                    class="ti ti-download me-1"></i>{{ __('Download PDF') }}</a>
+            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#poPreviewModal">
+                <i class="ti ti-eye me-1"></i>{{ __('Preview & Download PDF') }}
+            </button>
         @endif
     </div>
+</div>
+
+<!-- PO Preview Modal -->
+@if($order->po)
+<div class="modal fade" id="poPreviewModal" tabindex="-1" aria-labelledby="poPreviewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="poPreviewModalLabel"><i class="ti ti-file-text me-2"></i>{{ __('Preview & Edit Commercial Terms') }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-primary mb-3">
+            <small>{{ __('The details below will be included in the final generated Purchase Order PDF. Review and modify the commercial terms as needed before downloading.') }}</small>
+        </div>
+        <form id="poPreviewForm" action="{{ route('sales-orders.po.download', $order->id) }}" method="POST">
+            @csrf
+            
+            <h6 class="mb-3 border-bottom pb-2">{{ __('Commercial Terms') }}</h6>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ __('Port of Loading') }}</label>
+                    <input type="text" name="port_of_loading" class="form-control" value="{{ $order->po->port_of_loading ?? 'Any Port in India' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ __('Port of Discharge') }}</label>
+                    <input type="text" name="port_of_discharge" class="form-control" value="{{ $order->po->port_of_discharge ?? 'Tamabil, Bangladesh' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ __('Final Destination') }}</label>
+                    <input type="text" name="final_destination" class="form-control" value="{{ $order->po->final_destination ?? 'Tamabil, Bangladesh' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ __('Country of Origin') }}</label>
+                    <input type="text" name="country_of_origin" class="form-control" value="{{ $order->po->country_of_origin ?? 'India' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ __('Packing') }}</label>
+                    <input type="text" name="packing" class="form-control" value="{{ $order->po->packing ?? 'Road Tanker' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ __('Transport Mode') }}</label>
+                    <input type="text" name="transport_mode" class="form-control" value="{{ $order->po->transport_mode ?? 'By Road' }}">
+                </div>
+            </div>
+
+            <h6 class="mb-3 border-bottom pb-2 mt-2">{{ __('General Terms & Conditions') }}</h6>
+            <div class="mb-3">
+                <textarea name="general_terms" class="form-control" rows="8">
+{{ $order->po->terms_and_conditions ?? "1. Any amendment to this Purchase Order shall be valid only when accepted by both parties in writing.
+2. The supplier shall complete shipment of the ordered quantity within 30 (Thirty) days from the date of issuance of operative Letter of Credit (LC). Any anticipated delay in shipment must be communicated to the buyer in writing at least 7 (Seven) days prior to the scheduled shipment date.
+3. Any matter not specifically covered in this Purchase Order shall be settled through mutual discussion and agreement between the Buyer and Seller." }}
+</textarea>
+            </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+        <button type="submit" class="btn btn-info"><i class="ti ti-download me-1"></i>{{ __('Download PDF') }}</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+@endif
+
+<div class="d-flex justify-content-end align-items-center mt-3">
     <button type="submit" class="btn btn-success d-inline-flex align-items-center"
         style="background-color: #6fd943; border-color: #6fd943; padding: 10px 25px; font-weight: 600;">
         {{ __('Save & Proceed to PI') }}

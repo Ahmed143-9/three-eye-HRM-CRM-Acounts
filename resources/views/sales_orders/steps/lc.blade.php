@@ -88,6 +88,12 @@
             </div>
             <div class="col-md-4">
                 <div class="form-group">
+                    {{ Form::label('client_pi_number_ref', __('Client PI No. (Ref)'), ['class' => 'form-label fw-semibold text-primary']) }}
+                    {{ Form::text('client_pi_number_ref', optional($order->pi)->client_pi_number ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) }}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
                     {{ Form::label('lc_reference_no', __('LC Reference No.'), ['class' => 'form-label fw-semibold']) }}
                     {{ Form::text('lc_reference_no', $lc_ref, ['class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter LC reference number'), 'readonly' => 'readonly']) }}
                 </div>

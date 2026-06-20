@@ -569,9 +569,22 @@ class SalesOrderController extends Controller
         $amountInWords = $this->numberToWords($order->po->grand_total ?? 0);
         return view('sales_orders.print.po', compact('order', 'amountInWords'));
     }
-    public function poDownload($id)
+    public function poDownload(Request $request, $id)
     {
         $order = SalesOrder::with(['po.items'])->find($id);
+        
+        if ($request->isMethod('post') && $order->po) {
+            $order->po->update([
+                'port_of_loading' => $request->port_of_loading,
+                'port_of_discharge' => $request->port_of_discharge,
+                'final_destination' => $request->final_destination,
+                'country_of_origin' => $request->country_of_origin,
+                'packing' => $request->packing,
+                'transport_mode' => $request->transport_mode,
+                'terms_and_conditions' => $request->general_terms,
+            ]);
+        }
+        
         return view('sales_orders.print.po', compact('order')); // Browser can print to PDF
     }
 

@@ -22,7 +22,7 @@
             <div><strong class="text-dark">{{ __('Order:') }}</strong> <span class="text-primary">{{ $order->order_number }}</span></div>
             <div><strong class="text-dark">{{ __('PO:') }}</strong> <span class="text-primary">{{ $order->po->po_number ?? 'N/A' }}</span></div>
             <div><strong class="text-dark">{{ __('PI:') }}</strong> <span class="text-primary">{{ $order->pi->pi_number ?? 'N/A' }}</span></div>
-            <div><strong class="text-dark">{{ __('LC:') }}</strong> <span class="text-primary">{{ $order->lc->lc_no ?? 'N/A' }}</span></div>
+            <div><strong class="text-dark">{{ __('LC:') }}</strong> <span class="text-primary">{{ $order->lc->client_lc_no ?? 'N/A' }}</span></div>
             @if($active_ci)
             <div><strong class="text-dark">{{ __('Active CI:') }}</strong> <span class="text-success">{{ $active_ci->ci_number }}</span></div>
             @endif

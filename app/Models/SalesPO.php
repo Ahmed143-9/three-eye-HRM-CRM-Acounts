@@ -18,6 +18,13 @@ class SalesPO extends Model
         'grand_total',
         'signature',
         'hs_code',
+        'terms_and_conditions',
+        'port_of_loading',
+        'port_of_discharge',
+        'final_destination',
+        'country_of_origin',
+        'packing',
+        'transport_mode',
         'file_path',
         'created_by',
     ];
