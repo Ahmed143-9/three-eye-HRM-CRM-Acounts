@@ -157,6 +157,7 @@ class SalesOrderController extends Controller
                 'hs_code' => $request->hs_code,
                 'grand_total' => $request->grand_total,
                 'signature' => $request->signature,
+                'terms_and_conditions' => $request->terms_and_conditions,
                 'created_by' => Auth::user()->creatorId(),
             ];
 
