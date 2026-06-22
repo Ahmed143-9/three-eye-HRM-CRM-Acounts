@@ -45,7 +45,7 @@ class ErpExpenseController extends Controller
 
     public function create(Request $request, $type)
     {
-        if (Auth::user()->can('create expense') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Submit Expenses') || Auth::user()->type == 'company') {
             $workspace_id = Auth::user()->currentWorkspace ?? 1;
             $categories = ErpExpenseCategory::where('module_type', $type)
                 ->where('is_active', true)
@@ -72,7 +72,7 @@ class ErpExpenseController extends Controller
 
     public function store(Request $request, $type)
     {
-        if (Auth::user()->can('create expense') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Submit Expenses') || Auth::user()->type == 'company') {
             $rules = [
                 'erp_expense_category_id' => 'required',
                 'date' => 'required|date',
@@ -217,7 +217,7 @@ class ErpExpenseController extends Controller
 
     public function edit($type, $id)
     {
-        if (Auth::user()->can('edit expense') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Submit Expenses') || Auth::user()->type == 'company') {
             $expense = ErpExpense::with('items')->find($id);
             if ($expense) {
                 $workspace_id = Auth::user()->currentWorkspace ?? 1;
@@ -242,7 +242,7 @@ class ErpExpenseController extends Controller
 
     public function update(Request $request, $type, $id)
     {
-        if (Auth::user()->can('edit expense') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Submit Expenses') || Auth::user()->type == 'company') {
             $expense = ErpExpense::find($id);
             if ($expense) {
                 if ($expense->status == 'Approved' || $expense->status == 'Paid') {
@@ -330,7 +330,7 @@ class ErpExpenseController extends Controller
 
     public function destroy($type, $id)
     {
-        if (Auth::user()->can('delete expense') || Auth::user()->type == 'company') {
+        if (Auth::user()->can('Submit Expenses') || Auth::user()->type == 'company') {
             $expense = ErpExpense::find($id);
             if ($expense) {
                 if ($expense->status == 'Approved' || $expense->status == 'Paid') {
