@@ -154,7 +154,9 @@
             <i class="ti ti-check"></i> {{ __('Delivery Order Created.') }}
         </div>
         <button type="submit" class="btn btn-primary btn-lg px-4 shadow me-2">{{ __('Update Delivery Order') }}</button>
+        @if(\Auth::user()->type != 'accountant')
         <a href="{{ route('transports.create') }}?sales_order_id={{ $order->id }}&ci_id={{ $active_ci->id }}&client_id={{ $order->customer_id }}" class="btn btn-success btn-lg px-4 shadow">{{ __('Dispatch via Transport') }}</a>
+        @endif
     @endif
 </div>
 {{ Form::close() }}

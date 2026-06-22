@@ -138,6 +138,7 @@
                             <tr>
                                 <th class="col-uid">{{ __('Unique ID') }}</th>
                                 <th class="col-inv">{{ __('Invoice') }}</th>
+                                <th class="col-inv">{{ __('Order ID') }}</th>
                                 <th class="col-dir">{{ __('Direction') }}</th>
                                 <th class="col-name">{{ __('Name') }}</th>
                                 <th class="col-date">{{ __('Date') }}</th>
@@ -208,6 +209,14 @@
                                             <i class="ti ti-copy text-secondary ms-1 copy-btn" style="cursor:pointer; font-size: 14px;" data-val="{{ $billing->invoice_number }}" data-bs-toggle="tooltip" title="{{ __('Copy') }}"></i>
                                         </div>
                                     </td>
+                                    @php
+                                        $orderIdDisplay = 'N/A';
+                                        if ($billing->sales_order_id) {
+                                            $so = \App\Models\SalesOrder::find($billing->sales_order_id);
+                                            $orderIdDisplay = $so ? $so->order_id : 'N/A';
+                                        }
+                                    @endphp
+                                    <td class="col-inv">{{ $orderIdDisplay }}</td>
                                     <td class="col-dir">{{ $direction }}</td>
                                     <td class="col-name" title="{{ $partyName }}">{{ $partyName }}</td>
                                     <td class="col-date">{{ \Auth::user()->dateFormat($billing->date) }}</td>

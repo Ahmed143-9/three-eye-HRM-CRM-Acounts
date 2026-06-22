@@ -1941,16 +1941,16 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
         Route::get('employee-info', [ErpExpenseController::class, 'getEmployeeInfo'])->name('erp-expenses.employee-info');
         
         // Salary Management (Detailed)
-        Route::get('salary-management', [ErpSalarySheetController::class, 'index'])->name('salary-management.index');
-        Route::post('salary-management/generate', [ErpSalarySheetController::class, 'generate'])->name('salary-management.generate');
-        Route::post('salary-management/bulk-approve', [ErpSalarySheetController::class, 'bulkApprove'])->name('salary-management.bulk-approve');
-        Route::post('salary-management/{id}/submit-for-approval', [ErpSalarySheetController::class, 'submitForApproval'])->name('salary-management.submit-for-approval');
-        Route::post('salary-management/{id}/approve', [ErpSalarySheetController::class, 'approve'])->name('salary-management.approve');
-        Route::post('salary-management/{id}/reject', [ErpSalarySheetController::class, 'reject'])->name('salary-management.reject');
-        Route::post('salary-management/{id}/mark-as-paid', [ErpSalarySheetController::class, 'markAsPaid'])->name('salary-management.mark-as-paid');
-        Route::post('salary-management/{id}/update-row', [ErpSalarySheetController::class, 'updateRow'])->name('salary-management.update-row');
-        Route::get('salary-management/accounting/approved-bills', [ErpSalarySheetController::class, 'accountingApprovedBills'])->name('salary-management.accounting.approved-bills');
-        Route::delete('salary-management/{id}', [ErpSalarySheetController::class, 'destroy'])->name('salary-management.destroy');
+        Route::get('salary-management', [ErpSalarySheetController::class, 'index'])->name('expense-management.salary-management.index');
+        Route::post('salary-management/generate', [ErpSalarySheetController::class, 'generate'])->name('expense-management.salary-management.generate');
+        Route::post('salary-management/bulk-approve', [ErpSalarySheetController::class, 'bulkApprove'])->name('expense-management.salary-management.bulk-approve');
+        Route::post('salary-management/{id}/submit-for-approval', [ErpSalarySheetController::class, 'submitForApproval'])->name('expense-management.salary-management.submit-for-approval');
+        Route::post('salary-management/{id}/approve', [ErpSalarySheetController::class, 'approve'])->name('expense-management.salary-management.approve');
+        Route::post('salary-management/{id}/reject', [ErpSalarySheetController::class, 'reject'])->name('expense-management.salary-management.reject');
+        Route::post('salary-management/{id}/mark-as-paid', [ErpSalarySheetController::class, 'markAsPaid'])->name('expense-management.salary-management.mark-as-paid');
+        Route::post('salary-management/{id}/update-row', [ErpSalarySheetController::class, 'updateRow'])->name('expense-management.salary-management.update-row');
+        Route::get('salary-management/accounting/approved-bills', [ErpSalarySheetController::class, 'accountingApprovedBills'])->name('expense-management.salary-management.accounting.approved-bills');
+        Route::delete('salary-management/{id}', [ErpSalarySheetController::class, 'destroy'])->name('expense-management.salary-management.destroy');
 
         // Employee Performance
         Route::get('employee-performance', [EmployeePerformanceController::class, 'index'])->name('employee-performance.index');
