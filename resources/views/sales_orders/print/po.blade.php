@@ -11,36 +11,52 @@
 @section('content')
 <style>
     @media print {
-        @page { size: A4; margin: 10mm; }
+        @page { size: A4; margin: 15mm 20mm; }
         body { font-size: 13px !important; color: #000; font-family: "Times New Roman", Times, serif; }
         .print-container { padding: 0 !important; border: none !important; width: 100%; max-width: 100%; margin: 0; box-shadow: none; }
         table { page-break-inside: avoid; }
-        .header { display: none; } /* Hide the default header from layouts.print */
+        .header { display: none; }
     }
     body { font-size: 13px; color: #000; font-family: "Times New Roman", Times, serif; }
-    .header { display: none; } /* Hide the default header from layouts.print */
-    .header-logo { text-align: center; margin-bottom: 10px; }
+    .header { display: none; }
+    .header-logo { text-align: center; margin-bottom: 20px; }
     .header-logo img { max-height: 80px; }
-    .doc-title { text-align: center; font-weight: bold; text-decoration: underline; font-size: 16px; margin-bottom: 20px; }
-    .po-meta { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; }
-    table.parties { width: 100%; border-collapse: collapse; margin-bottom: 15px; border: 1px solid #000; }
+    
+    .doc-title { text-align: center; font-weight: bold; text-decoration: underline; font-size: 16px; margin-bottom: 10px; }
+    
+    .po-meta { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 2px; }
+    
+    table.parties { width: 100%; border-collapse: collapse; margin-bottom: 15px; border: 1.5px solid #000; }
+    table.parties th { border: 1px solid #000; padding: 5px; text-align: left; font-weight: bold; }
     table.parties td { width: 50%; border: 1px solid #000; vertical-align: top; padding: 5px; }
-    .bold-title { font-weight: bold; }
-    .content-body { margin-bottom: 15px; }
+    
+    .content-body { margin-bottom: 15px; line-height: 1.4; }
     .content-body p { margin: 5px 0; }
-    table.products { width: 100%; border-collapse: collapse; margin-bottom: 15px; border: 1px solid #000; }
-    table.products th, table.products td { border: 1px solid #000; padding: 5px; text-align: left; }
-    table.products th { font-weight: bold; }
-    .terms-section { margin-bottom: 15px; }
-    .terms-section p { margin: 2px 0; }
-    .terms-section h6 { font-weight: bold; font-size: 13px; margin: 5px 0; }
-    table.footer-sigs { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #000; }
-    table.footer-sigs td { width: 50%; border: 1px solid #000; vertical-align: top; padding: 5px; height: 100px; }
+    
+    .bold-title { font-weight: bold; margin-bottom: 2px; }
+    
+    table.products { width: 100%; border-collapse: collapse; margin-bottom: 15px; border: 1.5px solid #000; }
+    table.products th { border: 1px solid #000; padding: 5px; text-align: left; font-weight: bold; }
+    table.products td { border: 1px solid #000; padding: 5px; text-align: left; }
+    
+    .commercial-terms { width: 100%; margin-bottom: 15px; line-height: 1.4; }
+    .commercial-terms td { vertical-align: top; width: 50%; }
+    
+    .general-terms { margin-bottom: 20px; }
+    .general-terms ol { padding-left: 20px; margin: 0; }
+    .general-terms li { margin-bottom: 3px; text-align: justify; }
+    
+    table.footer-sigs { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1.5px solid #000; }
+    table.footer-sigs th, table.footer-sigs td { border: 1px solid #000; padding: 4px 5px; text-align: left; vertical-align: top; }
+    table.footer-sigs th { font-weight: bold; }
+    .sig-field { display: flex; }
+    .sig-label { width: 80px; font-weight: bold; }
 </style>
 
 <div class="header-logo">
     <img src="{{ $logo_src }}" alt="Company Logo">
 </div>
+
 <div class="doc-title">PURCHASE ORDER</div>
 
 <div class="po-meta">
@@ -50,21 +66,21 @@
 
 <table class="parties">
     <tr>
-        <td style="font-weight: bold;">Buyer</td>
-        <td style="font-weight: bold;">Supplier</td>
+        <th>Buyer</th>
+        <th>Supplier</th>
     </tr>
     <tr>
         <td>
-            <div style="font-weight: bold; margin-bottom: 5px;">{{ $order->po->client_name }}</div>
+            <div style="font-weight: bold;">{{ $order->po->client_name }}</div>
             <div>{!! nl2br(e($order->po->client_address)) !!}</div>
-            @if($order->po->client_email)<div>Attention: {{ explode('@', $order->po->client_email)[0] }}</div>@endif
+            @if($order->po->client_email)<div><strong>Attention:</strong> {{ explode('@', $order->po->client_email)[0] }}</div>@endif
             @if($order->po->client_phone)<div>Mobile: {{ $order->po->client_phone }}</div>@endif
         </td>
         <td>
             @if($supplier)
-                <div style="font-weight: bold; margin-bottom: 5px;">{{ $supplier->name }}</div>
+                <div style="font-weight: bold;">{{ $supplier->name }}</div>
                 <div>{!! nl2br(e($supplier->head_office_address)) !!}</div>
-                @if($supplier->contact_person_name)<div>Attention: {{ $supplier->contact_person_name }}</div>@endif
+                @if($supplier->contact_person_name)<div><strong>Attention:</strong> {{ $supplier->contact_person_name }}</div>@endif
                 @if($supplier->contact_person_number)<div>Mobile: {{ $supplier->contact_person_number }}</div>@endif
             @else
                 <div>N/A</div>
@@ -74,81 +90,99 @@
 </table>
 
 <div class="content-body">
-    <p style="font-weight: bold;">Subject: Purchase Order for Supply of {{ $order->po->items->first()->item_name ?? 'Products' }}</p>
+    <div style="font-weight: bold;">Subject: Purchase Order for Supply of {{ $order->po->items->first()->item_name ?? 'Products' }}</div>
     <p>Dear Sir,</p>
     <p>With reference to your price offer for supply of {{ $order->po->items->first()->item_name ?? 'Products' }} and based on the mutually agreed commercial terms and conditions, we are pleased to place the following Purchase Order:</p>
 </div>
 
-<div class="bold-title" style="margin-bottom: 5px;">Product Details</div>
+<div class="bold-title">Product Details</div>
 <table class="products">
     <thead>
         <tr>
             <th>Description</th>
             <th>Quantity</th>
             <th>Unit Price</th>
+            <th>Freight</th>
             <th>Total Value</th>
         </tr>
     </thead>
     <tbody>
         @foreach($order->po->items as $item)
         <tr>
-            <td>
-                <div style="font-weight: bold;">{{ $item->item_name }}</div>
-                @if($item->description)<div>{{ $item->description }}</div>@endif
-            </td>
+            <td><strong style="font-weight: bold;">{{ $item->item_name }}</strong></td>
             <td>{{ $item->quantity }} {{ $item->unit }}</td>
-            <td>{{ $item->currency }} {{ $item->price }}/{{ $item->unit }}</td>
+            <td>{{ $item->currency }} {{ $item->price }}</td>
+            <td></td>
             <td>{{ $item->currency }} {{ $item->total }}</td>
         </tr>
         @endforeach
     </tbody>
 </table>
 
-<div class="terms-section">
-    <h6>Commercial Terms</h6>
-    <p>Port of Loading: {{ $order->po->port_of_loading ?? 'Any Port in India' }}</p>
-    <p>Port of Discharge: {{ $order->po->port_of_discharge ?? 'Tamabil, Bangladesh' }}</p>
-    <p>Final Destination: {{ $order->po->final_destination ?? 'Tamabil, Bangladesh' }}</p>
-    <p>Country of Origin: {{ $order->po->country_of_origin ?? 'India' }}</p>
-    <p>Packing: {{ $order->po->packing ?? 'Road Tanker' }}</p>
-    <p>Transport Mode: {{ $order->po->transport_mode ?? 'By Road' }}</p>
-</div>
-
-<div class="terms-section">
-    <h6>General Terms & Conditions</h6>
-    <div style="padding-left: 20px; white-space: pre-wrap;">{{ $order->po->terms_and_conditions ?? "1. Any amendment to this Purchase Order shall be valid only when accepted by both parties in writing.\n2. The supplier shall complete shipment of the ordered quantity within 30 (Thirty) days from the date of issuance of operative Letter of Credit (LC). Any anticipated delay in shipment must be communicated to the buyer in writing at least 7 (Seven) days prior to the scheduled shipment date.\n3. Any matter not specifically covered in this Purchase Order shall be settled through mutual discussion and agreement between the Buyer and Seller." }}</div>
-</div>
-
-<div style="margin-top: 10px; margin-bottom: 10px;">
-    Kindly acknowledge receipt and acceptance of this Purchase Order.
-</div>
-
-<table class="footer-sigs" style="border: none;">
+<div class="bold-title">Commercial Terms</div>
+<table class="commercial-terms">
     <tr>
-        <td style="border: none; text-align: center;">
-            <div style="margin-top: 50px;">
-                <div style="border-top: 1px solid #000; display: inline-block; padding-top: 5px;">{{ __('Prepared By') }}</div>
-                <div>{{ $order->po->prepared_by ?? '' }}</div>
-            </div>
-        </td>
-        <td style="border: none; text-align: center;">
-            <div style="margin-top: 50px;">
-                <div style="border-top: 1px solid #000; display: inline-block; padding-top: 5px;">{{ __('Issued By') }}</div>
-                <div>{{ $order->po->issued_by ?? '' }}</div>
-            </div>
-        </td>
-        <td style="border: none; text-align: center;">
-            <div style="margin-top: 50px;">
-                <div style="border-top: 1px solid #000; display: inline-block; padding-top: 5px;">{{ __('Acknowledged By') }}</div>
-                <div>{{ $order->po->acknowledged_by ?? '' }}</div>
-            </div>
-        </td>
-        <td style="border: none; text-align: center;">
-            <div style="margin-top: 50px;">
-                <div style="border-top: 1px solid #000; display: inline-block; padding-top: 5px;">{{ __('Accepted By Supplier') }}</div>
-                <div>{{ $supplier->name ?? 'Supplier' }}</div>
-            </div>
-        </td>
+        <td>Port of Loading: {{ $order->po->port_of_loading ?? 'Any Port in India' }}</td>
+        <td>Port of Discharge: {{ $order->po->port_of_discharge ?? 'Tamabil, Bangladesh' }}</td>
+    </tr>
+    <tr>
+        <td>Final Destination: {{ $order->po->final_destination ?? 'Tamabil, Bangladesh' }}</td>
+        <td>Country of Origin: {{ $order->po->country_of_origin ?? 'India' }}</td>
+    </tr>
+    <tr>
+        <td>Packing: {{ $order->po->packing ?? 'Road Tanker' }}</td>
+        <td>Transport Mode: {{ $order->po->transport_mode ?? 'By Road' }}</td>
+    </tr>
+</table>
+
+<div class="general-terms">
+    <div class="bold-title">General Terms & Conditions</div>
+    @php
+        $terms = $order->po->terms_and_conditions ?? "1. Any amendment to this Purchase Order shall be valid only when accepted by both parties in writing.\n2. The supplier shall complete shipment of the ordered quantity within 30 (Thirty) days from the date of issuance of operative Letter of Credit (LC). Any anticipated delay in shipment must be communicated to the buyer in writing at least 7 (Seven) days prior to the scheduled shipment date.\n3. Any matter not specifically covered in this Purchase Order shall be settled through mutual discussion and agreement between the Buyer and Seller. Kindly acknowledge receipt and acceptance of this Purchase Order.";
+        $termsList = explode("\n", $terms);
+    @endphp
+    <ol>
+        @foreach($termsList as $term)
+            @if(trim($term) != '')
+                @php
+                    $cleanTerm = preg_replace('/^\d+\.\s*/', '', trim($term));
+                @endphp
+                <li>{{ $cleanTerm }}</li>
+            @endif
+        @endforeach
+    </ol>
+</div>
+
+<table class="footer-sigs">
+    <tr>
+        <th>Prepared by</th>
+        <th>Acknowledged by</th>
+        <th>Accepted by</th>
+    </tr>
+    <tr>
+        <th style="font-weight: bold;">Three Eye</th>
+        <th style="font-weight: bold;">{{ $order->po->client_name }}</th>
+        <th style="font-weight: bold;">{{ $supplier->name ?? 'Supplier' }}</th>
+    </tr>
+    <tr>
+        <td><div class="sig-field"><div class="sig-label">Signatory</div><div>: {{ $order->po->prepared_by ?? \Auth::user()->name }}</div></div></td>
+        <td><div class="sig-field"><div class="sig-label">Signatory</div><div>: {{ $order->po->acknowledged_by ?? '' }}</div></div></td>
+        <td><div class="sig-field"><div class="sig-label">Signatory</div><div>: </div></div></td>
+    </tr>
+    <tr>
+        <td><div class="sig-field"><div class="sig-label">Designation</div><div>: Managing Director</div></div></td>
+        <td><div class="sig-field"><div class="sig-label">Designation</div><div>: </div></div></td>
+        <td><div class="sig-field"><div class="sig-label">Designation</div><div>: </div></div></td>
+    </tr>
+    <tr>
+        <td><div class="sig-field"><div class="sig-label">Signature</div><div>: </div></div></td>
+        <td><div class="sig-field"><div class="sig-label">Signature</div><div>: </div></div></td>
+        <td><div class="sig-field"><div class="sig-label">Signature</div><div>: </div></div></td>
+    </tr>
+    <tr>
+        <td><div class="sig-field"><div class="sig-label">Date</div><div>: </div></div></td>
+        <td><div class="sig-field"><div class="sig-label">Date</div><div>: </div></div></td>
+        <td><div class="sig-field"><div class="sig-label">Date</div><div>: </div></div></td>
     </tr>
 </table>
 @endsection

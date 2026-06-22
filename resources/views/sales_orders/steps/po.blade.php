@@ -199,9 +199,10 @@
 <div class="d-flex justify-content-between align-items-center mt-3">
     <div>
         @if($order->po)
-            <a href="{{ route('sales-orders.po.print', $order->id) }}" target="_blank" class="btn btn-secondary"><i
-                    class="ti ti-printer me-1"></i>{{ __('Print') }}</a>
             <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#poPreviewModal">
+                <i class="ti ti-eye me-1"></i>{{ __('Preview & Download PDF') }}
+            </button>
+        @endif
                 <i class="ti ti-eye me-1"></i>{{ __('Preview & Download PDF') }}
             </button>
         @endif
