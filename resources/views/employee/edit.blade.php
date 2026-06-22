@@ -759,8 +759,9 @@
                 });
             }
 
-            $(document).on('input', '#joining_salary', function() {
-                var joining_salary = parseFloat($(this).val());
+            $(document).on('input change', '#joining_salary', function() {
+                var val = $(this).val() || '';
+                var joining_salary = parseFloat(val.replace(/,/g, ''));
                 if (!isNaN(joining_salary)) {
                     $('#salary').val((joining_salary * 0.60).toFixed(2));
                     $('#hra').val((joining_salary * 0.20).toFixed(2));

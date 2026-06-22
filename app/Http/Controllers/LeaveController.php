@@ -140,7 +140,16 @@ class LeaveController extends Controller
                 $allowed_days = round(($leave_type->days / $days_in_year) * $remaining_days);
             }
 
-            if ($leave_type && $allowed_days >= $total_leave_days)
+            $used_leaves = 0;
+            if ($employee && $leave_type) {
+                $used_leaves = \App\Models\Leave::where('employee_id', $employee->id)
+                    ->where('leave_type_id', $leave_type->id)
+                    ->whereIn('status', ['Approved', 'Pending'])
+                    ->whereYear('start_date', $current_year)
+                    ->sum('total_leave_days');
+            }
+
+            if ($leave_type && ($allowed_days - $used_leaves) >= $total_leave_days)
             {
                 $leave = new Leave();
                 $leave->employee_id = $employee->id;
@@ -185,7 +194,7 @@ class LeaveController extends Controller
                 }
                 return redirect()->route('leave.index')->with('success', __('Leave successfully created.'));
             } else {
-                return redirect()->back()->with('error', __('Leave type ' . ($leave_type ? $leave_type->title : '') . ' allows a maximum of ' . ($leave_type ? $leave_type->days : 0) . ' days. Please make sure your selected days are within the limit.'));
+                return redirect()->back()->with('error', __('Leave type ' . ($leave_type ? $leave_type->title : '') . ' allows a maximum of ' . $allowed_days . ' days. You have already used ' . $used_leaves . ' days. Remaining balance: ' . max(0, $allowed_days - $used_leaves) . ' days.'));
             }
         } else {
             return redirect()->back()->with('error', __('Permission denied.'));
@@ -297,7 +306,17 @@ class LeaveController extends Controller
                     $allowed_days = round(($leave_type->days / $days_in_year) * $remaining_days);
                 }
 
-                if ($leave_type && $allowed_days >= $total_leave_days)
+                $used_leaves = 0;
+                if ($employee && $leave_type) {
+                    $used_leaves = \App\Models\Leave::where('employee_id', $employee->id)
+                        ->where('leave_type_id', $leave_type->id)
+                        ->whereIn('status', ['Approved', 'Pending'])
+                        ->where('id', '!=', $leave->id)
+                        ->whereYear('start_date', $current_year)
+                        ->sum('total_leave_days');
+                }
+
+                if ($leave_type && ($allowed_days - $used_leaves) >= $total_leave_days)
                 {
 
                     $leave->employee_id      = $request->employee_id;
@@ -323,7 +342,7 @@ class LeaveController extends Controller
                 }
                 else
                 {
-                    return redirect()->back()->with('error', __('Leave type ' . ($leave_type ? $leave_type->title : '') . ' allows a maximum of ' . ($leave_type ? $leave_type->days : 0) . ' days. Please make sure your selected days are within the limit.'));
+                    return redirect()->back()->with('error', __('Leave type ' . ($leave_type ? $leave_type->title : '') . ' allows a maximum of ' . $allowed_days . ' days. You have already used ' . $used_leaves . ' days. Remaining balance: ' . max(0, $allowed_days - $used_leaves) . ' days.'));
                 }
             }
             else

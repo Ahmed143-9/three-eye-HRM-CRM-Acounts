@@ -139,7 +139,7 @@
                                         </td>
                                         <td class="text-center">
                                             <div class="p-badge p-badge-indigo fs-6 px-3 work-hrs-{{ $employee->id }}">
-                                                {{ $att ? number_format($att->working_hours, 1) : '0.0' }}
+                                                {{ $att ? number_format((float) $att->working_hours, 1) : '0.0' }}
                                             </div>
                                             <div class="small text-muted mt-1 fw-bold">{{ __('HOURS') }}</div>
                                         </td>

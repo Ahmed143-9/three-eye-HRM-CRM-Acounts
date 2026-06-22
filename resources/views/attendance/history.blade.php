@@ -137,7 +137,7 @@
                                         </div>
                                     </td>
                                     <td class="text-end">
-                                        <div class="h5 mb-0 fw-bold text-indigo" style="color:#4f46e5;">{{ number_format($attendance->working_hours, 1) }} <small class="text-muted fw-normal">{{ __('Hrs') }}</small></div>
+                                        <div class="h5 mb-0 fw-bold text-indigo" style="color:#4f46e5;">{{ number_format((float) $attendance->working_hours, 1) }} <small class="text-muted fw-normal">{{ __('Hrs') }}</small></div>
                                     </td>
                                     @if (Gate::check('Manage Attendance'))
                                         <td class="text-end">
