@@ -81,18 +81,23 @@
     </div>
     <div class="card-body bg-light-secondary rounded-bottom p-3">
         <div class="row g-3 align-items-center">
+            <div class="col-md-3">
+                <label class="form-label small text-muted">{{ __('Inventory Item') }}</label>
+                <select name="inventory_item_id" id="inventory_item_id" class="form-control form-control-sm select2">
+                    <option value="">{{ __('Select Item (Optional)') }}</option>
+                    @foreach($inventoryItems as $invItem)
+                        <option value="{{ $invItem->id }}" data-unit="{{ $invItem->unit }}" {{ (isset($order->delivery) && $order->delivery->inventory_item_id == $invItem->id) ? 'selected' : '' }}>
+                            {{ $invItem->name }} ({{ $invItem->unit }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
             <div class="col-md-2">
                 <label class="form-label small text-muted">{{ __('Qty') }}</label>
                 <input type="number" name="drum_qty" id="drum_qty" class="form-control form-control-sm" value="{{ isset($order->delivery) ? $order->delivery->drum_qty : '' }}" placeholder="e.g. 50">
+                <span id="available_stock_display" class="text-info small d-block mt-1" style="font-size: 0.75rem;"></span>
             </div>
-            <div class="col-md-2">
-                <label class="form-label small text-muted">{{ __('Unit') }}</label>
-                <select name="drum_unit" class="form-control form-control-sm select2">
-                    <option value="Drums" {{ (isset($order->delivery) && $order->delivery->drum_unit == 'Drums') ? 'selected' : '' }}>Drums</option>
-                    <option value="IBCs" {{ (isset($order->delivery) && $order->delivery->drum_unit == 'IBCs') ? 'selected' : '' }}>IBCs</option>
-                    <option value="Bags" {{ (isset($order->delivery) && $order->delivery->drum_unit == 'Bags') ? 'selected' : '' }}>Bags</option>
-                </select>
-            </div>
+            <input type="hidden" name="drum_unit" id="drum_unit" value="{{ isset($order->delivery) ? $order->delivery->drum_unit : 'Drums' }}">
             <div class="col-md-2">
                 <label class="form-label small text-muted">{{ __('Buying Price') }}</label>
                 <input type="number" step="0.01" name="drum_buying_price" id="drum_buying_price" class="form-control form-control-sm" value="{{ isset($order->delivery) ? $order->delivery->drum_buying_price : '' }}">
@@ -101,7 +106,7 @@
                 <label class="form-label small text-muted">{{ __('Total Buying') }}</label>
                 <input type="number" step="0.01" name="drum_buying_total" id="drum_buying_total" class="form-control form-control-sm bg-white" readonly value="{{ isset($order->delivery) ? $order->delivery->drum_buying_total : '' }}">
             </div>
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <label class="form-label small text-muted fw-bold text-success">{{ __('Selling Price') }}</label>
                 <input type="number" step="0.01" name="drum_selling_price" id="drum_selling_price" class="form-control form-control-sm border-success" value="{{ isset($order->delivery) ? $order->delivery->drum_selling_price : '' }}">
             </div>
@@ -189,6 +194,66 @@
         }
 
         $('#drum_qty, #drum_buying_price, #drum_selling_price').on('input', calculateDrumTotals);
+
+        var isInitialLoad = true;
+
+        $('#inventory_item_id').on('change', function() {
+            var itemId = $(this).val();
+            var selectedOption = $(this).find('option:selected');
+            var unit = selectedOption.data('unit') || 'pcs';
+            $('#drum_unit').val(unit);
+
+            if (itemId) {
+                $.ajax({
+                    url: '{{ url("inventory/item") }}/' + itemId + '/average-cost',
+                    type: 'GET',
+                    success: function(response) {
+                        $('#available_stock_display').html('{{ __("Available:") }} ' + response.available_qty + ' ' + response.unit);
+                        $('#available_stock_display').data('available', response.available_qty);
+                        
+                        if (!isInitialLoad || !$('#drum_buying_price').val()) {
+                            $('#drum_buying_price').val(response.average_cost).trigger('input');
+                        }
+                        isInitialLoad = false;
+                    },
+                    error: function() {
+                        $('#available_stock_display').html('<span class="text-danger">{{ __("Error loading stock") }}</span>');
+                        isInitialLoad = false;
+                    }
+                });
+            } else {
+                $('#available_stock_display').html('');
+                $('#available_stock_display').data('available', 0);
+                isInitialLoad = false;
+            }
+        });
+
+        if ($('#inventory_item_id').val()) {
+            $('#inventory_item_id').trigger('change');
+        } else {
+            isInitialLoad = false;
+        }
+
+        $('#delivery-form').on('submit', function(e) {
+            var itemId = $('#inventory_item_id').val();
+            if (itemId) {
+                var qty = parseFloat($('#drum_qty').val()) || 0;
+                var available = parseFloat($('#available_stock_display').data('available')) || 0;
+                
+                @if(isset($order->delivery))
+                    var previousQty = parseFloat('{{ $order->delivery->drum_qty }}') || 0;
+                    var allowedMax = available + previousQty;
+                @else
+                    var allowedMax = available;
+                @endif
+
+                if (qty > allowedMax) {
+                    e.preventDefault();
+                    alert('{{ __("Error: Entered quantity exceeds available inventory stock!") }} (Max allowed: ' + allowedMax + ')');
+                    return false;
+                }
+            }
+        });
 
         // Initial calculation
         calculateDrumTotals();

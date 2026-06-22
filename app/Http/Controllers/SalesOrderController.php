@@ -103,7 +103,9 @@ class SalesOrderController extends Controller
         else
             $currencies['D.'] = 'D.';
 
-        return view('sales_orders.show', compact('order', 'units', 'currencies', 'suppliers'));
+        $inventoryItems = \App\Models\InventoryItem::where('created_by', Auth::user()->creatorId())->get();
+
+        return view('sales_orders.show', compact('order', 'units', 'currencies', 'suppliers', 'inventoryItems'));
     }
 
     public function buyingStore(Request $request, $id)
@@ -482,26 +484,108 @@ class SalesOrderController extends Controller
     {
         $order = SalesOrder::find($id);
         $ci_id = $request->ci_id ?? session('active_ci_id');
+        $inventory_item_id = $request->inventory_item_id;
+        $drum_qty = (float)($request->drum_qty ?? 0);
 
-        $delivery = \App\Models\SalesDelivery::updateOrCreate(
-            ['ci_id' => $ci_id, 'order_id' => $order->id],
-            [
-                'delivery_mode' => $request->delivery_mode,
-                'packing_type' => $request->packing_type,
-                'total_quantity_mt' => $request->total_quantity_mt,
-                'total_quantity_kg' => $request->total_quantity_kg,
-                'required_units' => $request->required_units,
-                'drum_qty' => $request->drum_qty ?? 0,
-                'drum_unit' => $request->drum_unit,
-                'drum_buying_price' => $request->drum_buying_price ?? 0,
-                'drum_buying_total' => $request->drum_buying_total ?? 0,
-                'drum_selling_price' => $request->drum_selling_price ?? 0,
-                'drum_selling_total' => $request->drum_selling_total ?? 0,
-                'created_by' => \Auth::user()->creatorId(),
-            ]
-        );
+        // 1. Validate total available stock across all batches
+        if ($inventory_item_id && $drum_qty > 0) {
+            $existingUsagesQty = 0;
+            $existingDelivery = \App\Models\SalesDelivery::where('ci_id', $ci_id)->where('order_id', $order->id)->first();
+            if ($existingDelivery) {
+                $existingUsagesQty = \App\Models\InventoryUsage::where('sales_order_id', $order->id)
+                    ->where('ci_id', $ci_id)
+                    ->sum('quantity_used');
+            }
 
-        // Generate Billing for Drums if any
+            $availableStock = \App\Models\InventoryBatch::where('inventory_item_id', $inventory_item_id)
+                ->where('quantity_available', '>', 0)
+                ->sum('quantity_available');
+
+            // The effective available stock is real stock + what was already assigned to this delivery
+            $effectiveAvailable = $availableStock + $existingUsagesQty;
+
+            if ($effectiveAvailable < $drum_qty) {
+                return redirect()->back()->with('error', __('Requested quantity exceeds available stock in inventory. Only :qty available.', ['qty' => $effectiveAvailable]));
+            }
+        }
+
+        $delivery = DB::transaction(function () use ($request, $order, $ci_id, $inventory_item_id, $drum_qty) {
+            // 2. Restore previous usage for this specific delivery if updating
+            $existingDelivery = \App\Models\SalesDelivery::where('ci_id', $ci_id)->where('order_id', $order->id)->first();
+            if ($existingDelivery) {
+                $usages = \App\Models\InventoryUsage::where('sales_order_id', $order->id)
+                    ->where('ci_id', $ci_id)
+                    ->get();
+                foreach ($usages as $usage) {
+                    $batch = \App\Models\InventoryBatch::find($usage->inventory_batch_id);
+                    if ($batch) {
+                        $batch->quantity_available += $usage->quantity_used;
+                        $batch->save();
+                    }
+                    $usage->delete();
+                }
+
+                // Delete previous Payable & Receivable records for this delivery's drums to avoid duplication
+                \App\Models\Payable::where('sales_order_id', $order->id)->where('ci_id', $ci_id)->delete();
+                \App\Models\Receivable::where('sales_order_id', $order->id)->where('ci_id', $ci_id)->delete();
+            }
+
+            // 3. Deduct from inventory using FIFO (oldest batches first)
+            if ($inventory_item_id && $drum_qty > 0) {
+                $remaining_qty = $drum_qty;
+                $batches = \App\Models\InventoryBatch::where('inventory_item_id', $inventory_item_id)
+                    ->where('quantity_available', '>', 0)
+                    ->orderBy('purchase_date', 'asc')
+                    ->orderBy('id', 'asc')
+                    ->get();
+
+                foreach ($batches as $batch) {
+                    if ($remaining_qty <= 0) break;
+
+                    $deduct = min($remaining_qty, $batch->quantity_available);
+
+                    $batch->quantity_available -= $deduct;
+                    $batch->save();
+
+                    \App\Models\InventoryUsage::create([
+                        'inventory_item_id' => $inventory_item_id,
+                        'inventory_batch_id' => $batch->id,
+                        'sales_order_id' => $order->id,
+                        'ci_id' => $ci_id,
+                        'quantity_used' => $deduct,
+                        'unit_cost' => $batch->unit_cost,
+                        'total_cost' => $deduct * $batch->unit_cost,
+                        'created_by' => \Auth::user()->creatorId()
+                    ]);
+
+                    $remaining_qty -= $deduct;
+                }
+            }
+
+            // 4. Save or Update Delivery Details
+            $delivery = \App\Models\SalesDelivery::updateOrCreate(
+                ['ci_id' => $ci_id, 'order_id' => $order->id],
+                [
+                    'delivery_mode' => $request->delivery_mode,
+                    'packing_type' => $request->packing_type,
+                    'total_quantity_mt' => $request->total_quantity_mt,
+                    'total_quantity_kg' => $request->total_quantity_kg,
+                    'required_units' => $request->required_units,
+                    'inventory_item_id' => $inventory_item_id,
+                    'drum_qty' => $drum_qty,
+                    'drum_unit' => $request->drum_unit,
+                    'drum_buying_price' => $request->drum_buying_price ?? 0,
+                    'drum_buying_total' => $request->drum_buying_total ?? 0,
+                    'drum_selling_price' => $request->drum_selling_price ?? 0,
+                    'drum_selling_total' => $request->drum_selling_total ?? 0,
+                    'created_by' => \Auth::user()->creatorId(),
+                ]
+            );
+
+            return $delivery;
+        });
+
+        // 5. Generate Billing for Drums if any
         if ($delivery->drum_qty > 0) {
             $this->generateSalesPayable($order, $delivery, 'Drum Purchase', $ci_id);
             $this->generateSalesReceivable($order, $delivery, 'Drum Sale', $ci_id);

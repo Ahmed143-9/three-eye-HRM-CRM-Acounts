@@ -372,6 +372,14 @@
                                     </li>
                                 @endcan
 
+                                @if(Gate::check('Manage Sales Orders') || \Auth::user()->type == 'company')
+                                    <li class="dash-item {{ Request::segment(1) == 'inventory' ? 'active' : '' }}">
+                                        <a class="dash-link" href="{{ route('inventory.index') }}">
+                                            <span class="dash-mtext">{{ __('Inventory') }}</span>
+                                        </a>
+                                    </li>
+                                @endif
+
                                 @can('Manage Purchases & Suppliers')
                                     <li class="dash-item {{ Request::route()->getName() == 'bill.index' || Request::route()->getName() == 'bill.create' || Request::route()->getName() == 'bill.edit' || Request::route()->getName() == 'bill.show' ? ' active' : '' }}">
                                         <a class="dash-link" href="{{ route('bill.index') }}">

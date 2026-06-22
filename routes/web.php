@@ -100,6 +100,7 @@ use App\Http\Controllers\PaytmPaymentController;
 use App\Http\Controllers\PaytrController;
 use App\Http\Controllers\YooKassaController;
 use App\Http\Controllers\ErpExpenseController;
+use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\ErpSalarySheetController;
 use App\Http\Controllers\EmployeePerformanceController;
 use App\Http\Controllers\HrmSetupController;
@@ -1927,6 +1928,11 @@ Route::group(['middleware' => ['auth', 'XSS', 'revalidate']], function () {
     Route::post('sales-orders/add-currency', [App\Http\Controllers\SalesOrderWorkflowController::class, 'addCurrency'])->name('sales-orders.add-currency');
     Route::post('sales-orders/add-incoterm', [App\Http\Controllers\SalesOrderWorkflowController::class, 'addIncoterm'])->name('sales-orders.add-incoterm');
     Route::get('sales-orders/customer-detail', [SalesOrderController::class, 'customerDetail'])->name('sales-orders.customer.detail');
+
+    // Inventory Management Module
+    Route::resource('inventory', InventoryController::class);
+    Route::post('inventory/{id}/batch', [InventoryController::class, 'storeBatch'])->name('inventory.batch.store');
+    Route::get('inventory/item/{id}/average-cost', [InventoryController::class, 'getItemCost'])->name('inventory.item.average-cost');
 
     // Expense Management Module
     Route::group(['prefix' => 'expense-management'], function () {

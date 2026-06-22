@@ -31,7 +31,7 @@ class ErpExpenseController extends Controller
 
     public function index($type = 'purchase')
     {
-        if (Auth::user()->can('Submit Expenses') || Auth::user()->type == 'company') {
+        if ((Auth::user()->can('Submit Expenses') || Auth::user()->can('Manage Purchases & Suppliers') || Auth::user()->can('Manage Employees')) || Auth::user()->type == 'company') {
             $workspace_id = Auth::user()->currentWorkspace ?? 1;
             $expenses = ErpExpense::with(['category', 'employee'])
                 ->where('workspace_id', $workspace_id)
@@ -45,7 +45,7 @@ class ErpExpenseController extends Controller
 
     public function create(Request $request, $type)
     {
-        if (Auth::user()->can('Submit Expenses') || Auth::user()->type == 'company') {
+        if ((Auth::user()->can('Submit Expenses') || Auth::user()->can('Manage Purchases & Suppliers') || Auth::user()->can('Manage Employees')) || Auth::user()->type == 'company') {
             $workspace_id = Auth::user()->currentWorkspace ?? 1;
             $categories = ErpExpenseCategory::where('module_type', $type)
                 ->where('is_active', true)
@@ -72,7 +72,7 @@ class ErpExpenseController extends Controller
 
     public function store(Request $request, $type)
     {
-        if (Auth::user()->can('Submit Expenses') || Auth::user()->type == 'company') {
+        if ((Auth::user()->can('Submit Expenses') || Auth::user()->can('Manage Purchases & Suppliers') || Auth::user()->can('Manage Employees')) || Auth::user()->type == 'company') {
             $rules = [
                 'erp_expense_category_id' => 'required',
                 'date' => 'required|date',
@@ -111,8 +111,8 @@ class ErpExpenseController extends Controller
                 $expense->supplier_id = $request->supplier_id;
                 $expense->transport_id = $request->transport_id;
                 $expense->trip_no = $request->trip_no;
-                $expense->net_salary = $request->net_salary;
-                $expense->deduction_amount = $request->deduction_amount;
+                $expense->net_salary = $request->net_salary ?? 0;
+                $expense->deduction_amount = $request->deduction_amount ?? 0;
                 $expense->cause_of_deduction = $request->cause_of_deduction;
                 $expense->erp_salary_sheet_id = $request->erp_salary_sheet_id;
                 $expense->remarks = $request->remarks;
@@ -186,7 +186,7 @@ class ErpExpenseController extends Controller
     public function show($type, $id)
     {
         try {
-            if (Auth::user()->can('Submit Expenses') || Auth::user()->type == 'company') {
+            if ((Auth::user()->can('Submit Expenses') || Auth::user()->can('Manage Purchases & Suppliers') || Auth::user()->can('Manage Employees')) || Auth::user()->type == 'company') {
                 $expense = ErpExpense::with(['category', 'employee', 'items.unit', 'statusLogs.user'])->find($id);
                 
                 if (!$expense) {
@@ -217,7 +217,7 @@ class ErpExpenseController extends Controller
 
     public function edit($type, $id)
     {
-        if (Auth::user()->can('Submit Expenses') || Auth::user()->type == 'company') {
+        if ((Auth::user()->can('Submit Expenses') || Auth::user()->can('Manage Purchases & Suppliers') || Auth::user()->can('Manage Employees')) || Auth::user()->type == 'company') {
             $expense = ErpExpense::with('items')->find($id);
             if ($expense) {
                 $workspace_id = Auth::user()->currentWorkspace ?? 1;
@@ -242,7 +242,7 @@ class ErpExpenseController extends Controller
 
     public function update(Request $request, $type, $id)
     {
-        if (Auth::user()->can('Submit Expenses') || Auth::user()->type == 'company') {
+        if ((Auth::user()->can('Submit Expenses') || Auth::user()->can('Manage Purchases & Suppliers') || Auth::user()->can('Manage Employees')) || Auth::user()->type == 'company') {
             $expense = ErpExpense::find($id);
             if ($expense) {
                 if ($expense->status == 'Approved' || $expense->status == 'Paid') {
@@ -330,7 +330,7 @@ class ErpExpenseController extends Controller
 
     public function destroy($type, $id)
     {
-        if (Auth::user()->can('Submit Expenses') || Auth::user()->type == 'company') {
+        if ((Auth::user()->can('Submit Expenses') || Auth::user()->can('Manage Purchases & Suppliers') || Auth::user()->can('Manage Employees')) || Auth::user()->type == 'company') {
             $expense = ErpExpense::find($id);
             if ($expense) {
                 if ($expense->status == 'Approved' || $expense->status == 'Paid') {
@@ -864,7 +864,7 @@ class ErpExpenseController extends Controller
 
     public function print($type, $id)
     {
-        if (Auth::user()->can('Submit Expenses') || Auth::user()->type == 'company') {
+        if ((Auth::user()->can('Submit Expenses') || Auth::user()->can('Manage Purchases & Suppliers') || Auth::user()->can('Manage Employees')) || Auth::user()->type == 'company') {
             $expense = ErpExpense::with(['category', 'employee', 'items.unit', 'approver'])->find($id);
             if ($expense) {
                 $setting = Utility::settings();

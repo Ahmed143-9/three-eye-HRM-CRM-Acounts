@@ -14,6 +14,7 @@ class SalesDelivery extends Model
         'total_quantity_mt',
         'total_quantity_kg',
         'required_units',
+        'inventory_item_id',
         'drum_qty',
         'drum_unit',
         'drum_buying_price',
@@ -31,5 +32,10 @@ class SalesDelivery extends Model
     public function ci()
     {
         return $this->belongsTo(SalesCI::class, 'ci_id');
+    }
+
+    public function inventoryItem()
+    {
+        return $this->belongsTo(InventoryItem::class, 'inventory_item_id');
     }
 }
