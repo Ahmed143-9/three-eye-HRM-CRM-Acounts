@@ -14,6 +14,7 @@
     $setting = \App\Models\Utility::settings();
 
     $unseenCounter = App\Models\ChMessage::where('to_id', Auth::user()->id)->where('seen', 0)->count();
+    $unreadNotifications = \App\Models\Notification::where('user_id', Auth::user()->id)->where('is_read', 0)->count();
 @endphp
 <link rel="stylesheet" href="{{ asset('css/notifications.css') }}">
 @if (isset($setting['cust_theme_bg']) && $setting['cust_theme_bg'] == 'on')
@@ -90,30 +91,11 @@
                     </li>
                     @endif --}}
 
-                    <li class="dropdown dash-h-item drp-notification">
-                        <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown" href="#"
-                            role="button" aria-haspopup="false" aria-expanded="false" id="notification-btn">
+                    <li class="dash-h-item drp-notification">
+                        <a class="dash-head-link arrow-none me-0" href="{{ route('notifications.index') }}" id="notification-btn">
                             <i class="ti ti-bell"></i>
-                            <span class="bg-danger dash-h-badge notification-count d-none" id="notification-badge">0</span>
+                            <span class="bg-danger dash-h-badge notification-count {{ $unreadNotifications > 0 ? '' : 'd-none' }}" id="notification-badge">{{ $unreadNotifications }}</span>
                         </a>
-                        <div class="dropdown-menu dash-h-dropdown dropdown-menu-end notification-dropdown-menu" style="min-width: 350px;">
-                            <div class="noti-header d-flex justify-content-between align-items-center p-3 border-bottom">
-                                <h6 class="m-0">{{__('Notifications')}}</h6>
-                                <a href="#" class="text-xs text-primary" onclick="event.preventDefault(); document.getElementById('mark-all-read-form').submit();">{{__('Mark all as read')}}</a>
-                                <form id="mark-all-read-form" action="{{ route('notifications.markAllRead') }}" method="POST" class="d-none">
-                                    @csrf
-                                </form>
-                            </div>
-                            <div class="list-group list-group-flush notification-list-items" id="notification-list" style="max-height: 400px; overflow-y: auto;">
-                                <!-- Notifications will be loaded here via AJAX -->
-                                <div class="text-center p-3">
-                                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-                                </div>
-                            </div>
-                            <div class="noti-footer p-2 text-center border-top">
-                                <a href="{{ route('notifications.index') }}" class="text-primary text-sm">{{__('View All Notifications')}}</a>
-                            </div>
-                        </div>
                     </li>
 
                     <li class="dropdown dash-h-item drp-language">
@@ -173,79 +155,48 @@
                 isDropdownOpen = false;
             });
 
-            function fetchNotifications() {
+            // Reduced AJAX logic - now we just handle new popup toasts, not the badge (badge is rendered via PHP)
+            function fetchNewNotificationsForToast() {
                 $.ajax({
                     url: '{{ route('notifications.latest', [], false) }}',
                     type: 'GET',
-                    timeout: 10000, // 10 second timeout
+                    timeout: 5000, 
                     success: function(response) {
-                        if (response.success) {
-                            // Update list only if content changed
-                            var currentHtml = $('#notification-list').html();
-                            if (response.html != currentHtml) {
-                                $('#notification-list').html(response.html);
-                            }
-                            
-                            // Badge count
-                            if (response.unreadCount > 0) {
-                                $('#notification-badge').text(response.unreadCount).removeClass('d-none');
-                            } else {
-                                $('#notification-badge').addClass('d-none');
-                            }
-
-                            // Popup Logic for new notifications
-                            if (response.latestNotification) {
-                                var n = response.latestNotification;
+                        if (response.success && response.latestNotification) {
+                            var n = response.latestNotification;
+                            if (!shownNotifications.includes(n.id) && n.id > lastNotificationId) {
+                                var type = 'success';
+                                if(n.type && (n.type.includes('rejected') || n.type.includes('reject'))) type = 'error';
                                 
-                                if (!shownNotifications.includes(n.id) && n.id > lastNotificationId) {
-                                    var type = 'success';
-                                    if(n.type && (n.type.includes('rejected') || n.type.includes('reject'))) type = 'error';
-                                    
-                                    var title = n.title || 'Notification';
-                                    var message = n.message || '';
-                                    var redirectUrl = '/notifications/' + n.id + '/read-and-redirect';
-                                    
-                                    var toastHtml = '<b>' + title + '</b><br>' + message + '<br>' + 
-                                                   '<a href="' + redirectUrl + '" class="btn btn-sm btn-primary mt-2 text-white toast-action-btn">View Details</a>';
-                                    
-                                    if (typeof show_toastr === 'function') {
-                                        show_toastr(type, toastHtml);
-                                    }
-                                    
-                                    shownNotifications.push(n.id);
-                                    if(shownNotifications.length > 50) shownNotifications.shift();
-                                    localStorage.setItem('shown_notifications', JSON.stringify(shownNotifications));
-                                    
-                                    lastNotificationId = n.id;
-                                    localStorage.setItem('last_notification_id', lastNotificationId);
+                                var title = n.title || 'Notification';
+                                var message = n.message || '';
+                                var redirectUrl = '/notifications/' + n.id + '/read-and-redirect';
+                                
+                                var toastHtml = '<b>' + title + '</b><br>' + message + '<br>' + 
+                                               '<a href="' + redirectUrl + '" class="btn btn-sm btn-primary mt-2 text-white toast-action-btn">View Details</a>';
+                                
+                                if (typeof show_toastr === 'function') {
+                                    show_toastr(type, toastHtml);
+                                }
+                                
+                                shownNotifications.push(n.id);
+                                if(shownNotifications.length > 50) shownNotifications.shift();
+                                localStorage.setItem('shown_notifications', JSON.stringify(shownNotifications));
+                                
+                                lastNotificationId = n.id;
+                                localStorage.setItem('last_notification_id', lastNotificationId);
+                                
+                                // Update badge if new notification arrives while on page
+                                if (response.unreadCount > 0) {
+                                    $('#notification-badge').text(response.unreadCount).removeClass('d-none');
                                 }
                             }
-                        } else {
-                            $('#notification-list').html('<div class="text-center p-3 text-muted">' + (response.error || '{{__("No notifications found")}}' ) + '</div>');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Notification fetch failed:', status, error);
-                        // Only replace with error if it's currently showing a spinner or is empty
-                        if ($('#notification-list .spinner-border').length > 0 || $('#notification-list').html().trim() == "") {
-                            $('#notification-list').html('<div class="text-center p-3 text-danger"><i class="ti ti-alert-circle d-block fs-4 mb-2"></i>{{__("Unable to load notifications. Please check your connection.")}}</div>');
                         }
                     }
                 });
             }
 
-            // Fetch on load
-            fetchNotifications();
-
-            // Refresh every 30 seconds (increased interval to be more stable)
-            // DISABLED FOR PERFORMANCE: This caused a system-wide 60s load time issue due to N+1 queries.
-            // setInterval(function() {
-            //     fetchNotifications();
-            // }, 30000);
-
-            // Fetch when dropdown is opened
-            $('#notification-btn').on('click', function() {
-                fetchNotifications();
-            });
+            // Fetch once on load for toasts
+            fetchNewNotificationsForToast();
         });
     </script>

@@ -9,7 +9,7 @@
     <div class="footer-wrapper">
         <div class="py-1">
             <p class="mb-0 text-muted"> &copy;
-                {{ date('Y') }} {{ $setting['footer_text'] ? $setting['footer_text'] : config('app.name', 'ERPGo') }}
+                {{ date('Y') }} {{ $setting['footer_text'] ? $setting['footer_text'] : 'ThreeEye' }}
             </p>
         </div>
     </div>

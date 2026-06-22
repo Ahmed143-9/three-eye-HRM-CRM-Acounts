@@ -104,6 +104,12 @@ class NotificationController extends Controller
                 } elseif ($notification->type == 'delivery_confirmed') {
                     $url = route('receivables.index'); // Go to receivable page
                 }
+            } elseif ($notification->related_model == 'Transport') {
+                if ($notification->type == 'transport_created') {
+                    $url = route('transport.bill.index');
+                } else {
+                    $url = route('transports.index');
+                }
             } elseif ($notification->related_model == 'ErpExpense') {
                 if (in_array($notification->type, ['expense_submitted'])) {
                     $url = route('expense-management.approvals') . '?open_id=' . $notification->related_id;
@@ -119,7 +125,7 @@ class NotificationController extends Controller
                     $url = route('salary-management.index');
                 }
             } elseif ($notification->related_model == 'Bill') {
-                $url = route('bill.index');
+                $url = route('dashboard');
             } elseif ($notification->type == 'late_attendance_update') {
                 $url = route('attendance.late.log');
             }

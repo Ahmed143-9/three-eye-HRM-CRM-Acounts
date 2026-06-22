@@ -120,7 +120,6 @@
 <div class="d-flex justify-content-between align-items-center mt-3">
     <div>
         @if($active_ci && $active_ci->consignmentNote)
-            <a href="{{ route('sales-orders.cn.print', $order->id) }}?ci_id={{ $active_ci->id }}" target="_blank" class="btn btn-secondary"><i class="ti ti-printer me-1"></i>{{ __('Print') }}</a>
             <a href="{{ route('sales-orders.cn.download', $order->id) }}?ci_id={{ $active_ci->id }}" class="btn btn-info"><i class="ti ti-download me-1"></i>{{ __('Download PDF') }}</a>
         @endif
     </div>

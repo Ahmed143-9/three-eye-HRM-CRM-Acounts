@@ -36,6 +36,14 @@
                     {{ Form::select('employee_id', ['' => 'Select Employee'] + $employees->toArray(), null, ['class' => 'form-control select2', 'id' => 'employee_id', 'required' => 'required']) }}
                 </div>
             </div>
+            @if($type == 'purchase')
+            <div class="col-md-6">
+                <div class="form-group">
+                    {{ Form::label('supplier_id', __('Supplier (From Accounting Setup)'), ['class' => 'form-label']) }}
+                    {{ Form::select('supplier_id', ['' => 'Select Supplier (Optional)'] + $suppliers->toArray(), $expense->supplier_id, ['class' => 'form-control select2']) }}
+                </div>
+            </div>
+            @endif
             <div class="col-md-3">
                 <div class="form-group">
                     {{ Form::label('designation', __('Designation'), ['class' => 'form-label']) }}

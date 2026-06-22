@@ -248,6 +248,7 @@
                             </ul>
                         </li>
 
+                        {{-- Purchases Menu Removed per User Request
                         @can('Manage Purchases & Suppliers')
                             <li
                                 class="dash-item dash-hasmenu {{ Request::segment(1) == 'vender' || Request::segment(1) == 'expense' || Request::segment(1) == 'payment' || Request::segment(1) == 'debit-note' ? 'active dash-trigger' : '' }}">
@@ -272,6 +273,7 @@
                                 </ul>
                             </li>
                         @endcan
+                        --}}
                     @endif
                 @endif
 
@@ -406,27 +408,18 @@
                     <li class="dash-item dash-hasmenu {{ Request::segment(1) == 'expense-management' ? 'active dash-trigger' : '' }}">
                         <a href="#!" class="dash-link ">
                             <span class="dash-micon"><i class="ti ti-report-money"></i></span>
-                            <span class="dash-mtext">{{ __('Expense Management') }}</span>
+                            <span class="dash-mtext">{{ __('Purchases & Expenses') }}</span>
                             <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
                         </a>
                         <ul class="dash-submenu">
                             @can('Submit Expenses')
                                 <li class="dash-item {{ Request::is('expense-management/purchase*') ? 'active' : '' }}">
-                                    <a class="dash-link" href="{{ route('erp-expenses.index', 'purchase') }}">{{ __('Purchase') }}</a>
-                                </li>
-                                <li class="dash-item {{ Request::is('expense-management/convenience*') ? 'active' : '' }}">
-                                    <a class="dash-link" href="{{ route('erp-expenses.index', 'convenience') }}">{{ __('Convenience') }}</a>
-                                </li>
-                                <li class="dash-item {{ Request::is('expense-management/utility*') ? 'active' : '' }}">
-                                    <a class="dash-link" href="{{ route('erp-expenses.index', 'utility') }}">{{ __('Utility') }}</a>
-                                </li>
-                                <li class="dash-item {{ Request::routeIs('expense-management.history') ? 'active' : '' }}">
-                                    <a class="dash-link" href="{{ route('expense-management.history') }}">{{ __('Office Expense History') }}</a>
+                                    <a class="dash-link" href="{{ route('erp-expenses.index', 'purchase') }}">{{ __('Create Expense / Purchase') }}</a>
                                 </li>
                             @endcan
                             @can('Approve Expenses')
                                 <li class="dash-item {{ Request::routeIs('expense-management.approvals') ? 'active' : '' }}">
-                                    <a class="dash-link" href="{{ route('expense-management.approvals') }}">{{ __('Expense Approval Queue') }}</a>
+                                    <a class="dash-link" href="{{ route('expense-management.approvals') }}">{{ __('Approval Queue') }}</a>
                                 </li>
                             @endcan
                         </ul>

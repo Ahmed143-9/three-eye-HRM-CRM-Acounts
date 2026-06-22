@@ -58,12 +58,14 @@ class ErpExpenseController extends Controller
             $units = ErpExpenseUnit::where('status', 1)->pluck('name', 'name');
             $transports = Transport::get()->pluck('id', 'id');
 
+            $suppliers = \App\Models\Vender::where('created_by', Auth::user()->creatorId())->pluck('name', 'id');
+
             $sheet = null;
             if ($request->has('sheet_id')) {
                 $sheet = ErpSalarySheet::find($request->sheet_id);
             }
             
-            return view('erp_expenses.create', compact('type', 'categories', 'employees', 'units', 'transports', 'sheet'));
+            return view('erp_expenses.create', compact('type', 'categories', 'employees', 'units', 'transports', 'sheet', 'suppliers'));
         }
         return response()->json(['error' => __('Permission denied.')], 401);
     }
@@ -229,8 +231,9 @@ class ErpExpenseController extends Controller
                 $employees = Employee::get()->pluck('name', 'id');
                 $units = ErpExpenseUnit::where('status', 1)->pluck('name', 'name');
                 $transports = Transport::get()->pluck('id', 'id');
+                $suppliers = \App\Models\Vender::where('created_by', Auth::user()->creatorId())->pluck('name', 'id');
                 
-                return view('erp_expenses.edit', compact('expense', 'type', 'categories', 'employees', 'units', 'transports'));
+                return view('erp_expenses.edit', compact('expense', 'type', 'categories', 'employees', 'units', 'transports', 'suppliers'));
             }
             return redirect()->back()->with('error', __('Expense not found.'));
         }
@@ -260,6 +263,7 @@ class ErpExpenseController extends Controller
                     }
                 }
                 
+                $expense->supplier_id = $request->supplier_id;
                 $expense->transport_id = $request->transport_id;
                 $expense->remarks = $request->remarks;
 

@@ -65,7 +65,10 @@
                             <div class="col-lg-6 col-md-6">
                                 <div class="form-group">
                                     <div class="theme-avtar-logo mt-4">
-                                        <img id="image" src="{{ ($userDetail->avatar) ? $profile  . $userDetail->avatar : $profile . 'avatar.png' }}"
+                                        @php
+                                            $settings = \App\Models\Utility::getStorageSetting();
+                                        @endphp
+                                        <img id="image" src="{{ (empty($settings['storage_setting']) || $settings['storage_setting'] == 'local') ? asset('uploads/avatar/' . ($userDetail->avatar ? $userDetail->avatar : 'avatar.png')) : ($userDetail->avatar ? $profile . $userDetail->avatar : $profile . 'avatar.png') }}"
                                              class="big-logo img-fluid">
                                     </div>
                                     <div class="choose-files mt-3">

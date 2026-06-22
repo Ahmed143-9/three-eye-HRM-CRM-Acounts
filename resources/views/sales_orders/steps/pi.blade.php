@@ -87,7 +87,6 @@
             {{ Form::label('incoterm', __('Incoterms'), ['class' => 'form-label']) }}
             @php
                 $incoterms = \App\Models\Incoterm::where('created_by', \Auth::user()->creatorId())->pluck('name', 'name')->toArray();
-                $incoterms['ADD_NEW_INCOTERM'] = '+ ' . __('Add New');
             @endphp
             {{ Form::select('incoterm', ['' => __('Select Incoterms')] + $incoterms, $order->pi->incoterm ?? null, ['class' => 'form-control select2 incoterm-select']) }}
         </div>
