@@ -11,7 +11,7 @@
 
 @section('action-btn')
     <div class="float-end">
-        @if(Gate::check('create expense') || \Auth::user()->type == 'company')
+        @if(Gate::check('Submit Expenses') || \Auth::user()->type == 'company')
             <a href="#" data-url="{{ route('erp-expenses.create', $type) }}" data-ajax-popup="true" data-size="xl" data-title="{{ __('Create New Expense') }}" class="btn btn-sm btn-primary">
                 <i class="ti ti-plus"></i>
             </a>
@@ -69,7 +69,7 @@
                                                 </div>
 
                                                 @if($expense->status != 'Approved' && $expense->status != 'Paid')
-                                                    @if(Gate::check('edit expense') || \Auth::user()->type == 'company')
+                                                    @if(Gate::check('Submit Expenses') || \Auth::user()->type == 'company')
                                                         <div class="action-btn bg-primary ms-2">
                                                             <a href="#" class="mx-3 btn btn-sm align-items-center" data-url="{{ route('erp-expenses.edit', [$type, $expense->id]) }}" data-ajax-popup="true" data-size="xl" data-bs-toggle="tooltip" title="{{ __('Edit') }}" data-title="{{ __('Edit Expense') }}">
                                                                 <i class="ti ti-pencil text-white"></i>
@@ -77,7 +77,7 @@
                                                         </div>
                                                     @endif
 
-                                                    @if(Gate::check('delete expense') || \Auth::user()->type == 'company')
+                                                    @if(Gate::check('Submit Expenses') || \Auth::user()->type == 'company')
                                                         <div class="action-btn bg-danger ms-2">
                                                             {!! Form::open(['method' => 'DELETE', 'route' => ['erp-expenses.destroy', $type, $expense->id], 'id' => 'delete-form-' . $expense->id]) !!}
                                                             <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" title="{{ __('Delete') }}"><i class="ti ti-trash text-white"></i></a>
