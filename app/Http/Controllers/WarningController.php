@@ -18,11 +18,11 @@ class WarningController extends Controller
             if(Auth::user()->type == 'Employee')
             {
                 $emp      = Employee::where('user_id', '=', \Auth::user()->id)->first();
-                $warnings = Warning::where('warning_by', '=', $emp->id)->with(['warningTo'])->get();
+                $warnings = Warning::where('warning_by', '=', $emp->id)->with(['warningTo', 'warningBy'])->get();
             }
             else
             {
-                $warnings = Warning::where('created_by', '=', \Auth::user()->creatorId())->with(['warningTo'])->get();
+                $warnings = Warning::where('created_by', '=', \Auth::user()->creatorId())->with(['warningTo', 'warningBy'])->get();
             }
 
             return view('warning.index', compact('warnings'));

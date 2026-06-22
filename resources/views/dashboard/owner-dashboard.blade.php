@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 @section('page-title')
-    {{ Auth::user()->type == 'company' ? __('Owner Dashboard') : __('Accountant Dashboard') }}
+    {{ Auth::user()->type == 'company' ? __('Owner Dashboard') : __('Dashboard') }}
 @endsection
 
 @push('script-page')
@@ -86,7 +86,7 @@
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{__('Dashboard')}}</a></li>
-    <li class="breadcrumb-item">{{ Auth::user()->type == 'company' ? __('Owner Insights') : __('Financial Insights') }}</li>
+    <li class="breadcrumb-item">{{ Auth::user()->type == 'company' ? __('Owner Insights') : __('Dashboard') }}</li>
 @endsection
 
 @section('content')

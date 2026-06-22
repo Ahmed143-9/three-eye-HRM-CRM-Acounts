@@ -125,12 +125,41 @@
                                 <span>{{ !empty($employee->salaryType) ? $employee->salaryType->name : '' }}</span>
                             </div>
                         </div>
-                        <div class="col-sm-6 col-12">
-                            <div class="info">
-                                <strong class="font-bold">{{ __('Basic Salary') }} :</strong>
-                                <span>{{ !empty($employee) ? $employee->salary : '' }}</span>
-                            </div>
-                        </div>
+                          <div class="col-sm-12 col-12 mt-3">
+                              <div class="info">
+                                  <strong class="font-bold">{{ __('Gross Salary') }} :</strong>
+                                  <span>{{ \Auth::user()->priceFormat(!empty($employee) ? $employee->salary : 0) }}</span>
+                                  
+                                  <div class="mt-3">
+                                      <strong class="font-bold">{{ __('Salary Breakdown') }} :</strong>
+                                      <ul class="list-group mt-2">
+                                          @php
+                                              $gross = !empty($employee) ? (float)$employee->salary : 0;
+                                              $basic = $gross * 0.60;
+                                              $hra = $gross * 0.20;
+                                              $medical = $gross * 0.10;
+                                              $conveyance = $gross * 0.10;
+                                              $net_salary = !empty($employee) ? $employee->get_net_salary() : 0;
+                                          @endphp
+                                          <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+                                              <span>{{ __('Basic Salary') }} (60%)</span> <span>{{ \Auth::user()->priceFormat($basic) }}</span>
+                                          </li>
+                                          <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+                                              <span>{{ __('House Rent Allowance') }} (20%)</span> <span>{{ \Auth::user()->priceFormat($hra) }}</span>
+                                          </li>
+                                          <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+                                              <span>{{ __('Medical Allowance') }} (10%)</span> <span>{{ \Auth::user()->priceFormat($medical) }}</span>
+                                          </li>
+                                          <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+                                              <span>{{ __('Conveyance/Other') }} (10%)</span> <span>{{ \Auth::user()->priceFormat($conveyance) }}</span>
+                                          </li>
+                                          <li class="list-group-item d-flex justify-content-between align-items-center p-2 mt-2 font-bold text-primary border border-primary rounded">
+                                              <span>{{ __('Calculated Net Salary') }} (incl. active additions/deductions)</span> <span>{{ \Auth::user()->priceFormat($net_salary) }}</span>
+                                          </li>
+                                      </ul>
+                                  </div>
+                              </div>
+                          </div>
                     </div>
                 </div>
             </div>

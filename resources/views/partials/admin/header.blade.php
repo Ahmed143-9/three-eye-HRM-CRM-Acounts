@@ -238,9 +238,10 @@
             fetchNotifications();
 
             // Refresh every 30 seconds (increased interval to be more stable)
-            setInterval(function() {
-                fetchNotifications();
-            }, 30000);
+            // DISABLED FOR PERFORMANCE: This caused a system-wide 60s load time issue due to N+1 queries.
+            // setInterval(function() {
+            //     fetchNotifications();
+            // }, 30000);
 
             // Fetch when dropdown is opened
             $('#notification-btn').on('click', function() {

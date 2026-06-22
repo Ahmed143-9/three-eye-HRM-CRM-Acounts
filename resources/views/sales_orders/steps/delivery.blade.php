@@ -75,6 +75,47 @@
     </div>
 </div>
 
+<div class="card mt-4 shadow-sm border-0">
+    <div class="card-header bg-white border-bottom pb-0">
+        <h6 class="fw-bold mb-0 text-dark"><i class="ti ti-package me-2 text-primary"></i>{{ __('Additional Packaging / Drum Billing') }}</h6>
+    </div>
+    <div class="card-body bg-light-secondary rounded-bottom p-3">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-2">
+                <label class="form-label small text-muted">{{ __('Qty') }}</label>
+                <input type="number" name="drum_qty" id="drum_qty" class="form-control form-control-sm" value="{{ isset($order->delivery) ? $order->delivery->drum_qty : '' }}" placeholder="e.g. 50">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted">{{ __('Unit') }}</label>
+                <select name="drum_unit" class="form-control form-control-sm select2">
+                    <option value="Drums" {{ (isset($order->delivery) && $order->delivery->drum_unit == 'Drums') ? 'selected' : '' }}>Drums</option>
+                    <option value="IBCs" {{ (isset($order->delivery) && $order->delivery->drum_unit == 'IBCs') ? 'selected' : '' }}>IBCs</option>
+                    <option value="Bags" {{ (isset($order->delivery) && $order->delivery->drum_unit == 'Bags') ? 'selected' : '' }}>Bags</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted">{{ __('Buying Price') }}</label>
+                <input type="number" step="0.01" name="drum_buying_price" id="drum_buying_price" class="form-control form-control-sm" value="{{ isset($order->delivery) ? $order->delivery->drum_buying_price : '' }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted">{{ __('Total Buying') }}</label>
+                <input type="number" step="0.01" name="drum_buying_total" id="drum_buying_total" class="form-control form-control-sm bg-white" readonly value="{{ isset($order->delivery) ? $order->delivery->drum_buying_total : '' }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted fw-bold text-success">{{ __('Selling Price') }}</label>
+                <input type="number" step="0.01" name="drum_selling_price" id="drum_selling_price" class="form-control form-control-sm border-success" value="{{ isset($order->delivery) ? $order->delivery->drum_selling_price : '' }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted fw-bold text-success">{{ __('Total Selling') }}</label>
+                <input type="number" step="0.01" name="drum_selling_total" id="drum_selling_total" class="form-control form-control-sm bg-white border-success" readonly value="{{ isset($order->delivery) ? $order->delivery->drum_selling_total : '' }}">
+            </div>
+        </div>
+        <div class="text-muted small mt-2">
+            <i class="ti ti-info-circle"></i> {{ __('If packaging (like drums) is billable to the client, enter the details above to generate an Accounts Receivable entry.') }}
+        </div>
+    </div>
+</div>
+
 <div class="text-end mt-4">
     @if($order->status == 'completed')
         <button type="submit" class="btn btn-primary btn-lg px-5 shadow">{{ __('Create Delivery Order & Send to Transport') }}</button>
@@ -139,7 +180,18 @@
             }
         });
 
+        function calculateDrumTotals() {
+            var qty = parseFloat($('#drum_qty').val()) || 0;
+            var buy = parseFloat($('#drum_buying_price').val()) || 0;
+            var sell = parseFloat($('#drum_selling_price').val()) || 0;
+            $('#drum_buying_total').val((qty * buy).toFixed(2));
+            $('#drum_selling_total').val((qty * sell).toFixed(2));
+        }
+
+        $('#drum_qty, #drum_buying_price, #drum_selling_price').on('input', calculateDrumTotals);
+
         // Initial calculation
+        calculateDrumTotals();
         calculateUnits();
     });
 </script>

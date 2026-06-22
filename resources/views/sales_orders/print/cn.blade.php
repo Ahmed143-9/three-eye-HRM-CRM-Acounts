@@ -22,9 +22,9 @@
         </tr>
     </thead>
     <tbody>
-        @foreach($order->consignmentNote->weightSlips as $slip)
+        @foreach($order->consignmentNote->weightSlips ?? [] as $slip)
         <tr>
-            <td>{{ $slip->tanker->tanker_number }}</td>
+            <td>{{ optional($slip->tanker)->tanker_number ?? $slip->tanker_id }}</td>
             <td>{{ $slip->gross_weight }}</td>
             <td>{{ $slip->tare_weight }}</td>
             <td>{{ $slip->net_weight }}</td>

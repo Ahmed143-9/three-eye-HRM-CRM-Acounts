@@ -24,7 +24,7 @@ class CommissionController extends Controller
                 $request->all(), [
                                    'employee_id' => 'required',
                                    'title' => 'required',
-                                   'amount' => 'required',
+                                   'amount' => 'required|numeric' . ($request->type == 'percentage' ? '|max:100' : ''),
                                ]
             );
             if($validator->fails())
@@ -88,7 +88,7 @@ class CommissionController extends Controller
                     $request->all(), [
 
                                        'title' => 'required',
-                                       'amount' => 'required',
+                                       'amount' => 'required|numeric' . ($request->type == 'percentage' ? '|max:100' : ''),
                                    ]
                 );
                 if($validator->fails())

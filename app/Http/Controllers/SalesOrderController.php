@@ -158,6 +158,10 @@ class SalesOrderController extends Controller
                 'grand_total' => $request->grand_total,
                 'signature' => $request->signature,
                 'terms_and_conditions' => $request->terms_and_conditions,
+                'status' => $request->status ?? 'Pending',
+                'prepared_by' => $request->prepared_by,
+                'issued_by' => $request->issued_by,
+                'acknowledged_by' => $request->acknowledged_by,
                 'created_by' => Auth::user()->creatorId(),
             ];
 
@@ -288,6 +292,26 @@ class SalesOrderController extends Controller
     public function ciStore(Request $request, $id)
     {
         $order = SalesOrder::find($id);
+
+        $totalOrderQty = $order->po && $order->po->items ? $order->po->items->sum('quantity') : 0;
+        
+        $proposedQty = 0;
+        if ($request->has('tankers')) {
+            foreach ($request->tankers as $tankerData) {
+                $proposedQty += (float)($tankerData['qty_mt'] ?? 0);
+            }
+        }
+
+        $otherCis = $order->cis;
+        if ($request->ci_id) {
+            $otherCis = $otherCis->where('id', '!=', $request->ci_id);
+        }
+        $existingDelivered = $otherCis->flatMap->tankers->sum('quantity_mt');
+
+        if (round($existingDelivered + $proposedQty, 3) > round($totalOrderQty, 3)) {
+            return redirect()->back()->with('error', __('Total shipment quantity exceeds Sales Order total quantity. Cannot save shipment.'));
+        }
+
         $transactionResult = DB::transaction(function () use ($request, $order) {
             $ci = SalesCI::updateOrCreate(
                 ['id' => $request->ci_id, 'order_id' => $order->id],
@@ -377,8 +401,9 @@ class SalesOrderController extends Controller
         $order = SalesOrder::find($id);
         DB::transaction(function () use ($request, $order) {
             if ($request->hasFile('file')) {
-                $fileName = time() . '_cn_' . str_replace(' ', '_', $request->file->getClientOriginalName());
-                $request->file->storeAs('uploads/sales_orders', $fileName);
+                $file = $request->file('file');
+                $fileName = time() . '_cn_' . str_replace(' ', '_', $file->getClientOriginalName());
+                $file->storeAs('uploads/sales_orders', $fileName);
                 $filePath = 'uploads/sales_orders/' . $fileName;
             }
 
@@ -432,8 +457,9 @@ class SalesOrderController extends Controller
         $order = SalesOrder::find($id);
         $ci_id = $request->ci_id ?? session('active_ci_id');
 
-        // Find or Create CI specific tankers data if we move it there, 
-        // but for now let's just keep the flow moving.
+        if ($request->has('tankers')) {
+            $order->tankers_data = $request->tankers;
+        }
 
         $order->status = 'completed'; // Order is partially completed
         $order->save();
@@ -479,6 +505,26 @@ class SalesOrderController extends Controller
         // Transition order status so HRM/Transport can see it
         $order->status = 'finalized';
         $order->save();
+
+        try {
+            $accountsUsers = \App\Models\User::where('type', 'company')->orWhereHas('roles', function($q){
+                $q->where('name', 'like', '%Account%');
+            })->pluck('id');
+            foreach ($accountsUsers as $accUserId) {
+                \App\Models\Notification::create([
+                    'user_id' => $accUserId,
+                    'type' => 'delivery_confirmed',
+                    'title' => __('Delivery Confirmed'),
+                    'message' => 'Delivery confirmed for Order ' . $order->order_number . '. Please collect the bill from the client.',
+                    'related_model' => 'SalesOrder',
+                    'related_id' => $order->id,
+                    'created_by' => Auth::user()->id,
+                    'is_read' => 0,
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Notification not sent (delivery_confirmed): ' . $e->getMessage());
+        }
 
         // Notify Transport
         $this->notifyTransportOrderFinalized($order);
@@ -616,9 +662,16 @@ class SalesOrderController extends Controller
         $order = SalesOrder::with(['ci.tankers'])->find($id);
         return view('sales_orders.print.ci', compact('order'));
     }
-    public function ciDownload($id)
+    public function ciDownload(\Illuminate\Http\Request $request, $id)
     {
-        $order = SalesOrder::with(['ci.tankers'])->find($id);
+        $order = SalesOrder::find($id);
+        if ($request->has('ci_id')) {
+            $ci = \App\Models\SalesCI::with('tankers')->find($request->ci_id);
+            // Explicitly set the loaded CI onto the order's relation so the view can access it
+            $order->setRelation('ci', $ci);
+        } else {
+            $order->load(['ci.tankers']);
+        }
         return view('sales_orders.print.ci', compact('order'));
     }
 

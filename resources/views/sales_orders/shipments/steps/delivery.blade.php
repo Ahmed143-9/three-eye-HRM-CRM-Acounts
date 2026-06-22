@@ -25,7 +25,7 @@
             <select name="delivery_mode" id="delivery_mode" class="form-control" required>
                 <option value="">{{ __('Select Delivery Mode') }}</option>
                 @foreach($allModes as $mode)
-                    <option value="{{ $mode }}" {{ (isset($active_ci->delivery) && $active_ci->delivery->delivery_mode == $mode) ? 'selected' : '' }}>{{ $mode }}</option>
+                    <option value="{{ $mode }}" {{ (optional(optional($active_ci)->delivery)->delivery_mode == $mode) ? 'selected' : '' }}>{{ $mode }}</option>
                 @endforeach
                 <option value="ADD_NEW_MODE" class="text-primary fw-bold">+ {{ __('Add New') }}</option>
             </select>
@@ -153,6 +153,7 @@
         <div class="alert alert-success d-inline-block text-start mb-0 me-3 py-2">
             <i class="ti ti-check"></i> {{ __('Delivery Order Created.') }}
         </div>
+        <button type="submit" class="btn btn-primary btn-lg px-4 shadow me-2">{{ __('Update Delivery Order') }}</button>
         <a href="{{ route('transports.create') }}?sales_order_id={{ $order->id }}&ci_id={{ $active_ci->id }}&client_id={{ $order->customer_id }}" class="btn btn-success btn-lg px-4 shadow">{{ __('Dispatch via Transport') }}</a>
     @endif
 </div>
@@ -237,6 +238,9 @@
         });
 
         calculateUnits();
+        
+        // Trigger calculation on load to ensure totals show correctly if drum rates are pre-filled
+        $('.drum-calc').trigger('change');
     });
 </script>
 @endpush

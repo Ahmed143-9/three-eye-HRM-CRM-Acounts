@@ -29,7 +29,7 @@ class LoanController extends Controller
                                    'employee_id' => 'required',
                                    'loan_option' => 'required',
                                    'title' => 'required',
-                                   'amount' => 'required',
+                                   'amount' => 'required|numeric' . ($request->type == 'percentage' ? '|max:100' : ''),
                                    'reason' => 'required',
                                    'attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
                                ]
@@ -112,7 +112,7 @@ class LoanController extends Controller
 
                                        'loan_option' => 'required',
                                        'title' => 'required',
-                                       'amount' => 'required',
+                                       'amount' => 'required|numeric' . ($request->type == 'percentage' ? '|max:100' : ''),
                                        'reason' => 'required',
                                        'attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
                                    ]

@@ -26,6 +26,10 @@ class SalesPO extends Model
         'packing',
         'transport_mode',
         'file_path',
+        'status',
+        'prepared_by',
+        'issued_by',
+        'acknowledged_by',
         'created_by',
     ];
 

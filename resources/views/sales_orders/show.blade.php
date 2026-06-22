@@ -226,13 +226,21 @@
             // Matrix Update
             if ($('#matrix_total_val').length) {
                 var totalOrderQty = parseFloat($('#matrix_total_val').val()) || 0;
-                var remainingQty = totalOrderQty - tQty;
-                $('#matrix_delivered').text(tQty.toFixed(3) + ' MT');
+                var previouslyDelivered = parseFloat($('#matrix_previously_delivered').val()) || 0;
+                var deliveredSoFar = previouslyDelivered + tQty;
+                var remainingQty = totalOrderQty - deliveredSoFar;
+                $('#matrix_delivered').text(deliveredSoFar.toFixed(3) + ' MT');
                 $('#matrix_remaining').text(remainingQty.toFixed(3) + ' MT');
                 if(remainingQty < 0) {
                     $('#matrix_remaining').removeClass('text-warning').addClass('text-danger');
+                    $('#ci-submit-btn').prop('disabled', true);
+                    if ($('#qty-warning').length === 0) {
+                        $('.d-flex.justify-content-between.align-items-center.mt-3').prepend('<div id="qty-warning" class="text-danger fw-bold"><i class="ti ti-alert-triangle"></i> Cannot exceed total order quantity!</div>');
+                    }
                 } else {
                     $('#matrix_remaining').removeClass('text-danger').addClass('text-warning');
+                    $('#ci-submit-btn').prop('disabled', false);
+                    $('#qty-warning').remove();
                 }
             }
         }

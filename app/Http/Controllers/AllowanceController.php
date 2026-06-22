@@ -31,7 +31,7 @@ class AllowanceController extends Controller
                                    'employee_id' => 'required',
                                    'allowance_option' => 'required',
                                    'title' => 'required',
-                                   'amount' => 'required',
+                                   'amount' => 'required|numeric' . ($request->type == 'percentage' ? '|max:100' : ''),
                                ]
             );
             if($validator->fails())
@@ -96,7 +96,7 @@ class AllowanceController extends Controller
 
                                        'allowance_option' => 'required',
                                        'title' => 'required',
-                                       'amount' => 'required',
+                                       'amount' => 'required|numeric' . ($request->type == 'percentage' ? '|max:100' : ''),
                                    ]
                 );
                 if($validator->fails())

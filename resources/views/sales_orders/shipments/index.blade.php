@@ -1,16 +1,22 @@
 <div class="card shadow-none">
     <div class="card-body p-0">
         @php
-            $totalOrderQty = $order->po && $order->po->items ? $order->po->items->sum('quantity') : 0;
-            $deliveredQty = $order->cis->flatMap->tankers->sum('quantity_mt');
-            $remainingQty = max(0, $totalOrderQty - $deliveredQty);
-
             // Refined Active CI Selection
             $active_ci_id = request()->ci_id ?? (session('active_ci_id') ?? (request()->new_ci ? null : null));
             if (request()->new_ci)
                 $active_ci_id = null;
 
             $active_ci = $active_ci_id ? $order->cis->find($active_ci_id) : null;
+
+            $totalOrderQty = $order->po && $order->po->items ? $order->po->items->sum('quantity') : 0;
+            if ($active_ci) {
+                $deliveredQty = $order->cis->where('id', '<=', $active_ci->id)->flatMap->tankers->sum('quantity_mt');
+                $previouslyDelivered = $deliveredQty - $active_ci->tankers->sum('quantity_mt');
+            } else {
+                $deliveredQty = $order->cis->flatMap->tankers->sum('quantity_mt');
+                $previouslyDelivered = $deliveredQty;
+            }
+            $remainingQty = max(0, $totalOrderQty - $deliveredQty);
 
             $defaultUnit = $order->po && $order->po->items ? $order->po->items->first()->unit : 'MT';
             $defaultPrice = $order->po && $order->po->items ? $order->po->items->first()->price : 0;
@@ -30,16 +36,17 @@
 
         <!-- Shipment Summary Matrix -->
         <div class="row g-3 mb-4">
-            <div class="col-md-4">
-                <div class="card bg-primary text-white border-0 shadow-sm">
-                    <div class="card-body p-3 text-center">
-                        <h6 class="text-white-50 small mb-1 uppercase">{{ __('Total Order Quantity') }}</h6>
-                        <h3 class="mb-0 fw-bold">{{ number_format($totalOrderQty, 3) }} <small class="fs-6">MT</small>
-                        </h3>
-                        <input type="hidden" id="matrix_total_val" value="{{ $totalOrderQty }}">
-                    </div>
-                </div>
-            </div>
+              <div class="col-md-4">
+                  <div class="card bg-primary text-white text-center mb-0 h-100">
+                      <div class="card-body p-3">
+                          <h6 class="text-white-50 small mb-1 uppercase">{{ __('Total Order Quantity') }}</h6>
+                          <h3 class="mb-0 fw-bold">{{ number_format($totalOrderQty, 3) }} <small class="fs-6">MT</small>
+                          </h3>
+                          <input type="hidden" id="matrix_total_val" value="{{ $totalOrderQty }}">
+                          <input type="hidden" id="matrix_previously_delivered" value="{{ $previouslyDelivered }}">
+                      </div>
+                  </div>
+              </div>
             <div class="col-md-4">
                 <div class="card bg-success text-white border-0 shadow-sm">
                     <div class="card-body p-3 text-center">

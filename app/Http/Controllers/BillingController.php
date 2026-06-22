@@ -98,8 +98,8 @@ class BillingController extends Controller
                 });
             }
 
-            // Sort by date descending
-            $billings = $billings->sortByDesc('date');
+            // Sort by created_at descending
+            $billings = $billings->sortByDesc('created_at');
 
             return view('billing.index', compact('billings', 'totalMyDue', 'totalOthersDue'));
         } else {

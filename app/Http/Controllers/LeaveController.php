@@ -115,24 +115,35 @@ class LeaveController extends Controller
                 }
             }
 
-            $employee = Employee::where('user_id', '=', Auth::user()->id)->first();
+            $employee = null;
+            if(\Auth::user()->type =='company' || \Auth::user()->type =='HR')
+            {
+                $employee = Employee::find($request->employee_id);
+            }
+            else
+            {
+                $employee = Employee::where('user_id', '=', Auth::user()->id)->first();
+            }
 
             $startDate = new \DateTime($request->start_date);
             $endDate   = new \DateTime($request->end_date);
             $endDate->add(new \DateInterval('P1D'));
             $total_leave_days = !empty($startDate->diff($endDate)) ? $startDate->diff($endDate)->days : 0;
 
-            if ($leave_type && $leave_type->days >= $total_leave_days)
+            $allowed_days = $leave_type ? $leave_type->days : 0;
+            $company_doj = $employee && $employee->company_doj ? new \DateTime($employee->company_doj) : null;
+            $current_year = date('Y');
+            if ($leave_type && $company_doj && $company_doj->format('Y') == $current_year) {
+                $days_in_year = date('L') ? 366 : 365;
+                $joined_day_of_year = (int) $company_doj->format('z') + 1;
+                $remaining_days = $days_in_year - $joined_day_of_year + 1;
+                $allowed_days = round(($leave_type->days / $days_in_year) * $remaining_days);
+            }
+
+            if ($leave_type && $allowed_days >= $total_leave_days)
             {
                 $leave = new Leave();
-                if(\Auth::user()->type =='company' || \Auth::user()->type =='HR')
-                {
-                    $leave->employee_id = $request->employee_id;
-                }
-                else
-                {
-                    $leave->employee_id = $employee->id;
-                }
+                $leave->employee_id = $employee->id;
 
                 $leave->leave_type_id    = $request->leave_type_id;
                 $leave->applied_on       = date('Y-m-d');
@@ -275,7 +286,18 @@ class LeaveController extends Controller
                 $endDate->add(new \DateInterval('P1D'));
                 $total_leave_days = !empty($startDate->diff($endDate)) ? $startDate->diff($endDate)->days : 0;
 
-                if ($leave_type && $leave_type->days >= $total_leave_days)
+                $employee = Employee::find($request->employee_id);
+                $allowed_days = $leave_type ? $leave_type->days : 0;
+                $company_doj = $employee && $employee->company_doj ? new \DateTime($employee->company_doj) : null;
+                $current_year = date('Y');
+                if ($leave_type && $company_doj && $company_doj->format('Y') == $current_year) {
+                    $days_in_year = date('L') ? 366 : 365;
+                    $joined_day_of_year = (int) $company_doj->format('z') + 1;
+                    $remaining_days = $days_in_year - $joined_day_of_year + 1;
+                    $allowed_days = round(($leave_type->days / $days_in_year) * $remaining_days);
+                }
+
+                if ($leave_type && $allowed_days >= $total_leave_days)
                 {
 
                     $leave->employee_id      = $request->employee_id;
@@ -424,6 +446,10 @@ class LeaveController extends Controller
 
         $leave_counts=[];
         $leave_types = LeaveType::where('created_by',\Auth::user()->creatorId())->get();
+        $employee = Employee::find($request->employee_id);
+        $company_doj = $employee && $employee->company_doj ? new \DateTime($employee->company_doj) : null;
+        $current_year = date('Y');
+
         foreach ($leave_types as  $type) {
 
             $year = date('Y');
@@ -447,9 +473,17 @@ class LeaveController extends Controller
             ->addBinding([$year, $year, $year, $year], 'select')
             ->first();
 
+            $allowed_days = $type->days;
+            if ($company_doj && $company_doj->format('Y') == $current_year) {
+                $days_in_year = date('L') ? 366 : 365;
+                $joined_day_of_year = (int) $company_doj->format('z') + 1; // 1-indexed day of year
+                $remaining_days = $days_in_year - $joined_day_of_year + 1;
+                $allowed_days = round(($type->days / $days_in_year) * $remaining_days);
+            }
+
             $leave_count['total_leave']=!empty($counts)?$counts['total_leave']:0;
             $leave_count['title']=$type->title;
-            $leave_count['days']=$type->days;
+            $leave_count['days']=$allowed_days;
             $leave_count['id']=$type->id;
             $leave_count['is_attachment_required'] = $type->is_attachment_required;
             $leave_count['min_advance_days'] = $type->min_advance_days;

@@ -287,7 +287,7 @@ class ProjectTaskController extends Controller
                 }
             }
 
-            $tasks = $tasks->with(['project'])->get();
+            $tasks = $tasks->with(['project', 'taskFiles', 'comments', 'checklist'])->get();
             $view=$request->view;
             $returnHTML = view('project_task.' . $request->view, compact('tasks','view'))->render();
 

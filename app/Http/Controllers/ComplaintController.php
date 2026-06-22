@@ -15,14 +15,14 @@ class ComplaintController extends Controller
     {
         if(\Auth::user()->can('Manage Employees'))
         {
-            if(Auth::user()->type == 'Employee')
+            if(\Auth::user()->type == 'Employee')
             {
                 $emp        = Employee::where('user_id', '=', \Auth::user()->id)->first();
-                $complaints = Complaint::where('complaint_from', '=', $emp->id)->with(['complaintFrom'])->get();
+                $complaints = Complaint::where('complaint_from', '=', $emp->id)->with(['complaintFrom', 'complaintAgainst'])->get();
             }
             else
             {
-                $complaints = Complaint::where('created_by', '=', \Auth::user()->creatorId())->with(['complaintFrom'])->get();
+                $complaints = Complaint::where('created_by', '=', \Auth::user()->creatorId())->with(['complaintFrom', 'complaintAgainst'])->get();
             }
 
             return view('complaint.index', compact('complaints'));

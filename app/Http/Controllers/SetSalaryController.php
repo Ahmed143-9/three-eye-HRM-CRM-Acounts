@@ -22,7 +22,9 @@ class SetSalaryController extends Controller
     {
         if(\Auth::user()->can('Manage Payroll'))
         {
-            $employees = Employee::where('created_by' , \Auth::user()->creatorId())->with('salaryType')->get();
+            $employees = Employee::where('created_by' , \Auth::user()->creatorId())
+                ->with(['salaryType', 'allowances', 'commissions', 'loans', 'saturationDeductions', 'otherPayments', 'overtimes'])
+                ->get();
 
             return view('setsalary.index', compact('employees'));
         }
@@ -88,48 +90,12 @@ class SetSalaryController extends Controller
             $overtimes            = Overtime::where('employee_id', $currentEmployee->id)->get();
             $employee             = Employee::where('user_id', '=', \Auth::user()->id)->with('salaryType')->first();
 
-            foreach ( $allowances as  $value) {
-                if(  $value->type == 'percentage' )
-                {
-                    $employee          = Employee::find($value->employee_id);
-                    $empsal  = $value->amount * $employee->salary / 100;
-                    $value->tota_allow = $empsal;
-                }
-            }
-
-            foreach ( $commissions as  $value) {
-                if(  $value->type == 'percentage' )
-                {
-                    $employee          = Employee::find($value->employee_id);
-                    $empsal  = $value->amount * $employee->salary / 100;
-                    $value->tota_allow = $empsal;
-                }
-            }
-
-            foreach ( $loans as  $value) {
-                if(  $value->type == 'percentage' )
-                {
-                    $employee          = Employee::find($value->employee_id);
-                    $empsal  = $value->amount * $employee->salary / 100;
-                    $value->tota_allow = $empsal;
-                }
-            }
-
-            foreach ( $saturationdeductions as  $value) {
-                if(  $value->type == 'percentage' )
-                {
-                    $employee          = Employee::find($value->employee_id);
-                    $empsal  = $value->amount * $employee->salary / 100;
-                    $value->tota_allow = $empsal;
-                }
-            }
-
-            foreach ( $otherpayments as  $value) {
-                if(  $value->type == 'percentage' )
-                {
-                    $employee          = Employee::find($value->employee_id);
-                    $empsal  = $value->amount * $employee->salary / 100;
-                    $value->tota_allow = $empsal;
+            $collections = [$allowances, $commissions, $loans, $saturationdeductions, $otherpayments];
+            foreach ($collections as $collection) {
+                foreach ($collection as $value) {
+                    if ($value->type == 'percentage') {
+                        $value->tota_allow = $value->amount * $employee->salary / 100;
+                    }
                 }
             }
 
@@ -147,49 +113,12 @@ class SetSalaryController extends Controller
             $overtimes            = Overtime::where('employee_id', $id)->get();
             $employee             = Employee::with('salaryType')->find($id);
 
-            foreach ( $allowances as  $value) {
-
-                if(  $value->type == 'percentage' )
-                {
-                    $employee          = Employee::with('salaryType')->find($value->employee_id);
-                    $empsal  = $value->amount * $employee->salary / 100;
-                    $value->tota_allow = $empsal;
-                }
-            }
-
-            foreach ( $commissions as  $value) {
-                if(  $value->type == 'percentage' )
-                {
-                    $employee          = Employee::with('salaryType')->find($value->employee_id);
-                    $empsal  = $value->amount * $employee->salary / 100;
-                    $value->tota_allow = $empsal;
-                }
-            }
-
-            foreach ( $loans as  $value) {
-                if(  $value->type == 'percentage' )
-                {
-                    $employee          = Employee::with('salaryType')->find($value->employee_id);
-                    $empsal  = $value->amount * $employee->salary / 100;
-                    $value->tota_allow = $empsal;
-                }
-            }
-
-            foreach ( $saturationdeductions as  $value) {
-                if(  $value->type == 'percentage' )
-                {
-                    $employee          = Employee::with('salaryType')->find($value->employee_id);
-                    $empsal  = $value->amount * $employee->salary / 100;
-                    $value->tota_allow = $empsal;
-                }
-            }
-
-            foreach ( $otherpayments as  $value) {
-                if(  $value->type == 'percentage' )
-                {
-                    $employee          = Employee::with('salaryType')->find($value->employee_id);
-                    $empsal  = $value->amount * $employee->salary / 100;
-                    $value->tota_allow = $empsal;
+            $collections = [$allowances, $commissions, $loans, $saturationdeductions, $otherpayments];
+            foreach ($collections as $collection) {
+                foreach ($collection as $value) {
+                    if ($value->type == 'percentage') {
+                        $value->tota_allow = $value->amount * $employee->salary / 100;
+                    }
                 }
             }
 

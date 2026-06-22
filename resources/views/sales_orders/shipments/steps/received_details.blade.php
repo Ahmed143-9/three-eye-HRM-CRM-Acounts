@@ -24,11 +24,11 @@
         <tbody>
             @php
                 $tankers = ($active_ci && $active_ci->consignmentNote) ? $active_ci->consignmentNote->weightSlips : [];
-                $savedData = $order->tankers_data ?? []; // This needs to be moved to CI model eventually
+                $savedData = collect($order->tankers_data ?? [])->keyBy('tanker_id')->toArray(); // This needs to be moved to CI model eventually
             @endphp
             @foreach($tankers as $index => $slip)
                 @php
-                    $row = $savedData[$index] ?? [];
+                    $row = $savedData[$slip->tanker_id] ?? [];
                 @endphp
                 <tr class="tanker-row bg-white">
                     <td class="text-center fw-bold">

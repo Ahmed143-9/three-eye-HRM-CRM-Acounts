@@ -26,7 +26,7 @@ class SaturationDeductionController extends Controller
                                    'employee_id' => 'required',
                                    'deduction_option' => 'required',
                                    'title' => 'required',
-                                   'amount' => 'required',
+                                   'amount' => 'required|numeric' . ($request->type == 'percentage' ? '|max:100' : ''),
                                ]
             );
             if($validator->fails())
@@ -92,7 +92,7 @@ class SaturationDeductionController extends Controller
 
                                        'deduction_option' => 'required',
                                        'title' => 'required',
-                                       'amount' => 'required',
+                                       'amount' => 'required|numeric' . ($request->type == 'percentage' ? '|max:100' : ''),
                                    ]
                 );
                 if($validator->fails())

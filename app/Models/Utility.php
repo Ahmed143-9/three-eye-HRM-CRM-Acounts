@@ -66,8 +66,12 @@ class Utility extends Model
         return self::$getsettingsid;
     }
 
+    private static $settings_array = null;
     public static function settings()
     {
+        if (self::$settings_array != null) {
+            return self::$settings_array;
+        }
         if (\Auth::check()) {
             $data = Utility::getSettingById(\Auth::user()->creatorId());
 
@@ -296,6 +300,7 @@ class Utility extends Model
             ]
         );
 
+        self::$settings_array = $settings;
         return $settings;
     }
 

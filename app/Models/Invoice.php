@@ -134,6 +134,9 @@ class Invoice extends Model
 
     public function invoiceTotalCreditNote()
     {
+        if ($this->relationLoaded('creditNote')) {
+            return $this->creditNote->sum('amount');
+        }
         return $this->hasMany(CreditNote::class, 'invoice', 'id')->sum('amount');
     }
 

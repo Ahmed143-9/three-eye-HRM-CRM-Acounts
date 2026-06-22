@@ -96,7 +96,15 @@ class NotificationController extends Controller
             // Determine redirect URL
             $url = route('dashboard');
 
-            if ($notification->related_model == 'ErpExpense') {
+            if ($notification->related_model == 'SalesOrder' || $notification->related_model == 'SalesCI') {
+                if (in_array($notification->type, ['sales_order_finalized', 'ci_transport_need'])) {
+                    $url = route('transports.index');
+                } elseif ($notification->type == 'shipment_date_warning') {
+                    $url = route('sales-orders.show', $notification->related_id);
+                } elseif ($notification->type == 'delivery_confirmed') {
+                    $url = route('receivables.index'); // Go to receivable page
+                }
+            } elseif ($notification->related_model == 'ErpExpense') {
                 if (in_array($notification->type, ['expense_submitted'])) {
                     $url = route('expense-management.approvals') . '?open_id=' . $notification->related_id;
                 } elseif (in_array($notification->type, ['expense_approved', 'expense_payment_ready'])) {

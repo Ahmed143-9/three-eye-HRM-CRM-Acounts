@@ -756,7 +756,7 @@ class ProjectController extends Controller
                 {
                     $projects->whereIn('status', $request->status);
                 }
-                $projects   = $projects->get();
+                $projects   = $projects->with(['users', 'tasks'])->get();
                 $last_task      = TaskStage::orderBy('order', 'DESC')->where('created_by',\Auth::user()->creatorId())->first();
 
                 $returnHTML = view('projects.' . $request->view, compact('projects', 'user_projects', 'last_task'))->render();

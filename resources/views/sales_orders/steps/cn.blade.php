@@ -36,7 +36,7 @@
     </div>
 </div>
 
-{{ Form::open(['route' => ['sales-orders.cn.store', $order->id], 'method' => 'post', 'enctype' => 'multipart/form-data']) }}
+{{ Form::open(['route' => ['sales-orders.cn.store', $order->id], 'method' => 'post', 'files' => true]) }}
 <input type="hidden" name="ci_id" value="{{ $order->ci->id ?? '' }}">
 
 <div class="row mb-3">

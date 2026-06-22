@@ -55,7 +55,7 @@ class InvoiceController extends Controller
             if ($request->status != null) {
                 $query->where('status', '=', $request->status);
             }
-            $invoices = $query->get();
+            $invoices = $query->with(['items', 'payments', 'creditNote'])->get();
 
             return view('invoice.index', compact('invoices', 'customer', 'status'));
         } else {

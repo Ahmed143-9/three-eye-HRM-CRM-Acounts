@@ -90,8 +90,8 @@ class Employee extends Model
 
     public function get_net_salary()
 {
-    // Load related data efficiently using Eloquent relationships
-    // $this->load('allowances', 'commissions', 'loans', 'saturationDeductions', 'otherPayments', 'overtimes');
+    // Load related data efficiently if not already loaded by the controller
+    $this->loadMissing(['allowances', 'commissions', 'loans', 'saturationDeductions', 'otherPayments', 'overtimes']);
 
     // Calculate total allowances
     $total_allowance = $this->allowances->sum(function ($allowance) {
@@ -248,6 +248,16 @@ class Employee extends Model
         return $this->hasOne('App\Models\PayslipType', 'id', 'salary_type');
     }
 
+    public function attendances()
+    {
+        return $this->hasMany('App\Models\AttendanceEmployee', 'employee_id', 'id');
+    }
+
+    public function leaves()
+    {
+        return $this->hasMany('App\Models\Leave', 'employee_id', 'id');
+    }
+
     public function user()
     {
         return $this->hasOne('App\Models\User', 'id', 'user_id');
@@ -323,7 +333,11 @@ class Employee extends Model
 
         $annualDays = ($leaveTypeTitle === 'Casual Leave') ? 10 : (($leaveTypeTitle === 'Sick Leave') ? 14 : 0);
         if ($annualDays === 0) {
-            $leaveType = \App\Models\LeaveType::where('title', $leaveTypeTitle)->first();
+            static $leaveTypes = null;
+            if ($leaveTypes === null) {
+                $leaveTypes = \App\Models\LeaveType::all()->keyBy('title');
+            }
+            $leaveType = $leaveTypes->get($leaveTypeTitle);
             $annualDays = $leaveType ? $leaveType->days : 0;
         }
 
@@ -348,9 +362,21 @@ class Employee extends Model
             $year = date('Y');
         }
         
-        $leaveType = \App\Models\LeaveType::where('title', $leaveTypeTitle)->first();
+        static $leaveTypes = null;
+        if ($leaveTypes === null) {
+            $leaveTypes = \App\Models\LeaveType::all()->keyBy('title');
+        }
+        $leaveType = $leaveTypes->get($leaveTypeTitle);
         if (!$leaveType) {
             return 0;
+        }
+
+        if ($this->relationLoaded('leaves')) {
+            return $this->leaves->where('leave_type_id', $leaveType->id)
+                ->where('status', 'Approved')
+                ->filter(function($leave) use ($year) {
+                    return \Carbon\Carbon::parse($leave->start_date)->year == $year || \Carbon\Carbon::parse($leave->end_date)->year == $year;
+                })->sum('total_leave_days');
         }
 
         return \App\Models\Leave::where('employee_id', $this->id)
@@ -372,9 +398,15 @@ class Employee extends Model
         $startDate = $month . '-01';
         $endDate = date('Y-m-t', strtotime($startDate));
         
-        $attendances = \App\Models\AttendanceEmployee::where('employee_id', $this->id)
-            ->whereBetween('date', [$startDate, $endDate])
-            ->get();
+        if ($this->relationLoaded('attendances')) {
+            $attendances = $this->attendances->filter(function($att) use ($startDate, $endDate) {
+                return $att->date >= $startDate && $att->date <= $endDate;
+            });
+        } else {
+            $attendances = \App\Models\AttendanceEmployee::where('employee_id', $this->id)
+                ->whereBetween('date', [$startDate, $endDate])
+                ->get();
+        }
             
         $pCount = 0;
         $aCount = 0;
@@ -390,11 +422,19 @@ class Employee extends Model
                 $lvCount++;
             } elseif ($att->status == 'Absent') {
                 // Check if approved leave exists for this date
-                $hasApprovedLeave = \App\Models\Leave::where('employee_id', $this->id)
-                    ->where('status', 'Approved')
-                    ->whereDate('start_date', '<=', $att->date)
-                    ->whereDate('end_date', '>=', $att->date)
-                    ->exists();
+                $hasApprovedLeave = false;
+                if ($this->relationLoaded('leaves')) {
+                    $hasApprovedLeave = $this->leaves->where('status', 'Approved')
+                        ->filter(function($leave) use ($att) {
+                            return $leave->start_date <= $att->date && $leave->end_date >= $att->date;
+                        })->isNotEmpty();
+                } else {
+                    $hasApprovedLeave = \App\Models\Leave::where('employee_id', $this->id)
+                        ->where('status', 'Approved')
+                        ->whereDate('start_date', '<=', $att->date)
+                        ->whereDate('end_date', '>=', $att->date)
+                        ->exists();
+                }
                     
                 if ($hasApprovedLeave) {
                     $lvCount++;

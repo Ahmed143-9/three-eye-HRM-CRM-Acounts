@@ -7,10 +7,22 @@
                         <h5 class="emp-title mb-0">{{__('Employee Detail')}}</h5>
                         <h5 class="emp-title black-text">{{ !empty($payslip->employees)? \Auth::user()->employeeIdFormat( $payslip->employees->employee_id):''}}</h5>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <h5 class="emp-title mb-0">{{__('Basic Salary')}}</h5>
-                        <h5 class="emp-title black-text">{{ \Auth::user()->priceFormat( $payslip->basic_salary)}}</h5>
-                    </div>
+                      <div class="col-md-2 mb-3">
+                          <h5 class="emp-title mb-0">{{__('Basic Salary (60%)')}}</h5>
+                          <h5 class="emp-title black-text">{{ \Auth::user()->priceFormat( $payslip->basic_salary * 0.60)}}</h5>
+                      </div>
+                      <div class="col-md-2 mb-3">
+                          <h5 class="emp-title mb-0">{{__('House Rent (20%)')}}</h5>
+                          <h5 class="emp-title black-text">{{ \Auth::user()->priceFormat( $payslip->basic_salary * 0.20)}}</h5>
+                      </div>
+                      <div class="col-md-2 mb-3">
+                          <h5 class="emp-title mb-0">{{__('Medical (10%)')}}</h5>
+                          <h5 class="emp-title black-text">{{ \Auth::user()->priceFormat( $payslip->basic_salary * 0.10)}}</h5>
+                      </div>
+                      <div class="col-md-2 mb-3">
+                          <h5 class="emp-title mb-0">{{__('Conveyance (10%)')}}</h5>
+                          <h5 class="emp-title black-text">{{ \Auth::user()->priceFormat( $payslip->basic_salary * 0.10)}}</h5>
+                      </div>
                     <div class="col-md-4 mb-3">
                         <h5 class="emp-title mb-0">{{__('Payroll Month')}}</h5>
                         <h5 class="emp-title black-text">{{ \Auth::user()->dateFormat( $payslip->salary_month)}}</h5>

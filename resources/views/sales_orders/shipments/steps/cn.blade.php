@@ -84,6 +84,18 @@
                         <td><button type="button" class="btn btn-danger btn-sm remove-cn-item"><i class="ti ti-trash"></i></button></td>
                     </tr>
                 @endforeach
+            @elseif($active_ci && $active_ci->tankers->count() > 0)
+                @foreach($active_ci->tankers as $index => $tanker)
+                    <tr>
+                        <td>
+                            {{ Form::select("weight_slips[$index][tanker_id]", $ciTankers, $tanker->tanker_number, ['class' => 'form-control select2 tanker-select', 'required' => 'required']) }}
+                        </td>
+                        <td><input type="number" step="0.001" name="weight_slips[{{$index}}][gross]" class="form-control w-gross" required></td>
+                        <td><input type="number" step="0.001" name="weight_slips[{{$index}}][tare]" class="form-control w-tare" required></td>
+                        <td><input type="number" step="0.001" name="weight_slips[{{$index}}][net]" class="form-control w-net" readonly></td>
+                        <td><button type="button" class="btn btn-danger btn-sm remove-cn-item"><i class="ti ti-trash"></i></button></td>
+                    </tr>
+                @endforeach
             @else
                 <tr>
                     <td>

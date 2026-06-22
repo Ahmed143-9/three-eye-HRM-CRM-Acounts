@@ -168,7 +168,6 @@ class Project extends Model
         return $this->hasMany('App\Models\ProjectExpense', 'project_id', 'id')->orderBy('id', 'desc');
     }
 
-    // Return timesheet html in table format
     public static function getProjectAssignedTimesheetHTML($projects_timesheet = null, $timesheets = [], $days = [], $project_id = null)
     {
 
@@ -176,19 +175,35 @@ class Project extends Model
         $allProjects    = false;
         $timesheetArray = $totaltaskdatetimes = [];
 
+        // Preload models to prevent N+1 queries
+        $allProjectIds = [];
+        $allTaskIds = [];
+        $allUserIds = [];
+        if($projects_timesheet) {
+            $allProjectIds = clone $projects_timesheet;
+            $allProjectIds = $allProjectIds->pluck('project_id')->unique()->toArray();
+            $allTaskIds = clone $projects_timesheet;
+            $allTaskIds = $allTaskIds->pluck('task_id')->unique()->toArray();
+            $allUserIds = clone $projects_timesheet;
+            $allUserIds = $allUserIds->pluck('created_by')->unique()->toArray();
+        }
+        $cachedProjects = Project::whereIn('id', $allProjectIds)->get()->keyBy('id');
+        $cachedTasks = ProjectTask::whereIn('id', $allTaskIds)->get()->keyBy('id');
+        $cachedUsers = User::whereIn('id', $allUserIds)->get()->keyBy('id');
+
             if($project_id == '0')
             {
                 $allProjects = true;
                 foreach($timesheets as $project_id => $timesheet)
                 {
-                    $project = Project::find($project_id);
+                    $project = $cachedProjects->get($project_id);
                     if($project)
                     {
                         $timesheetArray[$k]['project_id']   = $project->id;
                         $timesheetArray[$k]['project_name'] = $project->project_name;
                         foreach($timesheet as $task_id => $tasktimesheet)
                         {
-                            $task = ProjectTask::find($task_id);
+                            $task = $cachedTasks->get($task_id);
                             if($task)
                             {
                                 $timesheetArray[$k]['taskArray'][$i]['task_id']   = $task->id;
@@ -198,6 +213,7 @@ class Project extends Model
                                 foreach($users as $count => $user_id)
                                 {
                                     $times = [];
+                                    $user = $cachedUsers->get($user_id);
                                     for($j = 0; $j < 7; $j++)
                                     {
                                         $date                                                                         = $days['datePeriod'][$j]->format('Y-m-d');
@@ -207,7 +223,7 @@ class Project extends Model
                                         }
                                         );
                                         $key                                                                          = array_keys($filtered_array);
-                                        $user                                                                         = User::find($user_id);
+                                        
                                         $timesheetArray[$k]['taskArray'][$i]['dateArray'][$count]['user_id']          = $user != null ? $user->id : '';
                                         $timesheetArray[$k]['taskArray'][$i]['dateArray'][$count]['user_name']        = $user != null ? $user->name : '';
                                         $timesheetArray[$k]['taskArray'][$i]['dateArray'][$count]['week'][$j]['date'] = $date;
@@ -247,7 +263,7 @@ class Project extends Model
                 foreach($timesheets as $task_id => $timesheet)
                 {
                     $times = [];
-                    $task  = ProjectTask::find($task_id);
+                    $task  = $cachedTasks->get($task_id);
                     if($task)
                     {
                         $timesheetArray[$i]['task_id']   = $task->id;

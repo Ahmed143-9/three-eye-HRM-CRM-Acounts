@@ -123,25 +123,30 @@
     Kindly acknowledge receipt and acceptance of this Purchase Order.
 </div>
 
-<table class="footer-sigs">
+<table class="footer-sigs" style="border: none;">
     <tr>
-        <td style="font-weight: bold;">For {{ $order->po->client_name }}</td>
-        <td style="font-weight: bold;">Accepted By Supplier</td>
-    </tr>
-    <tr>
-        <td>
+        <td style="border: none; text-align: center;">
             <div style="margin-top: 50px;">
-                <div style="font-weight: bold;">Authorized Signatory</div>
-                <div>Name: {{ $order->po->signature }}</div>
-                <div>Designation: </div>
-                <div>Date: </div>
+                <div style="border-top: 1px solid #000; display: inline-block; padding-top: 5px;">{{ __('Prepared By') }}</div>
+                <div>{{ $order->po->prepared_by ?? '' }}</div>
             </div>
         </td>
-        <td>
+        <td style="border: none; text-align: center;">
             <div style="margin-top: 50px;">
-                <div style="font-weight: bold;">Authorized Signatory</div>
-                <div>For {{ $supplier->name ?? 'Supplier' }}</div>
-                <div>Date: </div>
+                <div style="border-top: 1px solid #000; display: inline-block; padding-top: 5px;">{{ __('Issued By') }}</div>
+                <div>{{ $order->po->issued_by ?? '' }}</div>
+            </div>
+        </td>
+        <td style="border: none; text-align: center;">
+            <div style="margin-top: 50px;">
+                <div style="border-top: 1px solid #000; display: inline-block; padding-top: 5px;">{{ __('Acknowledged By') }}</div>
+                <div>{{ $order->po->acknowledged_by ?? '' }}</div>
+            </div>
+        </td>
+        <td style="border: none; text-align: center;">
+            <div style="margin-top: 50px;">
+                <div style="border-top: 1px solid #000; display: inline-block; padding-top: 5px;">{{ __('Accepted By Supplier') }}</div>
+                <div>{{ $supplier->name ?? 'Supplier' }}</div>
             </div>
         </td>
     </tr>

@@ -65,6 +65,29 @@
             {{ Form::label('hs_code', __('HS Code'), ['class' => 'form-label']) }}
             {{ Form::text('hs_code', $order->po->hs_code ?? '', ['class' => 'form-control']) }}
         </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            {{ Form::label('status', __('PO Status'), ['class' => 'form-label']) }}
+            {{ Form::select('status', ['Pending' => 'Pending', 'Accepted' => 'Accepted', 'Rejected' => 'Rejected'], $order->po->status ?? 'Pending', ['class' => 'form-control select2']) }}
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            {{ Form::label('prepared_by', __('Prepared By'), ['class' => 'form-label']) }}
+            {{ Form::text('prepared_by', $order->po->prepared_by ?? \Auth::user()->name, ['class' => 'form-control']) }}
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            {{ Form::label('issued_by', __('Issued By'), ['class' => 'form-label']) }}
+            {{ Form::text('issued_by', $order->po->issued_by ?? '', ['class' => 'form-control']) }}
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            {{ Form::label('acknowledged_by', __('Acknowledged By'), ['class' => 'form-label']) }}
+            {{ Form::text('acknowledged_by', $order->po->acknowledged_by ?? '', ['class' => 'form-control']) }}
+        </div>
     </div>
 </div>
 

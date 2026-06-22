@@ -53,12 +53,30 @@
                                         <th>{{__('Type')}}</th>
                                         <th class="text-end">{{__('Amount')}}</th>
                                     </tr>
-                                    <tr>
-                                        <td>{{__('Basic Salary')}}</td>
-                                        <td>-</td>
-                                        <td>-</td>
-                                        <td class="text-end">{{  \Auth::user()->priceFormat( $payslip->basic_salary)}}</td>
-                                    </tr>
+                                      <tr>
+                                          <td>{{__('Basic Salary (60%)')}}</td>
+                                          <td>-</td>
+                                          <td>-</td>
+                                          <td class="text-end">{{  \Auth::user()->priceFormat( $payslip->basic_salary * 0.60)}}</td>
+                                      </tr>
+                                      <tr>
+                                          <td>{{__('House Rent (20%)')}}</td>
+                                          <td>-</td>
+                                          <td>-</td>
+                                          <td class="text-end">{{  \Auth::user()->priceFormat($payslip->basic_salary * 0.20)}}</td>
+                                      </tr>
+                                      <tr>
+                                          <td>{{__('Medical Allowance (10%)')}}</td>
+                                          <td>-</td>
+                                          <td>-</td>
+                                          <td class="text-end">{{  \Auth::user()->priceFormat($payslip->basic_salary * 0.10)}}</td>
+                                      </tr>
+                                      <tr>
+                                          <td>{{__('Conveyance Allowance (10%)')}}</td>
+                                          <td>-</td>
+                                          <td>-</td>
+                                          <td class="text-end">{{  \Auth::user()->priceFormat($payslip->basic_salary * 0.10)}}</td>
+                                      </tr>
                                     @foreach ($payslipDetail['earning']['allowance'] as $allowance)
                                         @php
                                             $employess = \App\Models\Employee::find($allowance->employee_id);

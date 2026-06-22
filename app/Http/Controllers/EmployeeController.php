@@ -42,13 +42,31 @@ class EmployeeController extends Controller
     {
         if(\Auth::user()->can('Manage Employees'))
         {
+            $currentYear = date('Y');
+            $currentMonth = date('Y-m');
+            $startDate = $currentMonth . '-01';
+            $endDate = date('Y-m-t', strtotime($startDate));
+
             if(Auth::user()->type == 'Employee')
             {
-                $employees = Employee::where('user_id', '=', Auth::user()->id)->with(['designation','branch','department'])->get();
+                $employees = Employee::where('user_id', '=', Auth::user()->id)->with(['designation','branch','department','user'])->get();
             }
             else
             {
-                $employees = Employee::where('created_by', \Auth::user()->creatorId())->with(['designation','branch','department'])->get();
+                $employees = Employee::where('created_by', \Auth::user()->creatorId())
+                    ->with([
+                        'designation',
+                        'branch',
+                        'department',
+                        'user',
+                        'leaves' => function($q) use ($currentYear) {
+                            $q->whereYear('start_date', $currentYear)->orWhereYear('end_date', $currentYear);
+                        },
+                        'attendances' => function($q) use ($startDate, $endDate) {
+                            $q->whereBetween('date', [$startDate, $endDate]);
+                        }
+                    ])
+                    ->get();
             }
 
             return view('employee.index', compact('employees'));

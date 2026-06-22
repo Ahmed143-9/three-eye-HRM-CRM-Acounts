@@ -105,9 +105,14 @@ class PaySlipController extends Controller
 
         if($payslip_employee > count($validatePaysilp))
         {
-            $employees = Employee::where('created_by', \Auth::user()->creatorId())->where('company_doj', '<=', date($year . '-' . $month . '-t'))->whereNotIn('employee_id', $validatePaysilp)->whereNotIn('id', $resignation)->whereNotIn('id', $termination)->whereNot('salary', '<=', 0)->get();
-
-
+            $employees = Employee::where('created_by', \Auth::user()->creatorId())
+                ->where('company_doj', '<=', date($year . '-' . $month . '-t'))
+                ->whereNotIn('employee_id', $validatePaysilp)
+                ->whereNotIn('id', $resignation)
+                ->whereNotIn('id', $termination)
+                ->whereNot('salary', '<=', 0)
+                ->with(['allowances', 'commissions', 'loans', 'saturationDeductions', 'otherPayments', 'overtimes'])
+                ->get();
             foreach($employees as $employee)
             {
                 $chek = PaySlip::where(['employee_id' => $employee->id, 'salary_month' => $formate_month_year])->first();
@@ -119,12 +124,12 @@ class PaySlipController extends Controller
                     $payslipEmployee->salary_month         = $formate_month_year;
                     $payslipEmployee->status               = 0;
                     $payslipEmployee->basic_salary         = !empty($employee->salary) ? $employee->salary : 0;
-                    $payslipEmployee->allowance            = Employee::allowance($employee->id);
-                    $payslipEmployee->commission           = Employee::commission($employee->id);
-                    $payslipEmployee->loan                 = Employee::loan($employee->id);
-                    $payslipEmployee->saturation_deduction = Employee::saturation_deduction($employee->id);
-                    $payslipEmployee->other_payment        = Employee::other_payment($employee->id);
-                    $payslipEmployee->overtime             = Employee::overtime($employee->id);
+                    $payslipEmployee->allowance            = json_encode($employee->allowances);
+                    $payslipEmployee->commission           = json_encode($employee->commissions);
+                    $payslipEmployee->loan                 = json_encode($employee->loans);
+                    $payslipEmployee->saturation_deduction = json_encode($employee->saturationDeductions);
+                    $payslipEmployee->other_payment        = json_encode($employee->otherPayments);
+                    $payslipEmployee->overtime             = json_encode($employee->overtimes);
                     $payslipEmployee->created_by           = \Auth::user()->creatorId();
                     $payslipEmployee->save();
 

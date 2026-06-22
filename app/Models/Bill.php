@@ -128,6 +128,9 @@ class Bill extends Model
 
     public function billTotalDebitNote()
     {
+        if ($this->relationLoaded('debitNote')) {
+            return $this->debitNote->sum('amount');
+        }
         return $this->hasMany(DebitNote::class, 'bill', 'id')->sum('amount');
     }
 

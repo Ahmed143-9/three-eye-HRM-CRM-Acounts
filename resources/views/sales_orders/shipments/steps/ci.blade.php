@@ -125,6 +125,6 @@
             <a href="{{ route('sales-orders.ci.download', $order->id) }}?ci_id={{ $active_ci->id }}" class="btn btn-info"><i class="ti ti-download me-1"></i>{{ __('Download PDF') }}</a>
         @endif
     </div>
-    <button type="submit" class="btn btn-primary">{{ __('Save & Proceed to Packing List') }}</button>
+    <button type="submit" id="ci-submit-btn" class="btn btn-primary">{{ __('Save & Proceed to Packing List') }}</button>
 </div>
 {{ Form::close() }}

@@ -53,7 +53,15 @@ class ProjectTask extends Model
 
     public function users()
     {
-        return User::whereIn('id', explode(',', $this->assign_to))->get();
+        $allUsers = self::getusers();
+        $userIds = explode(',', $this->assign_to);
+        $users = [];
+        foreach($userIds as $id) {
+            if(isset($allUsers[$id])) {
+                $users[] = (object) $allUsers[$id];
+            }
+        }
+        return collect($users);
     }
 
     // Task.php model
@@ -95,7 +103,7 @@ class ProjectTask extends Model
         $percentage = 0;
 
         $total_checklist = $this->checklist->count();
-        $completed_checklist = $project->checklist->where('status', '=', '1')->count();
+        $completed_checklist = $this->checklist->where('status', '=', '1')->count();
 
         if ($total_checklist > 0) {
             $percentage = intval(($completed_checklist / $total_checklist) * 100);
@@ -182,15 +190,21 @@ class ProjectTask extends Model
         $section_ids = array_keys($taskSections);
         $task_ids = Project::getAssignedProjectTasks($project->id, null, $filterdata)->whereNotIn('milestone_id', $section_ids)->whereNotIn('id', $not_task_ids)->orderBy('id', 'desc')->pluck('id')->toArray();
 
+        $all_needed_task_ids = Project::getAssignedProjectTasks($project->id, null, $filterdata)->whereNotIn('id', $not_task_ids)->pluck('id')->toArray();
+        $cached_tasks = ProjectTask::whereIn('id', $all_needed_task_ids)->get()->keyBy('id');
+
         if (!empty($task_ids) && count($task_ids) > 0) {
             $counter = 0;
             $taskArray[$counter]['section_id'] = 0;
             $taskArray[$counter]['section_name'] = '';
             $taskArray[$counter]['sectionsClass'] = 'active';
             foreach ($task_ids as $task_id) {
-                $task = ProjectTask::find($task_id);
+                $task = $cached_tasks->get($task_id);
                 $taskCollectionArray = $task->toArray();
-                $taskCollectionArray['taskinfo'] = json_decode(app('App\Http\Controllers\ProjectTaskController')->getDefaultTaskInfo($request, $task->id), true);
+                $taskCollectionArray['taskinfo'] = [
+                    'task_name' => $task->name,
+                    'task_due_date' => $task->due_date ?? null
+                ];
 
                 $taskArray[$counter]['sections'][] = $taskCollectionArray;
             }
@@ -204,7 +218,11 @@ class ProjectTask extends Model
                 $sectiontasks = $tasks;
 
                 foreach ($tasks as $onekey => $onetask) {
-                    $sectiontasks[$onekey]['taskinfo'] = json_decode(app('App\Http\Controllers\ProjectTaskController')->getDefaultTaskInfo($request, $onetask['id']), true);
+                    $task = $cached_tasks->get($onetask['id']);
+                    $sectiontasks[$onekey]['taskinfo'] = [
+                        'task_name' => $task ? $task->name : '',
+                        'task_due_date' => $task ? ($task->due_date ?? null) : null
+                    ];
                 }
 
                 $taskArray[$counter]['sections'] = $sectiontasks;

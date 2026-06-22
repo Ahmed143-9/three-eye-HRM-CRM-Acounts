@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 @section('page-title')
-    {{__('Dashboard')}}
+    {{__('HRM Dashboard')}}
 @endsection
 @push('script-page')
     <script>
@@ -93,7 +93,7 @@
 @endpush
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{__('Dashboard')}}</a></li>
-    <li class="breadcrumb-item">{{__('HRM')}}</li>
+    <li class="breadcrumb-item">{{__('HRM Dashboard')}}</li>
 @endsection
 @php
     $setting = \App\Models\Utility::settings();

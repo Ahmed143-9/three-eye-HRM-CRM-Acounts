@@ -15,10 +15,21 @@
 
             </div>
         </div>
+        <div class="col-lg-6 col-md-6 col-sm-6">
+            <div class="form-group">
+                {{Form::label('contact_person',__('Contact Person'),array('class'=>'form-label')) }}
+                {{Form::text('contact_person',null,array('class'=>'form-control', 'placeholder'=>__('Enter Contact Person')))}}
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-6 col-sm-6">
+            <div class="form-group">
+                <x-mobile label="{{__('Contact Person Number')}}" name="contact_person_number" value="{{$vender->contact_person_number}}" required placeholder="Enter Contact Person Number"></x-mobile>
+            </div>
+        </div>
         <div class="col-lg-12 col-md-12 col-sm-12">
             <div class="form-group">
-                {{Form::label('billing_name',__('Contact Person'),array('class'=>'form-label')) }}
-                {{Form::text('billing_name',null,array('class'=>'form-control', 'placeholder'=>__('Enter Contact Person')))}}
+                {{Form::label('billing_name',__('Billing Name'),array('class'=>'form-label')) }}
+                {{Form::text('billing_name',null,array('class'=>'form-control', 'placeholder'=>__('Enter Billing Name')))}}
             </div>
         </div>
         <div class="col-md-12">
@@ -29,115 +40,10 @@
         </div>
     </div>
     
-    <div style="display: none;">
-        <div class="col-lg-4 col-md-4 col-sm-6">
-            <div class="form-group">
-                {{Form::label('tax_number',__('Tax Number'),['class'=>'form-label'])}}
-                {{Form::text('tax_number',null,array('class'=>'form-control', 'placeholder'=>__('Enter Tax Number')))}}
-            </div>
-        </div>
-        <div class="col-lg-4 col-md-4 col-sm-6">
-            <div class="form-group">
-                {{Form::label('balance',__('Balance'),['class'=>'form-label'])}}
-                {{Form::number('balance',null,array('class'=>'form-control' , 'placeholder' => __('Enter Balance')))}}
-            </div>
-        </div>
-        @if(!$customFields->isEmpty())
-                    @include('customFields.formBuilder')
-        @endif
-    <h5 class="sub-title mb-3">{{__('Billing Address')}}</h5>
-
-
-
-        <div class="col-lg-6 col-md-6 col-sm-6">
-            <div class="form-group">
-                {{Form::label('billing_city',__('City'),array('class'=>'form-label')) }}
-                {{Form::text('billing_city',null,array('class'=>'form-control', 'placeholder'=>__('Enter City')))}}
-            </div>
-        </div>
-        <div class="col-lg-6 col-md-6 col-sm-6">
-            <div class="form-group">
-                {{Form::label('billing_state',__('State'),array('class'=>'form-label')) }}
-                {{Form::text('billing_state',null,array('class'=>'form-control', 'placeholder'=>__('Enter State')))}}
-            </div>
-        </div>
-
-        <div class="col-lg-6 col-md-6 col-sm-6">
-            <div class="form-group">
-                {{Form::label('billing_country',__('Country'),array('class'=>'form-label')) }}
-                {{Form::text('billing_country',null,array('class'=>'form-control', 'placeholder'=>__('Enter Country')))}}
-            </div>
-        </div>
-
-
-        <div class="col-lg-6 col-md-6 col-sm-6">
-            <div class="form-group">
-                {{Form::label('billing_zip',__('Zip Code'),array('class'=>'form-label')) }}
-                {{Form::text('billing_zip',null,array('class'=>'form-control', 'placeholder'=>__('Enter Zip')))}}
-            </div>
-        </div>
-
-    </div>
-
-    @if(App\Models\Utility::getValByName('shipping_display')=='on')
-        <div class="col-md-12 text-end mb-3">
-            <input type="button" id="billing_data" value="{{__('Shipping Same As Billing')}}" class="btn btn-primary">
-        </div>
-        <h5 class="sub-title mb-3">{{__('Shipping Address')}}</h5>
-        <div class="row">
-            <div class="col-lg-6 col-md-6 col-sm-6">
-                <div class="form-group">
-                    {{Form::label('shipping_name',__('Name'),array('class'=>'form-label')) }}
-                    {{Form::text('shipping_name',null,array('class'=>'form-control', 'placeholder'=>__('Enter Name')))}}
-
-                </div>
-            </div>
-            <div class="col-lg-6 col-md-6 col-sm-6">
-                <div class="form-group">
-                    {{Form::label('shipping_phone',__('Phone'),array('class'=>'form-label')) }}
-                    {{Form::text('shipping_phone',null,array('class'=>'form-control', 'placeholder'=>__('Enter Phone')))}}
-
-                </div>
-            </div>
-            <div class="col-md-12">
-                <div class="form-group">
-                    {{Form::label('shipping_address',__('Address'),array('class'=>'form-label')) }}
-                    {{Form::textarea('shipping_address',null,array('class'=>'form-control','rows'=>3, 'placeholder'=>__('Enter Address')))}}
-
-                </div>
-            </div>
-
-
-                <div class="col-lg-6 col-md-6 col-sm-6">
-                <div class="form-group">
-                    {{Form::label('shipping_city',__('City'),array('class'=>'form-label')) }}
-                    {{Form::text('shipping_city',null,array('class'=>'form-control', 'placeholder'=>__('Enter City')))}}
-                </div>
-                </div>
-                <div class="col-lg-6 col-md-6 col-sm-6">
-                    <div class="form-group">
-                        {{Form::label('shipping_state',__('State'),array('class'=>'form-label')) }}
-                        {{Form::text('shipping_state',null,array('class'=>'form-control', 'placeholder'=>__('Enter State')))}}
-                    </div>
-                </div>
-                <div class="col-lg-6 col-md-6 col-sm-6">
-                    <div class="form-group">
-                        {{Form::label('shipping_country',__('Country'),array('class'=>'form-label')) }}
-                        {{Form::text('shipping_country',null,array('class'=>'form-control', 'placeholder'=>__('Enter Country')))}}
-                    </div>
-                </div>
-
-            <div class="col-lg-6 col-md-6 col-sm-6">
-                <div class="form-group">
-                    {{Form::label('shipping_zip',__('Zip Code'),array('class'=>'form-label')) }}
-                    {{Form::text('shipping_zip',null,array('class'=>'form-control', 'placeholder'=>__('Enter Zip')))}}
-
-                </div>
-            </div>
-
-        </div>
+    @if(!$customFields->isEmpty())
+        @include('customFields.formBuilder')
     @endif
-    </div>
+</div>
 
 </div>
 

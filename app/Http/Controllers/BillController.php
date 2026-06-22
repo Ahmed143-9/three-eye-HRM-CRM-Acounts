@@ -81,7 +81,7 @@ class BillController extends Controller
             {
                 $query->where('status', '=', $request->status);
             }
-            $bills = $query->with('category')->get();
+            $bills = $query->with(['category', 'items', 'payments', 'debitNote'])->get();
 
             return view('bill.index', compact('bills', 'vender', 'status'));
         }

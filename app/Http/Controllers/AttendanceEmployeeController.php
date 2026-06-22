@@ -92,8 +92,7 @@ class AttendanceEmployeeController extends Controller
                             $end_date,
                         ]
                     );
-                }
-                $attendanceEmployee = $attendanceEmployee->get();
+                $attendanceEmployee = $attendanceEmployee->with('employee')->get();
 
             } else {
 
@@ -141,9 +140,7 @@ class AttendanceEmployeeController extends Controller
                             $end_date,
                         ]
                     );
-                }
-
-                $attendanceEmployee = $attendanceEmployee->get();
+                $attendanceEmployee = $attendanceEmployee->with('employee')->get();
             }
 
             return view('attendance.index', compact('attendanceEmployee', 'branch', 'department'));

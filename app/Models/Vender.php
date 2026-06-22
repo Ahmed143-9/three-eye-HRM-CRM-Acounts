@@ -18,6 +18,8 @@ class Vender extends Authenticatable
         'email',
         'password',
         'contact',
+        'contact_person',
+        'contact_person_number',
         'avatar',
         'is_active',
         'created_by',

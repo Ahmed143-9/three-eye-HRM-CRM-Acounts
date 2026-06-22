@@ -98,6 +98,8 @@ class VenderController extends Controller
                     $vender->email            = $request->email;
                     $vender->tax_number       = $request->tax_number;
                     $vender->created_by       = \Auth::user()->creatorId();
+                    $vender->contact_person   = $request->contact_person;
+                    $vender->contact_person_number = $request->contact_person_number;
                     $vender->billing_name     = $request->billing_name;
                     $vender->billing_country  = $request->billing_country;
                     $vender->billing_state    = $request->billing_state;
@@ -203,6 +205,8 @@ class VenderController extends Controller
             $vender->contact          = $request->contact;
             $vender->tax_number      = $request->tax_number;
             $vender->created_by       = \Auth::user()->creatorId();
+            $vender->contact_person   = $request->contact_person;
+            $vender->contact_person_number = $request->contact_person_number;
             $vender->billing_name     = $request->billing_name;
             $vender->billing_country  = $request->billing_country;
             $vender->billing_state    = $request->billing_state;
