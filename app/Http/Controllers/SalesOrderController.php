@@ -32,7 +32,7 @@ class SalesOrderController extends Controller
 {
     public function index()
     {
-        $orders = SalesOrder::where('created_by', Auth::user()->creatorId())->with('customer')->orderBy('id', 'desc')->get();
+        $orders = SalesOrder::where('created_by', Auth::user()->creatorId())->with('customer')->latest()->get();
         return view('sales_orders.index', compact('orders'));
     }
 

@@ -36,7 +36,8 @@ class ErpExpenseController extends Controller
             $expenses = ErpExpense::with(['category', 'employee'])
                 ->where('workspace_id', $workspace_id)
                 ->where('type', $type)
-                ->orderBy('id', 'desc')
+                ->orderBy('date', 'desc')
+                ->orderBy('created_at', 'desc')
                 ->get();
             return view('erp_expenses.index', compact('expenses', 'type'));
         }

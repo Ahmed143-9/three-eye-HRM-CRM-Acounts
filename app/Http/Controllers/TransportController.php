@@ -20,7 +20,10 @@ class TransportController extends Controller
     public function index()
     {
         if (Auth::user()->can('Manage Employees')) {
-            $transports = Transport::where('created_by', '=', Auth::user()->creatorId())->get();
+            $transports = Transport::where('created_by', '=', Auth::user()->creatorId())
+                ->orderBy('starting_date', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->get();
             
             // Fetch finalized sales orders that haven't been linked to a transport yet
             $pendingOrders = SalesOrder::where('status', 'finalized')

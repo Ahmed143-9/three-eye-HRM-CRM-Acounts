@@ -15,7 +15,10 @@ class PayableController extends Controller
 {
     public function index()
     {
-        $payables = Payable::where('created_by', Auth::user()->creatorId())->get();
+        $payables = Payable::where('created_by', Auth::user()->creatorId())
+            ->orderBy('date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
         return view('accounting.payables.index', compact('payables'));
     }
 

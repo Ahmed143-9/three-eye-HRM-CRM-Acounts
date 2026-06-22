@@ -15,7 +15,10 @@ class ReceivableController extends Controller
 {
     public function index()
     {
-        $receivables = Receivable::where('created_by', Auth::user()->creatorId())->get();
+        $receivables = Receivable::where('created_by', Auth::user()->creatorId())
+            ->orderBy('date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
         return view('accounting.receivables.index', compact('receivables'));
     }
 

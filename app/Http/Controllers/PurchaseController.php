@@ -36,7 +36,11 @@ class PurchaseController extends Controller
         $vender = Vender::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('name', 'id');
         $vender->prepend('Select Vendor', '');
         $status = Purchase::$statues;
-        $purchases = Purchase::where('created_by', '=', \Auth::user()->creatorId())->with(['vender','category'])->get();
+        $purchases = Purchase::where('created_by', '=', \Auth::user()->creatorId())
+            ->with(['vender','category'])
+            ->orderBy('purchase_date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
 
         return view('purchase.index', compact('purchases', 'status','vender'));

@@ -193,7 +193,22 @@
                                     if ($partyName === '-') $partyName = 'N/A';
                                 @endphp
                                 <tr class="{{ $rowClass }}">
+                                    @php
+                                        $orderIdDisplay = 'N/A';
+                                        if ($billing->sales_order_id) {
+                                            $so = \App\Models\SalesOrder::find($billing->sales_order_id);
+                                            $orderIdDisplay = $so ? $so->order_number : 'N/A';
+                                        }
+
+                                        // Fix for Invoice display: if invoice_number is exactly the order number, don't show it twice.
+                                        $displayInvoice = $billing->invoice_number;
+                                        if ($orderIdDisplay !== 'N/A' && $displayInvoice === $orderIdDisplay) {
+                                            $displayInvoice = '-';
+                                            $inv_short = '-';
+                                        }
+                                    @endphp
                                     <td class="col-uid">
+                                        <span class="d-none">{{ $billing->unique_id }}</span>
                                         <div class="d-flex align-items-center">
                                             <code data-bs-toggle="tooltip" title="{{ $billing->unique_id }}" style="cursor:pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50px; display: inline-block;">
                                                 {{ $uid_short }}
@@ -202,23 +217,25 @@
                                         </div>
                                     </td>
                                     <td class="col-inv">
+                                        <span class="d-none">{{ $displayInvoice }}</span>
                                         <div class="d-flex align-items-center">
-                                            <span data-bs-toggle="tooltip" title="{{ $billing->invoice_number }}" style="cursor:pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50px; display: inline-block;" class="text-primary fw-semibold">
+                                            <span data-bs-toggle="tooltip" title="{{ $displayInvoice }}" style="cursor:pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50px; display: inline-block;" class="text-primary fw-semibold">
                                                 {{ $inv_short }}
                                             </span>
-                                            <i class="ti ti-copy text-secondary ms-1 copy-btn" style="cursor:pointer; font-size: 14px;" data-val="{{ $billing->invoice_number }}" data-bs-toggle="tooltip" title="{{ __('Copy') }}"></i>
+                                            @if($displayInvoice !== '-')
+                                            <i class="ti ti-copy text-secondary ms-1 copy-btn" style="cursor:pointer; font-size: 14px;" data-val="{{ $displayInvoice }}" data-bs-toggle="tooltip" title="{{ __('Copy') }}"></i>
+                                            @endif
                                         </div>
                                     </td>
-                                    @php
-                                        $orderIdDisplay = 'N/A';
-                                        if ($billing->sales_order_id) {
-                                            $so = \App\Models\SalesOrder::find($billing->sales_order_id);
-                                            $orderIdDisplay = $so ? $so->order_id : 'N/A';
-                                        }
-                                    @endphp
-                                    <td class="col-inv">{{ $orderIdDisplay }}</td>
+                                    <td class="col-inv">
+                                        <span class="d-none">{{ $orderIdDisplay }}</span>
+                                        {{ $orderIdDisplay }}
+                                    </td>
                                     <td class="col-dir">{{ $direction }}</td>
-                                    <td class="col-name" title="{{ $partyName }}">{{ $partyName }}</td>
+                                    <td class="col-name" title="{{ $partyName }}">
+                                        <span class="d-none">{{ $partyName }}</span>
+                                        {{ $partyName }}
+                                    </td>
                                     <td class="col-date">{{ \Auth::user()->dateFormat($billing->date) }}</td>
                                     <td class="col-type">
                                         @if($billing->billing_type == 'Payable')
