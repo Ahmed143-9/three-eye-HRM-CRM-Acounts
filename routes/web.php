@@ -551,7 +551,7 @@ Route::group(['middleware' => ['verified']], function () {
             Route::post('invoice/{id}/payment/{pid}/destroy', [InvoiceController::class, 'paymentDestroy'])->name('invoice.payment.destroy');
             Route::get('invoice/items', [InvoiceController::class, 'items'])->name('invoice.items');
             Route::resource('invoice', InvoiceController::class);
-            Route::get('invoice/create/{cid}', [InvoiceController::class, 'create'])->name('invoice.create');
+            Route::get('invoice/create/{cid}', [InvoiceController::class, 'create'])->name('invoice.create.cid');
 
         }
     );
