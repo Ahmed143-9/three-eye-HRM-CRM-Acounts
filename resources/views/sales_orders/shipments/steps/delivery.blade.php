@@ -74,9 +74,28 @@
     </div>
     <div class="col-md-4">
         <div class="card bg-light text-center p-3">
-            <h6 class="text-muted small">{{ __('Required Units') }}</h6>
-            <h4 id="required_units_display">{{ (optional(optional($active_ci)->delivery)->required_units) ? number_format($active_ci->delivery->required_units, 2) : '0.00' }}</h4>
+            <h6 class="text-muted small fw-bold mb-2">{{ __('Required Units & Inventory Stock') }}</h6>
+            <div class="d-flex justify-content-around align-items-center mb-2">
+                <div>
+                    <span class="text-muted d-block" style="font-size: 0.8rem;">Required</span>
+                    <h5 id="required_units_display" class="mb-0 text-dark">{{ (optional(optional($active_ci)->delivery)->required_units) ? number_format($active_ci->delivery->required_units, 2) : '0.00' }}</h5>
+                </div>
+                <div class="border-start border-2 ps-3">
+                    <span class="text-muted d-block" style="font-size: 0.8rem;">Available Stock</span>
+                    <h5 id="available_stock_display" class="mb-0 text-primary">0.00</h5>
+                </div>
+            </div>
             <input type="hidden" name="required_units" id="required_units" value="{{ (optional(optional($active_ci)->delivery)->required_units) ? $active_ci->delivery->required_units : 0 }}">
+            
+            <select name="inventory_item_id" id="inventory_item_id" class="form-select form-select-sm mt-2 border-primary">
+                <option value="">{{ __('Select Packing Item from Inventory') }}</option>
+                @foreach($inventoryItems ?? [] as $invItem)
+                    <option value="{{ $invItem->id }}" data-stock="{{ $invItem->batches()->sum('quantity_available') }}" {{ optional(optional($active_ci)->delivery)->inventory_item_id == $invItem->id ? 'selected' : '' }}>
+                        {{ $invItem->name }} ({{ $invItem->type }})
+                    </option>
+                @endforeach
+            </select>
+            <small class="text-muted d-block mt-1" style="font-size: 0.7rem;"><i class="ti ti-info-circle"></i> {{ __('Link this delivery to an inventory item to deduct stock.') }}</small>
         </div>
     </div>
 </div>
@@ -239,10 +258,17 @@
             }
         });
 
+        $('#inventory_item_id').on('change', function() {
+            var selectedOption = $(this).find('option:selected');
+            var stock = selectedOption.data('stock') || 0;
+            $('#available_stock_display').text(parseFloat(stock).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+        });
+
         calculateUnits();
         
         // Trigger calculation on load to ensure totals show correctly if drum rates are pre-filled
         $('.drum-calc').trigger('change');
+        $('#inventory_item_id').trigger('change');
     });
 </script>
 @endpush
