@@ -4461,6 +4461,9 @@ class Utility extends Model
                     ]
                 );
             }
+            if ($settings['storage_setting'] == 'local') {
+                return asset($path);
+            }
 
             return \Storage::disk($settings['storage_setting'])->url($path);
         } catch (\Throwable $th) {
