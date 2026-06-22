@@ -308,8 +308,10 @@ class SalesOrderController extends Controller
         }
         $existingDelivered = $otherCis->flatMap->tankers->sum('quantity_mt');
 
-        if (round($existingDelivered + $proposedQty, 3) > round($totalOrderQty, 3)) {
-            return redirect()->back()->with('error', __('Total shipment quantity exceeds Sales Order total quantity. Cannot save shipment.'));
+        $maxAllowedQty = $totalOrderQty * 1.10; // 10% tolerance
+
+        if (round($existingDelivered + $proposedQty, 3) > round($maxAllowedQty, 3)) {
+            return redirect()->back()->with('error', __('Total shipment quantity exceeds Sales Order total quantity (including 10% tolerance). Cannot save shipment.'));
         }
 
         $transactionResult = DB::transaction(function () use ($request, $order) {

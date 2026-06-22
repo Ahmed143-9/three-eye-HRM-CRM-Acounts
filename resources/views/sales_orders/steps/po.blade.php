@@ -65,6 +65,7 @@
             {{ Form::label('hs_code', __('HS Code'), ['class' => 'form-label']) }}
             {{ Form::text('hs_code', $order->po->hs_code ?? '', ['class' => 'form-control']) }}
         </div>
+    </div>
     <div class="col-md-3">
         <div class="form-group">
             {{ Form::label('status', __('PO Status'), ['class' => 'form-label']) }}
