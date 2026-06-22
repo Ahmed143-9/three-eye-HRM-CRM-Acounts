@@ -460,7 +460,16 @@ class SalesOrderController extends Controller
         $ci_id = $request->ci_id ?? session('active_ci_id');
 
         if ($request->has('tankers')) {
-            $order->tankers_data = $request->tankers;
+            $existingData = is_array($order->tankers_data) ? $order->tankers_data : [];
+            $existingCollection = collect($existingData)->keyBy('tanker_id');
+            
+            foreach ($request->tankers as $tanker) {
+                if (isset($tanker['tanker_id'])) {
+                    $existingCollection->put($tanker['tanker_id'], $tanker);
+                }
+            }
+            
+            $order->tankers_data = $existingCollection->values()->toArray();
         }
 
         $order->status = 'completed'; // Order is partially completed
