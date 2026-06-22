@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('sales_purchase_orders', function (Blueprint $table) {
+        Schema::table('sales_pos', function (Blueprint $table) {
             $table->string('prepared_by')->nullable();
             $table->string('issued_by')->nullable();
             $table->string('acknowledged_by')->nullable();
@@ -24,7 +24,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('sales_purchase_orders', function (Blueprint $table) {
+        Schema::table('sales_pos', function (Blueprint $table) {
             $table->dropColumn(['prepared_by', 'issued_by', 'acknowledged_by', 'status']);
         });
     }
