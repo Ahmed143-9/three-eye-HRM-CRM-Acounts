@@ -92,6 +92,7 @@ class AttendanceEmployeeController extends Controller
                             $end_date,
                         ]
                     );
+                }
                 $attendanceEmployee = $attendanceEmployee->with('employee')->get();
 
             } else {
@@ -140,6 +141,7 @@ class AttendanceEmployeeController extends Controller
                             $end_date,
                         ]
                     );
+                }
                 $attendanceEmployee = $attendanceEmployee->with('employee')->get();
             }
 
