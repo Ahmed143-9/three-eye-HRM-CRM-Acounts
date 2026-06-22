@@ -27,12 +27,25 @@ class TransportController extends Controller
                 ->whereNotExists(function ($query) {
                     $query->select(DB::raw(1))
                         ->from('transports')
-                        ->whereRaw('transports.sales_order_id = sales_orders.id');
+                        ->whereRaw('transports.sales_order_id = sales_orders.id')
+                        ->whereNull('transports.ci_id');
                 })
                 ->where('created_by', Auth::user()->creatorId())
                 ->get();
 
-            return view('transport.index', compact('transports', 'pendingOrders'));
+            // Fetch CIs (Shipments) that need a transport
+            $pendingCis = \App\Models\SalesCI::whereHas('order', function ($q) {
+                    $q->where('status', 'finalized');
+                })
+                ->whereNotExists(function ($query) {
+                    $query->select(DB::raw(1))
+                        ->from('transports')
+                        ->whereRaw('transports.ci_id = sales_cis.id');
+                })
+                ->where('created_by', Auth::user()->creatorId())
+                ->get();
+
+            return view('transport.index', compact('transports', 'pendingOrders', 'pendingCis'));
         } else {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
@@ -246,21 +259,43 @@ class TransportController extends Controller
             ->whereNotExists(function ($query) {
                 $query->select(DB::raw(1))
                     ->from('transports')
-                    ->whereRaw('transports.sales_order_id = sales_orders.id');
+                    ->whereRaw('transports.sales_order_id = sales_orders.id')
+                    ->whereNull('transports.ci_id');
             })
             ->where('created_by', Auth::user()->creatorId())
             ->get(['id', 'order_number', 'customer_id']);
 
-        $orders = $pendingOrders->map(function ($o) {
-            return [
+        $pendingCis = \App\Models\SalesCI::whereHas('order', function ($q) {
+                $q->where('status', 'finalized');
+            })
+            ->whereNotExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('transports')
+                    ->whereRaw('transports.ci_id = sales_cis.id');
+            })
+            ->where('created_by', Auth::user()->creatorId())
+            ->get(['id', 'order_id', 'ci_number']);
+
+        $orders = collect();
+
+        foreach ($pendingOrders as $o) {
+            $orders->push([
                 'id' => $o->id,
                 'order_number' => $o->order_number,
                 'customer' => optional($o->customer)->name ?? '—',
-            ];
-        });
+            ]);
+        }
+
+        foreach ($pendingCis as $ci) {
+            $orders->push([
+                'id' => $ci->order_id,
+                'order_number' => (optional($ci->order)->order_number ?? '—') . ' (CI: ' . $ci->ci_number . ')',
+                'customer' => optional(optional($ci->order)->customer)->name ?? '—',
+            ]);
+        }
 
         return response()->json([
-            'count' => $pendingOrders->count(),
+            'count' => $pendingOrders->count() + $pendingCis->count(),
             'orders' => $orders,
         ]);
     }

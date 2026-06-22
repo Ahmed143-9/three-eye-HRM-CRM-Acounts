@@ -19,11 +19,11 @@
 
 @section('content')
 <div class="row">
-    @if(count($pendingOrders) > 0)
+    @if(count($pendingOrders) > 0 || (isset($pendingCis) && count($pendingCis) > 0))
         <div class="col-xl-12">
             <div class="card border border-primary">
                 <div class="card-header">
-                    <h5 class="text-primary">{{__('Pending Transport Requests (New Sales Orders)')}}</h5>
+                    <h5 class="text-primary">{{__('Pending Transport Requests (New Sales Orders & Shipments)')}}</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -43,6 +43,25 @@
                                 </div>
                             </div>
                         @endforeach
+
+                        @if(isset($pendingCis))
+                            @foreach($pendingCis as $ci)
+                                <div class="col-md-4">
+                                    <div class="card shadow-none border border-info">
+                                        <div class="card-body">
+                                            <h6 class="mb-3">{{ optional($ci->order)->order_number }} (CI: {{ $ci->ci_number }})</h6>
+                                            <p class="text-muted text-sm mb-3">
+                                                {{__('Customer')}}: {{ optional(optional($ci->order)->customer)->name }}<br>
+                                                {{__('Shipment Date')}}: {{ Auth::user()->dateFormat($ci->ci_date) }}
+                                            </p>
+                                            <a href="{{ route('transports.create') }}?sales_order_id={{ $ci->order_id }}&ci_id={{ $ci->id }}" class="btn btn-sm btn-info w-100">
+                                                <i class="ti ti-plus me-1"></i>{{__('Create Transport Order')}}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @endif
                     </div>
                 </div>
             </div>
