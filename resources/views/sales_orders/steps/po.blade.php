@@ -203,9 +203,6 @@
                 <i class="ti ti-eye me-1"></i>{{ __('Preview & Download PDF') }}
             </button>
         @endif
-                <i class="ti ti-eye me-1"></i>{{ __('Preview & Download PDF') }}
-            </button>
-        @endif
     </div>
 
     <button type="submit" class="btn btn-success d-inline-flex align-items-center"
