@@ -58,7 +58,7 @@ class ErpExpenseController extends Controller
             $units = ErpExpenseUnit::where('status', 1)->pluck('name', 'name');
             $transports = Transport::get()->pluck('id', 'id');
 
-            $suppliers = \App\Models\Vender::where('created_by', Auth::user()->creatorId())->pluck('name', 'id');
+            $suppliers = \App\Models\Supplier::orderBy('name')->pluck('name', 'id');
 
             $sheet = null;
             if ($request->has('sheet_id')) {
@@ -231,7 +231,7 @@ class ErpExpenseController extends Controller
                 $employees = Employee::get()->pluck('name', 'id');
                 $units = ErpExpenseUnit::where('status', 1)->pluck('name', 'name');
                 $transports = Transport::get()->pluck('id', 'id');
-                $suppliers = \App\Models\Vender::where('created_by', Auth::user()->creatorId())->pluck('name', 'id');
+                $suppliers = \App\Models\Supplier::orderBy('name')->pluck('name', 'id');
                 
                 return view('erp_expenses.edit', compact('expense', 'type', 'categories', 'employees', 'units', 'transports', 'suppliers'));
             }
