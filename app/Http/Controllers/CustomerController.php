@@ -118,6 +118,16 @@ class CustomerController extends Controller
                 $customer->balance          = $request->balance ?? 0;
                 $customer->lang = !empty($default_language) ? $default_language->value : '';
 
+                if ($request->hasFile('client_files')) {
+                    $files = [];
+                    foreach ($request->file('client_files') as $file) {
+                        $filename = time() . '_' . $file->getClientOriginalName();
+                        $file->storeAs('uploads/clients', $filename, 'public');
+                        $files[] = 'uploads/clients/' . $filename;
+                    }
+                    $customer->client_files = json_encode($files);
+                }
+
                 $customer->save();
                 CustomField::saveData($customer, $request->customField);
             }
@@ -223,8 +233,21 @@ class CustomerController extends Controller
             $customer->shipping_zip     = $request->shipping_zip;
             $customer->shipping_address = $request->shipping_address;
             $customer->balance          = $request->balance ?? 0;
-            $customer->save();
 
+            if ($request->hasFile('client_files')) {
+                $files = $customer->client_files ? json_decode($customer->client_files, true) : [];
+                if (!is_array($files)) {
+                    $files = [];
+                }
+                foreach ($request->file('client_files') as $file) {
+                    $filename = time() . '_' . $file->getClientOriginalName();
+                    $file->storeAs('uploads/clients', $filename, 'public');
+                    $files[] = 'uploads/clients/' . $filename;
+                }
+                $customer->client_files = json_encode($files);
+            }
+
+            $customer->save();
             CustomField::saveData($customer, $request->customField);
 
             return redirect()->route('customer.index')->with('success', __('Customer successfully updated.'));

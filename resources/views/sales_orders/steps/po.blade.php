@@ -1,4 +1,4 @@
-<h5>{{ __('Step 1: Purchase Order (PO)') }}</h5>
+<h5>{{ __('Step 3: Purchase Order (PO)') }}</h5>
 <hr>
 {{ Form::open(['route' => ['sales-orders.po.store', $order->id], 'method' => 'post', 'enctype' => 'multipart/form-data']) }}
 <div class="row">
@@ -207,7 +207,7 @@
 
     <button type="submit" class="btn btn-success d-inline-flex align-items-center"
         style="background-color: #6fd943; border-color: #6fd943; padding: 10px 25px; font-weight: 600;">
-        {{ __('Save & Proceed to PI') }}
+        {{ __('Save & Proceed to LC') }}
         <i class="ti ti-chevron-right ms-2"></i>
     </button>
 </div>

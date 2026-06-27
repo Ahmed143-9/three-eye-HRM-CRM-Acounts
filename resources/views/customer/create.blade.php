@@ -1,4 +1,4 @@
-{{Form::open(array('url'=>'customer','method'=>'post', 'class'=>'needs-validation', 'novalidate'))}}
+{{Form::open(array('url'=>'customer','method'=>'post', 'class'=>'needs-validation', 'novalidate', 'enctype' => 'multipart/form-data'))}}
 <div class="modal-body">
 
     <h5 class="sub-title">{{__('Basic Info')}}</h5>
@@ -37,6 +37,12 @@
         @if(!$customFields->isEmpty())
                     @include('customFields.formBuilder')
         @endif
+        <div class="col-lg-12 col-md-12 col-sm-12">
+            <div class="form-group">
+                {{Form::label('client_files',__('Client Files'),['class'=>'form-label'])}}
+                <input type="file" name="client_files[]" class="form-control" multiple accept=".pdf,.png,.jpg,.jpeg">
+            </div>
+        </div>
     </div>
 
     <h5 class="sub-title">{{__('Billing Address')}}</h5>

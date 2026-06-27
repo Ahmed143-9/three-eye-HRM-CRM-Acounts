@@ -145,7 +145,7 @@
                                                     </div>
                                                 @endcan
                                                 @can('edit bill')
-                                                    @if ($bill->status != 3 && $bill->status != 4)
+                                                    @if ($bill->status == 0)
                                                         <div class="action-btn me-2">
                                                             <a href="{{ route('bill.edit',\Crypt::encrypt($bill->id)) }}" class="mx-3 btn btn-sm align-items-center bg-info" data-bs-toggle="tooltip" title="Edit" data-original-title="{{__('Edit')}}">
                                                                 <i class="ti ti-pencil text-white"></i>

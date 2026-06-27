@@ -126,8 +126,15 @@
                                                 {{ __('Employee Setup') }}
                                             </a>
                                         @endif
-                                    </li>
                                 @endcan
+                                
+                                @if(\Auth::user()->can('manage daily accomplishment') || \Auth::user()->type == 'Employee')
+                                    <li class="dash-item {{ Request::segment(1) == 'daily-accomplishments' ? 'active' : '' }}">
+                                        <a href="{{ route('daily-accomplishments.index') }}" class="dash-link">
+                                            {{ __('Daily Accomplishments') }}
+                                        </a>
+                                    </li>
+                                @endif
 
                                 {{-- Professional Attendance Module --}}
                                 @can('Manage Attendance')

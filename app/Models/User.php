@@ -73,7 +73,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function creatorId()
     {
         if ($this->type == 'company' || $this->type == 'super admin') {
-            return 1;
+            return $this->id;
         } else {
             return $this->created_by;
         }
@@ -82,7 +82,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function ownerId()
     {
         if ($this->type == 'company' || $this->type == 'super admin') {
-            return 1;
+            return $this->id;
         } else {
             return $this->created_by;
         }
@@ -91,7 +91,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function ownerDetails()
     {
         if ($this->type == 'company' || $this->type == 'super admin') {
-            return User::where('id', 1)->first();
+            return User::where('id', $this->id)->first();
         } else {
             return User::where('id', $this->created_by)->first();
         }

@@ -182,8 +182,15 @@ class BillController extends Controller
             $bill->category_id    = !empty($request->category_id) ? $request->category_id :0;
             $bill->order_number   = !empty($request->order_number) ? $request->order_number : 0;
             $bill->created_by     = \Auth::user()->creatorId();
-            $bill->save();
 
+            if ($request->hasFile('attachment')) {
+                $file = $request->file('attachment');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->storeAs('uploads/bills', $filename, 'public');
+                $bill->attachment = 'uploads/bills/' . $filename;
+            }
+
+            $bill->save();
             CustomField::saveData($bill, $request->customField);
             $products = $request->items;
 
@@ -345,7 +352,7 @@ class BillController extends Controller
 
             if(!empty($bill))
             {
-                if ($bill->status != 3 && $bill->status != 4) {
+                if ($bill->status == 0) {
                     $category     = ProductServiceCategory::where('created_by', \Auth::user()->creatorId())
                         ->whereNotIn('type', ['product & service', 'income',])
                         ->get()->pluck('name', 'id');
@@ -394,6 +401,9 @@ class BillController extends Controller
     {
 
         if (\Auth::user()->can('edit bill')) {
+            if ($bill->status > 0) {
+                return redirect()->back()->with('error', __('This bill has already been generated or approved and cannot be edited.'));
+            }
 
             if ($bill->created_by == \Auth::user()->creatorId()) {
                 $validator = \Validator::make(
@@ -416,6 +426,18 @@ class BillController extends Controller
                 $bill->user_type         =  'vendor';
                 $bill->order_number   = $request->order_number;
                 $bill->category_id    = $request->category_id;
+
+                if ($request->hasFile('attachment')) {
+                    $file = $request->file('attachment');
+                    $filename = time() . '_' . $file->getClientOriginalName();
+                    $file->storeAs('uploads/bills', $filename, 'public');
+                    // Delete old file if exists (optional but good practice)
+                    if ($bill->attachment) {
+                        \Storage::disk('public')->delete($bill->attachment);
+                    }
+                    $bill->attachment = 'uploads/bills/' . $filename;
+                }
+
                 $bill->save();
                 CustomField::saveData($bill, $request->customField);
                 $products = $request->items;

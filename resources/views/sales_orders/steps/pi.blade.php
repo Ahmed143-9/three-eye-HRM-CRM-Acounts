@@ -236,7 +236,7 @@
     </button>
     <button type="submit" class="btn btn-success d-inline-flex align-items-center"
         style="background-color: #6fd943; border-color: #6fd943; padding: 10px 25px; font-weight: 600;">
-        {{ __('Save & Proceed to LC') }}
+        {{ __('Save & Proceed to PO') }}
         <i class="ti ti-chevron-right ms-2"></i>
     </button>
 </div>

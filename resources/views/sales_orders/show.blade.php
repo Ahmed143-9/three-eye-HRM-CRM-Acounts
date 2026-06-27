@@ -55,17 +55,17 @@
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ $isPoActive ? 'active' : (!$order->buying ? 'disabled text-muted' : ($order->po ? 'text-success fw-bold' : 'text-dark')) }}" id="pills-po-tab" data-bs-toggle="pill" data-bs-target="#pills-po" type="button" role="tab">
-                                @if($order->po) <i class="ti ti-circle-check me-1"></i> @endif {{ __('2. PO') }}
+                            <button class="nav-link {{ $isPiActive ? 'active' : (!$order->buying ? 'disabled text-muted' : ($order->pi ? 'text-success fw-bold' : 'text-dark')) }}" id="pills-pi-tab" data-bs-toggle="pill" data-bs-target="#pills-pi" type="button" role="tab">
+                                @if($order->pi) <i class="ti ti-circle-check me-1"></i> @endif {{ __('2. PI') }}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ $isPiActive ? 'active' : (!$order->po ? 'disabled text-muted' : ($order->pi ? 'text-success fw-bold' : 'text-dark')) }}" id="pills-pi-tab" data-bs-toggle="pill" data-bs-target="#pills-pi" type="button" role="tab">
-                                @if($order->pi) <i class="ti ti-circle-check me-1"></i> @endif {{ __('3. PI') }}
+                            <button class="nav-link {{ $isPoActive ? 'active' : (!$order->pi ? 'disabled text-muted' : ($order->po ? 'text-success fw-bold' : 'text-dark')) }}" id="pills-po-tab" data-bs-toggle="pill" data-bs-target="#pills-po" type="button" role="tab">
+                                @if($order->po) <i class="ti ti-circle-check me-1"></i> @endif {{ __('3. PO') }}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link {{ $isLcActive ? 'active' : (!$order->pi ? 'disabled text-muted' : ($order->lc ? 'text-success fw-bold' : 'text-dark')) }}" id="pills-lc-tab" data-bs-toggle="pill" data-bs-target="#pills-lc" type="button" role="tab">
+                            <button class="nav-link {{ $isLcActive ? 'active' : (!$order->po ? 'disabled text-muted' : ($order->lc ? 'text-success fw-bold' : 'text-dark')) }}" id="pills-lc-tab" data-bs-toggle="pill" data-bs-target="#pills-lc" type="button" role="tab">
                                 @if($order->lc) <i class="ti ti-circle-check me-1"></i> @endif {{ __('4. LC') }}
                             </button>
                         </li>
@@ -80,11 +80,11 @@
                         <div class="tab-pane fade {{ ($order->current_step == 'Buying' && !request()->ci_id && !request()->new_ci) ? 'show active' : '' }}" id="pills-buying" role="tabpanel">
                             @include('sales_orders.steps.buying')
                         </div>
-                        <div class="tab-pane fade {{ ($order->current_step == 'PO' && !request()->ci_id && !request()->new_ci) ? 'show active' : '' }}" id="pills-po" role="tabpanel">
-                            @include('sales_orders.steps.po')
-                        </div>
                         <div class="tab-pane fade {{ ($order->current_step == 'PI' && !request()->ci_id && !request()->new_ci) ? 'show active' : '' }}" id="pills-pi" role="tabpanel">
                             @include('sales_orders.steps.pi')
+                        </div>
+                        <div class="tab-pane fade {{ ($order->current_step == 'PO' && !request()->ci_id && !request()->new_ci) ? 'show active' : '' }}" id="pills-po" role="tabpanel">
+                            @include('sales_orders.steps.po')
                         </div>
                         <div class="tab-pane fade {{ ($order->current_step == 'LC' && !request()->ci_id && !request()->new_ci) ? 'show active' : '' }}" id="pills-lc" role="tabpanel">
                             @include('sales_orders.steps.lc')

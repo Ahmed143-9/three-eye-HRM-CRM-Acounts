@@ -1560,6 +1560,7 @@ Route::group(['middleware' => ['verified']], function () {
     );
 
     Route::resource('competencies', CompetenciesController::class)->middleware(['auth', 'XSS']);
+    Route::resource('daily-accomplishments', App\Http\Controllers\DailyAccomplishmentController::class)->middleware(['auth', 'XSS']);
 
     Route::group(
         [

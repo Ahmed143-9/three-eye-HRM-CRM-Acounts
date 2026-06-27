@@ -139,7 +139,7 @@ class SalesOrderController extends Controller
             // Generate Payable Bill (Pending Approval)
             $this->generateSalesPayable($order, $buying, 'Product Purchase');
 
-            $order->current_step = 'PO';
+            $order->current_step = 'PI';
             $order->save();
         });
 
@@ -192,7 +192,7 @@ class SalesOrderController extends Controller
                 ]);
             }
 
-            $order->current_step = 'PI';
+            $order->current_step = 'LC';
             $order->save();
         });
 
@@ -246,7 +246,7 @@ class SalesOrderController extends Controller
             ]
         );
 
-        $order->current_step = 'LC';
+        $order->current_step = 'PO';
         $order->save();
 
         return redirect()->back()->with('success', __('PI saved successfully.'));
@@ -295,12 +295,13 @@ class SalesOrderController extends Controller
     {
         $order = SalesOrder::find($id);
 
-        $totalOrderQty = $order->po && $order->po->items ? $order->po->items->sum('quantity') : 0;
+        // Buying page total value
+        $totalOrderValue = $order->buying ? $order->buying->total_amount : ($order->po ? $order->po->grand_total : 0);
         
-        $proposedQty = 0;
+        $proposedValue = 0;
         if ($request->has('tankers')) {
             foreach ($request->tankers as $tankerData) {
-                $proposedQty += (float)($tankerData['qty_mt'] ?? 0);
+                $proposedValue += (float)($tankerData['total_amount'] ?? 0);
             }
         }
 
@@ -308,12 +309,15 @@ class SalesOrderController extends Controller
         if ($request->ci_id) {
             $otherCis = $otherCis->where('id', '!=', $request->ci_id);
         }
-        $existingDelivered = $otherCis->flatMap->tankers->sum('quantity_mt');
+        $existingDeliveredValue = $otherCis->flatMap->tankers->sum('total_amount_usd');
 
-        $maxAllowedQty = $totalOrderQty * 1.10; // 10% tolerance
+        // Allow configured tolerance (or default to 10%)
+        $tolerancePercent = \App\Models\Utility::getValByName('shipment_value_tolerance') ?? 10;
+        $toleranceFactor = 1 + ($tolerancePercent / 100);
+        $maxAllowedValue = $totalOrderValue * $toleranceFactor;
 
-        if (round($existingDelivered + $proposedQty, 3) > round($maxAllowedQty, 3)) {
-            return redirect()->back()->with('error', __('Total shipment quantity exceeds Sales Order total quantity (including 10% tolerance). Cannot save shipment.'));
+        if ($totalOrderValue > 0 && round($existingDeliveredValue + $proposedValue, 2) > round($maxAllowedValue, 2)) {
+            return redirect()->back()->with('error', __('Total shipment value exceeds Buying/PO total value (including ' . $tolerancePercent . '% tolerance). Cannot save shipment.'));
         }
 
         $transactionResult = DB::transaction(function () use ($request, $order) {
@@ -562,24 +566,31 @@ class SalesOrderController extends Controller
                 }
             }
 
-            // 4. Save or Update Delivery Details
+            $deliveryData = [
+                'delivery_mode' => $request->delivery_mode,
+                'packing_type' => $request->packing_type,
+                'total_quantity_mt' => $request->total_quantity_mt,
+                'total_quantity_kg' => $request->total_quantity_kg,
+                'required_units' => $request->required_units,
+                'inventory_item_id' => $inventory_item_id,
+                'drum_qty' => $drum_qty,
+                'drum_unit' => $request->drum_unit,
+                'created_by' => \Auth::user()->creatorId(),
+            ];
+
+            if ($request->filled('drum_buying_price')) {
+                $deliveryData['drum_buying_price'] = $request->drum_buying_price;
+                $deliveryData['drum_buying_total'] = $request->drum_buying_total ?? 0;
+            }
+            
+            if ($request->filled('drum_selling_price')) {
+                $deliveryData['drum_selling_price'] = $request->drum_selling_price;
+                $deliveryData['drum_selling_total'] = $request->drum_selling_total ?? 0;
+            }
+
             $delivery = \App\Models\SalesDelivery::updateOrCreate(
                 ['ci_id' => $ci_id, 'order_id' => $order->id],
-                [
-                    'delivery_mode' => $request->delivery_mode,
-                    'packing_type' => $request->packing_type,
-                    'total_quantity_mt' => $request->total_quantity_mt,
-                    'total_quantity_kg' => $request->total_quantity_kg,
-                    'required_units' => $request->required_units,
-                    'inventory_item_id' => $inventory_item_id,
-                    'drum_qty' => $drum_qty,
-                    'drum_unit' => $request->drum_unit,
-                    'drum_buying_price' => $request->drum_buying_price ?? 0,
-                    'drum_buying_total' => $request->drum_buying_total ?? 0,
-                    'drum_selling_price' => $request->drum_selling_price ?? 0,
-                    'drum_selling_total' => $request->drum_selling_total ?? 0,
-                    'created_by' => \Auth::user()->creatorId(),
-                ]
+                $deliveryData
             );
 
             return $delivery;

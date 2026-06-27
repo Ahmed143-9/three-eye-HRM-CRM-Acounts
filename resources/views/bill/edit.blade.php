@@ -482,7 +482,7 @@
 @endpush
 @section('content')
     <div class="row">
-        {{ Form::model($bill, array('route' => array('bill.update', $bill->id), 'method' => 'PUT','class'=>'w-100', 'class'=>'needs-validation', 'novalidate')) }}
+        {{ Form::model($bill, array('route' => array('bill.update', $bill->id), 'method' => 'PUT','class'=>'w-100 needs-validation', 'novalidate', 'enctype' => 'multipart/form-data')) }}
         <div class="col-12">
             <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
             <div class="card">
@@ -526,6 +526,15 @@
                                         <div class="text-xs mt-1">
                                             {{ __('Create category here.') }} <a href="{{ route('product-category.index') }}"><b>{{ __('Create category') }}</b></a>
                                         </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        {{ Form::label('attachment', __('Attachment'), ['class'=>'form-label']) }}
+                                        {{ Form::file('attachment', ['class' => 'form-control', 'accept' => 'image/*, .pdf']) }}
+                                        @if($bill->attachment)
+                                            <a href="{{ asset($bill->attachment) }}" target="_blank" class="text-primary mt-2 d-inline-block">{{ __('View current attachment') }}</a>
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="col-md-6">

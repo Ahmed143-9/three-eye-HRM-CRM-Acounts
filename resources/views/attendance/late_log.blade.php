@@ -4,7 +4,7 @@
 @endsection
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{ __('Dashboard') }}</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('attendanceemployee.index') }}">{{ __('Attendance') }}</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('attendanceemployee.history') }}">{{ __('Attendance') }}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{{ __('Late Updates') }}</li>
 @endsection
 
