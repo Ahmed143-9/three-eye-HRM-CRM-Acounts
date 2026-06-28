@@ -156,6 +156,7 @@
                     </select>
                 </td>
                 <td><input type="number" step="0.01" name="items[${index}][price]" class="form-control price" required></td>
+                <td><input type="number" step="0.01" name="items[${index}][freight]" class="form-control freight"></td>
                 <td>
                     <select name="items[${index}][currency]" class="form-control curr-select" required>
                         ${getCurrencyOptions()}

@@ -24,6 +24,7 @@
                             <th>{{ __('QTY') }}</th>
                             <th>{{ __('UNIT') }}</th>
                             <th>{{ __('PRICE PER UNIT') }}</th>
+                            <th>{{ __('FREIGHT') }}</th>
                             <th>{{ __('UNIT') }}</th>
                             <th>{{ __('TOTAL') }}</th>
                         </tr>
@@ -36,6 +37,7 @@
                                 <td>{{ number_format($item->quantity, 2) }}</td>
                                 <td>{{ $item->unit }}</td>
                                 <td>{{ number_format($item->price, 2) }}</td>
+                                <td>{{ number_format((float)$item->freight, 2) }}</td>
                                 <td>{{ $item->currency ?? 'D.' }}</td>
                                 <td>{{ number_format($item->total, 2) }}</td>
                             </tr>

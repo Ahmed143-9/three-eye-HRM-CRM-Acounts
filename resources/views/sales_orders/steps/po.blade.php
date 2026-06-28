@@ -105,6 +105,7 @@
                 <th width="10%">{{ __('QTY') }}</th>
                 <th width="12%">{{ __('Unit') }}</th>
                 <th width="12%">{{ __('Price Per Unit') }}</th>
+                <th width="12%">{{ __('Freight') }}</th>
                 <th width="12%">{{ __('Unit') }}</th>
                 <th width="12%">{{ __('Total') }}</th>
                 <th width="2%"></th>
@@ -130,6 +131,8 @@
                         </td>
                         <td><input type="number" step="0.01" name="items[{{$index}}][price]" class="form-control price"
                                 value="{{$item->price}}" required></td>
+                        <td><input type="number" step="0.01" name="items[{{$index}}][freight]" class="form-control freight"
+                                value="{{$item->freight}}"></td>
                         <td>
                             <select name="items[{{$index}}][currency]" class="form-control curr-select" required>
                                 @foreach($currencies as $val => $label)
@@ -159,6 +162,7 @@
                         </select>
                     </td>
                     <td><input type="number" step="0.01" name="items[0][price]" class="form-control price" required></td>
+                    <td><input type="number" step="0.01" name="items[0][freight]" class="form-control freight"></td>
                     <td>
                         <select name="items[0][currency]" class="form-control curr-select" required>
                             @foreach($currencies as $val => $label)
@@ -174,7 +178,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="6" class="text-end fw-bold align-middle">{{ __('Grand Total') }}:</td>
+                <td colspan="7" class="text-end fw-bold align-middle">{{ __('Grand Total') }}:</td>
                 <td class="fw-bold align-middle"><span
                         id="grand_total_display">{{ number_format($order->po->grand_total ?? 0, 2) }}</span></td>
                 <td class="text-center">

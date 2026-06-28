@@ -11,18 +11,18 @@
 @section('content')
 <style>
     @media print {
-        @page { size: A4; margin: 10mm 15mm; }
-        body { font-size: 11px !important; color: #000; font-family: "Times New Roman", Times, serif; }
+        @page { size: A4; margin: 5mm 15mm; }
+        body { font-size: 10px !important; color: #000; font-family: "Times New Roman", Times, serif; }
         .print-container { padding: 0 !important; border: none !important; width: 100%; max-width: 100%; margin: 0; box-shadow: none; }
         table { page-break-inside: avoid; }
         .header { display: none; }
     }
-    body { font-size: 11px; color: #000; font-family: "Times New Roman", Times, serif; }
+    body { font-size: 10px; color: #000; font-family: "Times New Roman", Times, serif; }
     .header { display: none; }
-    .header-logo { text-align: center; margin-bottom: 20px; }
-    .header-logo img { max-height: 80px; }
+    .header-logo { text-align: center; margin-bottom: 15px; }
+    .header-logo img { max-height: 70px; }
     
-    .doc-title { text-align: center; font-weight: bold; text-decoration: underline; font-size: 16px; margin-bottom: 10px; }
+    .doc-title { text-align: center; font-weight: bold; text-decoration: underline; font-size: 14px; margin-bottom: 5px; }
     
     .po-meta { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 2px; }
     
@@ -30,27 +30,27 @@
     table.parties th { border: 1px solid #000; padding: 5px; text-align: left; font-weight: bold; }
     table.parties td { width: 50%; border: 1px solid #000; vertical-align: top; padding: 5px; }
     
-    .content-body { margin-bottom: 15px; line-height: 1.4; }
-    .content-body p { margin: 5px 0; }
+    .content-body { margin-bottom: 10px; line-height: 1.3; }
+    .content-body p { margin: 3px 0; }
     
     .bold-title { font-weight: bold; margin-bottom: 2px; }
     
-    table.products { width: 100%; border-collapse: collapse; margin-bottom: 15px; border: 1.5px solid #000; }
-    table.products th { border: 1px solid #000; padding: 5px; text-align: left; font-weight: bold; }
-    table.products td { border: 1px solid #000; padding: 5px; text-align: left; }
+    table.products { width: 100%; border-collapse: collapse; margin-bottom: 10px; border: 1.5px solid #000; }
+    table.products th { border: 1px solid #000; padding: 4px; text-align: left; font-weight: bold; }
+    table.products td { border: 1px solid #000; padding: 4px; text-align: left; }
     
-    .commercial-terms { width: 100%; margin-bottom: 15px; line-height: 1.4; }
+    .commercial-terms { width: 100%; margin-bottom: 10px; line-height: 1.3; }
     .commercial-terms td { vertical-align: top; width: 50%; }
     
-    .general-terms { margin-bottom: 20px; }
+    .general-terms { margin-bottom: 10px; font-size: 9.5px; }
     .general-terms ol { padding-left: 20px; margin: 0; }
-    .general-terms li { margin-bottom: 3px; text-align: justify; }
+    .general-terms li { margin-bottom: 2px; text-align: justify; }
     
-    table.footer-sigs { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1.5px solid #000; }
-    table.footer-sigs th, table.footer-sigs td { border: 1px solid #000; padding: 4px 5px; text-align: left; vertical-align: top; }
+    table.footer-sigs { width: 100%; border-collapse: collapse; margin-top: 10px; border: 1.5px solid #000; }
+    table.footer-sigs th, table.footer-sigs td { border: 1px solid #000; padding: 3px 4px; text-align: left; vertical-align: top; }
     table.footer-sigs th { font-weight: bold; }
     .sig-field { display: flex; }
-    .sig-label { width: 80px; font-weight: bold; }
+    .sig-label { width: 70px; font-weight: bold; }
 </style>
 
 <div class="header-logo">
@@ -120,7 +120,7 @@
             <td><strong style="font-weight: bold;">{{ $item->item_name }}</strong></td>
             <td>{{ $item->quantity }} {{ $item->unit }}</td>
             <td>{{ $item->currency }} {{ $item->price }}</td>
-            <td></td>
+            <td>{{ $item->freight ? $item->currency . ' ' . $item->freight : '' }}</td>
             <td>{{ $item->currency }} {{ $item->total }}</td>
         </tr>
         @endforeach
@@ -190,7 +190,7 @@
     <tr>
         <td><div class="sig-field"><div class="sig-label">Date</div><div>: </div></div></td>
         <td><div class="sig-field"><div class="sig-label">Date</div><div>: </div></div></td>
-        <td><div class="sig-field"><div class="sig-label">Date</div><div>: </div></div></td>
+        <td><div class="sig-field"><div class="sig-label">Date</div><div>: {{ \Carbon\Carbon::parse($order->created_at)->format('d F Y') }}</div></div></td>
     </tr>
 </table>
 @endsection

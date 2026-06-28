@@ -187,6 +187,7 @@ class SalesOrderController extends Controller
                     'quantity' => $item['qty'],
                     'unit' => $item['unit'],
                     'price' => $item['price'],
+                    'freight' => $item['freight'] ?? null,
                     'currency' => $item['currency'] ?? 'D.',
                     'total' => $item['total'],
                 ]);
