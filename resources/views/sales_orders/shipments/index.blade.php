@@ -57,7 +57,7 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card bg-warning text-white border-0 shadow-sm">
+                <div class="card bg-warning text-dark border-0 shadow-sm">
                     <div class="card-body p-3 text-center">
                         <h6 class="text-dark-50 small mb-1 uppercase">{{ __('Remaining to Ship') }}</h6>
                         <h3 class="mb-0 fw-bold" id="matrix_remaining">{{ number_format($remainingQty, 3) }} <small

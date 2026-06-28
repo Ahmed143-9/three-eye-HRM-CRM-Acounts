@@ -38,9 +38,12 @@
                     @include('customFields.formBuilder')
         @endif
         <div class="col-lg-12 col-md-12 col-sm-12">
-            <div class="form-group">
+            <div class="form-group" id="client_files_container">
                 {{Form::label('client_files',__('Client Files'),['class'=>'form-label'])}}
-                <input type="file" name="client_files[]" class="form-control" multiple accept=".pdf,.png,.jpg,.jpeg">
+                <div class="input-group mb-2">
+                    <input type="file" name="client_files[]" class="form-control" accept=".pdf,.png,.jpg,.jpeg">
+                    <button type="button" class="btn btn-primary add-file-input"><i class="ti ti-plus"></i></button>
+                </div>
             </div>
         </div>
     </div>
@@ -166,3 +169,13 @@
     <input type="submit" value="{{__('Create')}}" class="btn btn-primary">
 </div>
 {{Form::close()}}
+
+<script>
+    $(document).on('click', '.add-file-input', function() {
+        var html = '<div class="input-group mb-2"><input type="file" name="client_files[]" class="form-control" accept=".pdf,.png,.jpg,.jpeg"><button type="button" class="btn btn-danger remove-file-input"><i class="ti ti-trash"></i></button></div>';
+        $('#client_files_container').append(html);
+    });
+    $(document).on('click', '.remove-file-input', function() {
+        $(this).closest('.input-group').remove();
+    });
+</script>

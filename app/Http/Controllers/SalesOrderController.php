@@ -324,8 +324,8 @@ class SalesOrderController extends Controller
             $ci = SalesCI::updateOrCreate(
                 ['id' => $request->ci_id, 'order_id' => $order->id],
                 [
-                    'pi_id' => $order->pi->id,
-                    'lc_id' => $order->lc->id,
+                    'pi_id' => optional($order->pi)->id,
+                    'lc_id' => optional($order->lc)->id,
                     'ci_number' => $request->ci_number,
                     'client_ci_number' => $request->client_ci_number,
                     'ci_date' => $request->ci_date,
