@@ -312,7 +312,8 @@ class SalesOrderController extends Controller
         $existingDeliveredValue = $otherCis->flatMap->tankers->sum('total_amount_usd');
 
         // Allow configured tolerance (or default to 10%)
-        $tolerancePercent = \App\Models\Utility::getValByName('shipment_value_tolerance') ?? 10;
+        $rawTolerance = \App\Models\Utility::getValByName('shipment_value_tolerance');
+        $tolerancePercent = is_numeric($rawTolerance) ? (float) $rawTolerance : 10;
         $toleranceFactor = 1 + ($tolerancePercent / 100);
         $maxAllowedValue = $totalOrderValue * $toleranceFactor;
 
@@ -322,7 +323,7 @@ class SalesOrderController extends Controller
 
         $transactionResult = DB::transaction(function () use ($request, $order) {
             $ci = SalesCI::updateOrCreate(
-                ['id' => $request->ci_id, 'order_id' => $order->id],
+                ['id' => $request->ci_id ?: null, 'order_id' => $order->id],
                 [
                     'pi_id' => optional($order->pi)->id,
                     'lc_id' => optional($order->lc)->id,
