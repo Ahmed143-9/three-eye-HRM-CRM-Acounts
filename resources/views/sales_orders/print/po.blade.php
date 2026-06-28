@@ -173,9 +173,9 @@
         <th style="font-weight: bold;">{{ \App\Models\Utility::getValByName('company_name') ?? 'Three Eye' }}</th>
     </tr>
     <tr>
-        <td><div class="sig-field"><div class="sig-label">Signatory</div><div>: {{ $order->po->acknowledged_by ?? '' }}</div></div></td>
-        <td><div class="sig-field"><div class="sig-label">Signatory</div><div>: </div></div></td>
-        <td><div class="sig-field"><div class="sig-label">Signatory</div><div>: {{ $order->po->prepared_by ?? \Auth::user()->name }}</div></div></td>
+        <td><div class="sig-field"><div class="sig-label">Signatory</div><div>: {{ $customer && $customer->contact_person_name ? $customer->contact_person_name : ($order->po->client_email ? explode('@', $order->po->client_email)[0] : '') }}</div></div></td>
+        <td><div class="sig-field"><div class="sig-label">Signatory</div><div>: {{ $supplier && $supplier->contact_person_name ? $supplier->contact_person_name : '' }}</div></div></td>
+        <td><div class="sig-field"><div class="sig-label">Signatory</div><div>: Kazi Gulshan Ara</div></div></td>
     </tr>
     <tr>
         <td><div class="sig-field"><div class="sig-label">Designation</div><div>: </div></div></td>
@@ -185,7 +185,7 @@
     <tr>
         <td><div class="sig-field"><div class="sig-label">Signature</div><div>: </div></div></td>
         <td><div class="sig-field"><div class="sig-label">Signature</div><div>: </div></div></td>
-        <td><div class="sig-field"><div class="sig-label">Signature</div><div>: </div></div></td>
+        <td><div class="sig-field"><div class="sig-label">Signature</div><div>: .....................................</div></div></td>
     </tr>
     <tr>
         <td><div class="sig-field"><div class="sig-label">Date</div><div>: </div></div></td>
