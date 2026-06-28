@@ -90,7 +90,12 @@
                         </div>
                         <div class="form-group col-md-6">
                             <label class="form-label">{{ __('File Attachment') }}</label>
-                            <input type="file" class="form-control" name="file_attachment">
+                            <div id="file_attachment_container">
+                                <div class="input-group mb-2">
+                                    <input type="file" class="form-control" name="file_attachment[]">
+                                    <button type="button" class="btn btn-primary add-file-input"><i class="ti ti-plus"></i></button>
+                                </div>
+                            </div>
                             <div class="form-check form-switch mt-4">
                                 <input type="checkbox" class="form-check-input" name="is_active" id="is_active" checked>
                                 <label class="form-check-label" for="is_active">{{ __('Active') }}</label>
@@ -105,4 +110,14 @@
         </div>
     </div>
 </div>
+
+<script>
+    $(document).on('click', '.add-file-input', function() {
+        var html = '<div class="input-group mb-2"><input type="file" name="file_attachment[]" class="form-control"><button type="button" class="btn btn-danger remove-file-input"><i class="ti ti-trash"></i></button></div>';
+        $('#file_attachment_container').append(html);
+    });
+    $(document).on('click', '.remove-file-input', function() {
+        $(this).closest('.input-group').remove();
+    });
+</script>
 @endsection

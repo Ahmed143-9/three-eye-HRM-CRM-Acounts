@@ -33,31 +33,31 @@
     <div class="col-md-6">
         <div class="form-group">
             {{ Form::label('client_name', __('Client Name'), ['class' => 'form-label']) }}
-            {{ Form::text('client_name', $order->po->client_name ?? $order->customer->name, ['class' => 'form-control', 'required' => 'required']) }}
+            {{ Form::text('client_name', $order->customer->name ?? '', ['class' => 'form-control', 'required' => 'required']) }}
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
             {{ Form::label('client_email', __('Client Email'), ['class' => 'form-label']) }}
-            {{ Form::email('client_email', $order->po->client_email ?? $order->customer->contact_person_email, ['class' => 'form-control']) }}
+            {{ Form::email('client_email', $order->customer->contact_person_email ?? '', ['class' => 'form-control']) }}
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
             {{ Form::label('client_phone', __('Client Phone'), ['class' => 'form-label']) }}
-            {{ Form::text('client_phone', $order->po->client_phone ?? $order->customer->contact_person_number, ['class' => 'form-control']) }}
+            {{ Form::text('client_phone', $order->customer->contact_person_number ?? '', ['class' => 'form-control']) }}
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
             {{ Form::label('signature', __('Authorized Signature Details'), ['class' => 'form-label']) }}
-            {{ Form::text('signature', $order->po->signature ?? $order->customer->contact_person_name, ['class' => 'form-control']) }}
+            {{ Form::text('signature', $order->customer->contact_person_name ?? '', ['class' => 'form-control']) }}
         </div>
     </div>
     <div class="col-md-12">
         <div class="form-group">
             {{ Form::label('client_address', __('Client Address'), ['class' => 'form-label']) }}
-            {{ Form::textarea('client_address', $order->po->client_address ?? $order->customer->billing_address, ['class' => 'form-control', 'rows' => 2]) }}
+            {{ Form::textarea('client_address', $order->customer->billing_address ?? '', ['class' => 'form-control', 'rows' => 2]) }}
         </div>
     </div>
     <div class="col-md-6">

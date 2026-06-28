@@ -51,7 +51,7 @@ class AccountingClientController extends Controller
             'bank_name' => 'nullable|string',
             'bank_branch' => 'nullable|string',
             'bank_account_number' => 'nullable|string',
-            'file_attachment' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:2048',
+            'file_attachment.*' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -62,10 +62,13 @@ class AccountingClientController extends Controller
             $data = $request->except('_token', 'file_attachment');
             
             if ($request->hasFile('file_attachment')) {
-                $file = $request->file('file_attachment');
-                $fileName = time() . '_' . $file->getClientOriginalName();
-                $path = $file->storeAs('uploads/clients', $fileName, 'public');
-                $data['file_attachment'] = $path;
+                $files = [];
+                foreach ($request->file('file_attachment') as $file) {
+                    $fileName = time() . '_' . $file->getClientOriginalName();
+                    $file->storeAs('uploads/clients', $fileName, 'public');
+                    $files[] = 'uploads/clients/' . $fileName;
+                }
+                $data['file_attachment'] = json_encode($files);
             }
 
             $data['created_by'] = auth()->id() ?? 0;
@@ -107,16 +110,22 @@ class AccountingClientController extends Controller
             'bank_name' => 'nullable|string',
             'bank_branch' => 'nullable|string',
             'bank_account_number' => 'nullable|string',
-            'file_attachment' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:2048',
+            'file_attachment.*' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:2048',
         ]);
 
         $data = $request->except('_token', 'file_attachment', '_method');
 
         if ($request->hasFile('file_attachment')) {
-            $file = $request->file('file_attachment');
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            $path = $file->storeAs('uploads/clients', $fileName, 'public');
-            $data['file_attachment'] = $path;
+            $files = $client->file_attachment ? json_decode($client->file_attachment, true) : [];
+            if (!is_array($files)) {
+                $files = [];
+            }
+            foreach ($request->file('file_attachment') as $file) {
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $file->storeAs('uploads/clients', $fileName, 'public');
+                $files[] = 'uploads/clients/' . $fileName;
+            }
+            $data['file_attachment'] = json_encode($files);
         }
 
         $data['is_active'] = $request->has('is_active') ? 1 : 0;
