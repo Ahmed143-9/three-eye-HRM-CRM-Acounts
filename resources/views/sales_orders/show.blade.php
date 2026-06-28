@@ -232,13 +232,13 @@
                 $('#matrix_delivered').text(deliveredSoFar.toFixed(3) + ' MT');
                 $('#matrix_remaining').text(remainingQty.toFixed(3) + ' MT');
                 if(remainingQty < 0) {
-                    $('#matrix_remaining').removeClass('text-warning').addClass('text-danger');
+                    $('#matrix_remaining').removeClass('text-dark').addClass('text-danger');
                     $('#ci-submit-btn').prop('disabled', true);
                     if ($('#qty-warning').length === 0) {
                         $('.d-flex.justify-content-between.align-items-center.mt-3').prepend('<div id="qty-warning" class="text-danger fw-bold"><i class="ti ti-alert-triangle"></i> Cannot exceed total order quantity!</div>');
                     }
                 } else {
-                    $('#matrix_remaining').removeClass('text-danger').addClass('text-warning');
+                    $('#matrix_remaining').removeClass('text-danger').addClass('text-dark');
                     $('#ci-submit-btn').prop('disabled', false);
                     $('#qty-warning').remove();
                 }
