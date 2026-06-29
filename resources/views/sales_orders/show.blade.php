@@ -170,9 +170,12 @@
 
         // Calculation logic
         $(document).on('click', '.remove-item', function() { $(this).closest('tr').remove(); calculateGrandTotal(); });
-        $(document).on('keyup change', '.qty, .price', function() {
+        $(document).on('keyup change', '.qty, .price, .freight', function() {
             var tr = $(this).closest('tr');
-            var total = (tr.find('.qty').val() || 0) * (tr.find('.price').val() || 0);
+            var qty = parseFloat(tr.find('.qty').val()) || 0;
+            var price = parseFloat(tr.find('.price').val()) || 0;
+            var freight = parseFloat(tr.find('.freight').val()) || 0;
+            var total = (qty * price) + freight;
             tr.find('.total').val(total.toFixed(2));
             calculateGrandTotal();
         });

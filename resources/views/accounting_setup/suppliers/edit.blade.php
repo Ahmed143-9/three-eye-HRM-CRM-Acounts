@@ -100,7 +100,7 @@
                                     @foreach($files as $file)
                                         <div class="input-group mb-2">
                                             <input type="text" class="form-control" value="{{ basename($file) }}" readonly>
-                                            <a href="{{ Storage::url($file) }}" target="_blank" class="btn btn-info"><i class="ti ti-eye"></i></a>
+                                            <a href="{{ \App\Models\Utility::get_file($file) }}" target="_blank" class="btn btn-info"><i class="ti ti-eye"></i></a>
                                             @if($loop->last)
                                                 <button type="button" class="btn btn-primary add-file-input"><i class="ti ti-plus"></i></button>
                                             @endif
