@@ -112,13 +112,13 @@
         $supplier = \App\Models\Supplier::find(optional($order->buying)->supplier_id);
         $seller_name = $supplier->name ?? '';
         $seller_address = $supplier->billing_address ?? '';
-        $seller_mobile = $supplier->phone ?? '';
-        $seller_email = $supplier->email ?? '';
+        $seller_mobile = $supplier->contact_person_number ?? $supplier->phone ?? '';
+        $seller_email = $supplier->contact_person_email ?? $supplier->email ?? '';
 
         $buyer_name = $order->customer->name ?? '';
         $buyer_address = $order->customer->billing_address ?? '';
-        $buyer_mobile = $order->customer->phone ?? '';
-        $buyer_email = $order->customer->email ?? '';
+        $buyer_mobile = $order->customer->contact_person_number ?? $order->customer->phone ?? '';
+        $buyer_email = $order->customer->contact_person_email ?? $order->customer->email ?? '';
     @endphp
 
     <div class="col-md-6">
