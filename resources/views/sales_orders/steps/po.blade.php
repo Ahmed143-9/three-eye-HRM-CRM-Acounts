@@ -202,6 +202,9 @@
 
 <div class="d-flex justify-content-between align-items-center mt-3">
     <div>
+        <button type="button" class="btn btn-outline-secondary me-2" onclick="switchWorkflowStep('pills-pi-tab')">
+            <i class="ti ti-chevron-left me-1"></i>{{ __('Previous: PI') }}
+        </button>
         @if($order->po)
             <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#poPreviewModal">
                 <i class="ti ti-eye me-1"></i>{{ __('Preview & Download PDF') }}

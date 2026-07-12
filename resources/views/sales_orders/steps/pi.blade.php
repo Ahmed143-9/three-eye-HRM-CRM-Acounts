@@ -1,14 +1,14 @@
-@if(empty($order->po))
-    <div class="alert alert-warning">DEBUG: $order->po is empty. Data not loaded in controller?</div>
+@if(empty($order->buying))
+    <div class="alert alert-warning">DEBUG: $order->buying is empty. Data not loaded in controller?</div>
 @else
-    <div class="alert alert-success">DEBUG: $order->po exists (ID: {{ $order->po->id }}). Rendering...</div>
+    <div class="alert alert-success">DEBUG: $order->buying exists (ID: {{ $order->buying->id }}). Rendering...</div>
 @endif
 
 <h5>{{ __('Step 2: Proforma Invoice (PI)') }}</h5>
 <p class="text-muted mb-0">{{ __('Step 2 of 7') }}</p>
 <hr>
 
-@if($order->po)
+@if($order->buying)
     <div class="col-md-12 mb-3">
         <div class="card border">
             <div class="card-header bg-light py-2">
@@ -69,6 +69,7 @@
                 </div>
             @endif
         </div>
+    </div>
     </div>
 @endif
 
@@ -255,8 +256,8 @@
 </div>
 
 <div class="d-flex justify-content-between align-items-center mt-3">
-    <button type="button" class="btn btn-outline-secondary" onclick="switchWorkflowStep('pills-po-tab')">
-        <i class="ti ti-chevron-left me-1"></i>{{ __('Previous: PO') }}
+    <button type="button" class="btn btn-outline-secondary" onclick="switchWorkflowStep('pills-buying-tab')">
+        <i class="ti ti-chevron-left me-1"></i>{{ __('Previous: Buying') }}
     </button>
     <button type="submit" class="btn btn-success d-inline-flex align-items-center"
         style="background-color: #6fd943; border-color: #6fd943; padding: 10px 25px; font-weight: 600;">
