@@ -176,7 +176,7 @@
             var qty = parseFloat(tr.find('.qty').val()) || 0;
             var price = parseFloat(tr.find('.price').val()) || 0;
             var freight = parseFloat(tr.find('.freight').val()) || 0;
-            var total = (qty * price) + freight;
+            var total = (price + freight) * qty;
             tr.find('.total').val(total.toFixed(2));
             calculateGrandTotal();
         });
