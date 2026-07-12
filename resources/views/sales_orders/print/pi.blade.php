@@ -50,7 +50,7 @@
     </tr>
     <tr>
         <td><strong>Country of Origin:</strong> {{ $order->pi->country_of_origin }}</td>
-        <td><strong>Incoterm:</strong> {{ $order->pi->incoterm }}</td>
+        <td><strong>Incoterm:</strong> {{ $order->incoterm }}</td>
     </tr>
     <tr>
         <td colspan="2"><strong>Total Amount:</strong> {{ $order->pi->amount }}</td>

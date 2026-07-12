@@ -61,8 +61,10 @@ class SalesOrderController extends Controller
         $customers = Client::where('created_by', $creatorId)
             ->orWhere('id', '>', 0) // Broaden to ensure accessibility
             ->get()->pluck('name', 'id');
+            
+        $incoterms = \App\Models\Incoterm::where('created_by', $creatorId)->pluck('name', 'name')->toArray();
 
-        return view('sales_orders.create', compact('customers'));
+        return view('sales_orders.create', compact('customers', 'incoterms'));
     }
 
     public function store(Request $request)
@@ -70,6 +72,7 @@ class SalesOrderController extends Controller
         $order = new SalesOrder();
         $order->order_number = 'ORD-' . time();
         $order->customer_id = $request->customer_id;
+        $order->incoterm = $request->incoterm;
         $order->current_step = 'Buying';
         $order->status = 'pending';
         $order->created_by = Auth::user()->creatorId();
@@ -131,6 +134,7 @@ class SalesOrderController extends Controller
                     'quantity' => $item['qty'],
                     'unit' => $item['unit'],
                     'price' => $item['price'],
+                    'freight' => $item['freight'] ?? null,
                     'currency' => $item['currency'] ?? 'D.',
                     'total' => $item['total'],
                 ]);
@@ -213,38 +217,45 @@ class SalesOrderController extends Controller
             }
         }
 
+        $updateData = [
+            'pi_number' => $request->pi_number,
+            'client_pi_number' => $request->client_pi_number,
+            'pi_date' => $pi_date,
+            'validity' => $request->validity,
+            'lifting_time' => $request->lifting_time,
+            'payment_terms' => $request->payment_terms,
+            'hs_code' => $request->hs_code,
+            'country_of_origin' => $request->country_of_origin,
+            'tolerance' => $request->tolerance,
+            'port_of_loading' => $request->port_of_loading,
+            'port_of_discharge' => $request->port_of_discharge,
+            'amount' => $request->amount ?? (optional($order->buying)->total_amount ?? 0),
+            'seller_name' => $request->seller_name,
+            'seller_address' => $request->seller_address,
+            'seller_mobile' => $request->seller_mobile,
+            'seller_email' => $request->seller_email,
+            'buyer_name' => $request->buyer_name,
+            'buyer_address' => $request->buyer_address,
+            'buyer_mobile' => $request->buyer_mobile,
+            'buyer_email' => $request->buyer_email,
+            'bank_name' => $request->bank_name,
+            'account_name' => $request->account_name,
+            'branch' => $request->branch,
+            'account_no' => $request->account_no,
+            'swift_code' => $request->swift_code,
+            'terms_and_conditions' => $request->terms_and_conditions,
+            'created_by' => Auth::user()->creatorId(),
+        ];
+
+        if ($request->hasFile('file')) {
+            $fileName = time() . '_pi_' . str_replace(' ', '_', $request->file->getClientOriginalName());
+            $request->file->storeAs('uploads/sales_orders', $fileName);
+            $updateData['file_path'] = 'uploads/sales_orders/' . $fileName;
+        }
+
         SalesPI::updateOrCreate(
             ['order_id' => $order->id],
-            [
-                'pi_number' => $request->pi_number,
-                'client_pi_number' => $request->client_pi_number,
-                'pi_date' => $pi_date,
-                'validity' => $request->validity,
-                'lifting_time' => $request->lifting_time,
-                'payment_terms' => $request->payment_terms,
-                'hs_code' => $request->hs_code,
-                'country_of_origin' => $request->country_of_origin,
-                'tolerance' => $request->tolerance,
-                'port_of_loading' => $request->port_of_loading,
-                'port_of_discharge' => $request->port_of_discharge,
-                'amount' => $request->amount ?? (optional($order->po)->grand_total ?? 0),
-                'seller_name' => $request->seller_name,
-                'seller_address' => $request->seller_address,
-                'seller_mobile' => $request->seller_mobile,
-                'seller_email' => $request->seller_email,
-                'buyer_name' => $request->buyer_name,
-                'buyer_address' => $request->buyer_address,
-                'buyer_mobile' => $request->buyer_mobile,
-                'buyer_email' => $request->buyer_email,
-                'incoterm' => $request->incoterm,
-                'bank_name' => $request->bank_name,
-                'account_name' => $request->account_name,
-                'branch' => $request->branch,
-                'account_no' => $request->account_no,
-                'swift_code' => $request->swift_code,
-                'terms_and_conditions' => $request->terms_and_conditions,
-                'created_by' => Auth::user()->creatorId(),
-            ]
+            $updateData
         );
 
         $order->current_step = 'PO';
@@ -256,34 +267,42 @@ class SalesOrderController extends Controller
     public function lcStore(Request $request, $id)
     {
         $order = SalesOrder::find($id);
+        $updateData = [
+            'pi_id' => $order->pi->id,
+            'lc_reference_no' => $request->lc_reference_no,
+            'client_lc_no' => $request->client_lc_no,
+            'lc_type' => $request->lc_type,
+            'lc_qty' => $request->lc_qty,
+            'unit' => $request->unit,
+            'lc_date' => $request->lc_date,
+            'latest_shipment_date' => $request->latest_shipment_date,
+            'lc_validity_date' => $request->lc_validity_date,
+            'seller_name' => $request->seller_name,
+            'seller_address' => $request->seller_address,
+            'seller_mobile' => $request->seller_mobile,
+            'seller_email' => $request->seller_email,
+            'buyer_name' => $request->buyer_name,
+            'buyer_address' => $request->buyer_address,
+            'buyer_mobile' => $request->buyer_mobile,
+            'buyer_email' => $request->buyer_email,
+            'lifting_time' => $request->lifting_time,
+            'country_of_origin' => $request->country_of_origin,
+            'tolerance' => $request->tolerance,
+            'port_of_loading' => $request->port_of_loading,
+            'port_of_discharge' => $request->port_of_discharge,
+            'terms_and_conditions' => $request->terms_and_conditions,
+            'created_by' => Auth::user()->creatorId(),
+        ];
+
+        if ($request->hasFile('file')) {
+            $fileName = time() . '_lc_' . str_replace(' ', '_', $request->file->getClientOriginalName());
+            $request->file->storeAs('uploads/sales_orders', $fileName);
+            $updateData['file_path'] = 'uploads/sales_orders/' . $fileName;
+        }
+
         SalesLC::updateOrCreate(
             ['order_id' => $order->id],
-            [
-                'pi_id' => $order->pi->id,
-                'lc_reference_no' => $request->lc_reference_no,
-                'client_lc_no' => $request->client_lc_no,
-                'lc_type' => $request->lc_type,
-                'lc_qty' => $request->lc_qty,
-                'unit' => $request->unit,
-                'lc_date' => $request->lc_date,
-                'latest_shipment_date' => $request->latest_shipment_date,
-                'lc_validity_date' => $request->lc_validity_date,
-                'seller_name' => $request->seller_name,
-                'seller_address' => $request->seller_address,
-                'seller_mobile' => $request->seller_mobile,
-                'seller_email' => $request->seller_email,
-                'buyer_name' => $request->buyer_name,
-                'buyer_address' => $request->buyer_address,
-                'buyer_mobile' => $request->buyer_mobile,
-                'buyer_email' => $request->buyer_email,
-                'lifting_time' => $request->lifting_time,
-                'country_of_origin' => $request->country_of_origin,
-                'tolerance' => $request->tolerance,
-                'port_of_loading' => $request->port_of_loading,
-                'port_of_discharge' => $request->port_of_discharge,
-                'terms_and_conditions' => $request->terms_and_conditions,
-                'created_by' => Auth::user()->creatorId(),
-            ]
+            $updateData
         );
 
         $order->current_step = 'CI';

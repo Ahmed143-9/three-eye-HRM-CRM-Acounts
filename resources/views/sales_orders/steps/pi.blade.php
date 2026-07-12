@@ -9,49 +9,72 @@
 <hr>
 
 @if($order->po)
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-body">
-            <div class="d-flex align-items-center gap-2 mb-3 mt-2">
-                <i class="ti ti-clipboard-list text-primary"></i>
-                <h6 class="fw-semibold mb-0 text-dark">{{ __('Product Order Details (Read-only)') }}</h6>
+    <div class="col-md-12 mb-3">
+        <div class="card border">
+            <div class="card-header bg-light py-2">
+                <h6 class="mb-0 fw-bold">{{ __('Product Order Details (Read-only)') }}</h6>
             </div>
-            <div class="table-responsive mt-3">
-                <table class="table table-hover table-sm">
-                    <thead class="bg-light">
-                        <tr>
-                            <th>{{ __('ITEM') }}</th>
-                            <th>{{ __('DESCRIPTION') }}</th>
-                            <th>{{ __('QTY') }}</th>
-                            <th>{{ __('UNIT') }}</th>
-                            <th>{{ __('PRICE PER UNIT') }}</th>
-                            <th>{{ __('FREIGHT') }}</th>
-                            <th>{{ __('UNIT') }}</th>
-                            <th>{{ __('TOTAL') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($order->po->items as $item)
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm mb-0">
+                        <thead class="bg-light text-center">
                             <tr>
-                                <td>{{ $item->item_name }}</td>
-                                <td>{{ $item->description }}</td>
-                                <td>{{ number_format($item->quantity, 2) }}</td>
-                                <td>{{ $item->unit }}</td>
-                                <td>{{ number_format($item->price, 2) }}</td>
-                                <td>{{ number_format((float)$item->freight, 2) }}</td>
-                                <td>{{ $item->currency ?? 'D.' }}</td>
-                                <td>{{ number_format($item->total, 2) }}</td>
+                                <th>{{ __('Item Name') }}</th>
+                                <th>{{ __('Description') }}</th>
+                                <th>{{ __('Qty') }}</th>
+                                <th>{{ __('Unit') }}</th>
+                                <th>{{ __('Price') }}</th>
+                                <th>{{ __('Freight') }}</th>
+                                <th>{{ __('Currency') }}</th>
+                                <th>{{ __('Total') }}</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @if($order->buying && $order->buying->items)
+                                @foreach($order->buying->items as $item)
+                                    <tr class="text-center">
+                                        <td>{{ $item->item_name }}</td>
+                                        <td>{{ $item->description }}</td>
+                                        <td>{{ $item->quantity }}</td>
+                                        <td>{{ $item->unit }}</td>
+                                        <td>{{ number_format($item->price, 2) }}</td>
+                                        <td>{{ number_format($item->freight ?? 0, 2) }}</td>
+                                        <td>{{ $item->currency ?? 'D.' }}</td>
+                                        <td>{{ number_format($item->total, 2) }}</td>
+                                    </tr>
+                                @endforeach
+                                <tr class="text-center fw-bold bg-light">
+                                    <td colspan="7" class="text-end">{{ __('Grand Total:') }}</td>
+                                    <td>{{ number_format($order->buying->total_amount, 2) }}</td>
+                                </tr>
+                            @else
+                                <tr><td colspan="8" class="text-center text-muted">{{ __('No products found from Buying step.') }}</td></tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
             </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <div class="form-group">
+            {{ Form::label('file', __('PI File Upload'), ['class' => 'form-label']) }}
+            <input type="file" name="file" class="form-control">
+            @if(isset($order->pi) && $order->pi->file_path)
+                <div class="mt-2">
+                    <a href="{{ \App\Models\Utility::get_file($order->pi->file_path) }}" target="_blank" class="btn btn-sm btn-info text-white">
+                        <i class="ti ti-eye"></i> {{ __('View Uploaded PI Document') }}
+                    </a>
+                </div>
+            @endif
         </div>
     </div>
 @endif
 
 <h6 class="fw-bold mb-3">{{ __('Step 2: Proforma Invoice (PI)') }}</h6>
 
-{{ Form::open(['route' => ['sales-orders.pi.store', $order->id], 'method' => 'post', 'id' => 'workflow-form']) }}
+{{ Form::open(['route' => ['sales-orders.pi.store', $order->id], 'method' => 'post', 'id' => 'workflow-form', 'enctype' => 'multipart/form-data']) }}
 <div class="row">
     <div class="col-md-4">
         <div class="form-group">
@@ -78,14 +101,6 @@
             {{ Form::number('validity', $order->pi->validity ?? null, ['class' => 'form-control']) }}
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="form-group">
-            {{ Form::label('incoterm', __('Incoterms'), ['class' => 'form-label']) }}
-            @php
-                $incoterms = \App\Models\Incoterm::where('created_by', \Auth::user()->creatorId())->pluck('name', 'name')->toArray();
-            @endphp
-            {{ Form::select('incoterm', ['' => __('Select Incoterms')] + $incoterms, $order->pi->incoterm ?? null, ['class' => 'form-control select2 incoterm-select']) }}
-        </div>
     </div>
     <div class="col-md-4">
         <div class="form-group">
@@ -94,25 +109,38 @@
         </div>
     </div>
 
+    @php
+        $supplier = \App\Models\Supplier::find(optional($order->buying)->supplier_id);
+        $seller_name = $supplier->name ?? '';
+        $seller_address = $supplier->billing_address ?? '';
+        $seller_mobile = $supplier->phone ?? '';
+        $seller_email = $supplier->email ?? '';
+
+        $buyer_name = $order->customer->name ?? '';
+        $buyer_address = $order->customer->billing_address ?? '';
+        $buyer_mobile = $order->customer->phone ?? '';
+        $buyer_email = $order->customer->email ?? '';
+    @endphp
+
     <div class="col-md-6">
         <div class="card shadow-sm border mb-3">
             <div class="card-body p-3">
                 <h6 class="fw-bold mb-3 text-warning">{{ __('Seller Information') }}</h6>
                 <div class="form-group mb-2">
                     {{ Form::label('seller_name', __('Name'), ['class' => 'form-label']) }}
-                    {{ Form::text('seller_name', $order->pi->seller_name ?? '', ['class' => 'form-control']) }}
+                    {{ Form::text('seller_name', $order->pi->seller_name ?? $seller_name, ['class' => 'form-control', 'readonly']) }}
                 </div>
                 <div class="form-group mb-2">
                     {{ Form::label('seller_address', __('Address'), ['class' => 'form-label']) }}
-                    {{ Form::textarea('seller_address', $order->pi->seller_address ?? '', ['class' => 'form-control', 'rows' => 2]) }}
+                    {{ Form::textarea('seller_address', $order->pi->seller_address ?? $seller_address, ['class' => 'form-control', 'rows' => 2, 'readonly']) }}
                 </div>
                 <div class="form-group mb-2">
                     {{ Form::label('seller_mobile', __('Mobile No'), ['class' => 'form-label']) }}
-                    {{ Form::text('seller_mobile', $order->pi->seller_mobile ?? '', ['class' => 'form-control']) }}
+                    {{ Form::text('seller_mobile', $order->pi->seller_mobile ?? $seller_mobile, ['class' => 'form-control', 'readonly']) }}
                 </div>
                 <div class="form-group mb-0">
                     {{ Form::label('seller_email', __('Email'), ['class' => 'form-label']) }}
-                    {{ Form::email('seller_email', $order->pi->seller_email ?? '', ['class' => 'form-control']) }}
+                    {{ Form::email('seller_email', $order->pi->seller_email ?? $seller_email, ['class' => 'form-control', 'readonly']) }}
                 </div>
             </div>
         </div>
@@ -124,19 +152,19 @@
                 <h6 class="fw-bold mb-3 text-warning">{{ __('Buyer Information') }}</h6>
                 <div class="form-group mb-2">
                     {{ Form::label('buyer_name', __('Name'), ['class' => 'form-label']) }}
-                    {{ Form::text('buyer_name', $order->pi->buyer_name ?? (optional($order->po)->client_name ?? ''), ['class' => 'form-control']) }}
+                    {{ Form::text('buyer_name', $order->pi->buyer_name ?? $buyer_name, ['class' => 'form-control', 'readonly']) }}
                 </div>
                 <div class="form-group mb-2">
                     {{ Form::label('buyer_address', __('Address'), ['class' => 'form-label']) }}
-                    {{ Form::textarea('buyer_address', $order->pi->buyer_address ?? (optional($order->po)->client_address ?? ''), ['class' => 'form-control', 'rows' => 2]) }}
+                    {{ Form::textarea('buyer_address', $order->pi->buyer_address ?? $buyer_address, ['class' => 'form-control', 'rows' => 2, 'readonly']) }}
                 </div>
                 <div class="form-group mb-2">
                     {{ Form::label('buyer_mobile', __('Mobile No'), ['class' => 'form-label']) }}
-                    {{ Form::text('buyer_mobile', $order->pi->buyer_mobile ?? (optional($order->po)->client_phone ?? ''), ['class' => 'form-control']) }}
+                    {{ Form::text('buyer_mobile', $order->pi->buyer_mobile ?? $buyer_mobile, ['class' => 'form-control', 'readonly']) }}
                 </div>
                 <div class="form-group mb-0">
                     {{ Form::label('buyer_email', __('Email'), ['class' => 'form-label']) }}
-                    {{ Form::email('buyer_email', $order->pi->buyer_email ?? (optional($order->po)->client_email ?? ''), ['class' => 'form-control']) }}
+                    {{ Form::email('buyer_email', $order->pi->buyer_email ?? $buyer_email, ['class' => 'form-control', 'readonly']) }}
                 </div>
             </div>
         </div>

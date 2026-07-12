@@ -21,6 +21,12 @@
                                 {{ Form::select('customer_id', $customers, null, ['id' => 'customer_id', 'class' => 'form-control select2-customer', 'required' => 'required']) }}
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ Form::label('incoterm', __('Incoterms'), ['class' => 'form-label']) }}
+                                {{ Form::select('incoterm', ['' => __('Select Incoterms')] + $incoterms, null, ['class' => 'form-control select2']) }}
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <input type="button" value="{{__('Cancel')}}" class="btn btn-light" onclick="location.href='{{ route('sales-orders.index') }}'">

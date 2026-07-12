@@ -63,7 +63,7 @@
     </div>
 </div>
 
-{{ Form::open(['route' => ['sales-orders.lc.store', $order->id], 'method' => 'post', 'id' => 'workflow-form']) }}
+{{ Form::open(['route' => ['sales-orders.lc.store', $order->id], 'method' => 'post', 'id' => 'workflow-form', 'enctype' => 'multipart/form-data']) }}
 
 {{-- LC Core Fields Card --}}
 <div class="card shadow-sm border-0 rounded-3 mb-4">
@@ -306,17 +306,34 @@
     </div>
 </div>
 
-{{-- Terms & Conditions Card --}}
+{{-- Terms & Conditions and File Upload Card --}}
 <div class="card shadow-sm border-0 rounded-3 mb-4">
     <div class="card-header bg-transparent border-bottom py-2 px-4 d-flex align-items-center gap-2"
          style="border-left:4px solid #5c6bc0;">
         <i class="ti ti-notes" style="color:#5c6bc0;"></i>
-        <span class="fw-semibold text-dark">{{ __('Terms & Conditions') }}</span>
+        <span class="fw-semibold text-dark">{{ __('Terms & Conditions and Attachments') }}</span>
     </div>
     <div class="card-body px-4 py-3">
-        <div class="form-group mb-0">
-            {{ Form::label('terms_and_conditions', __('Terms and Conditions'), ['class' => 'form-label fw-semibold']) }}
-            {{ Form::textarea('terms_and_conditions', $order->lc->terms_and_conditions ?? null, ['class' => 'form-control', 'rows' => 4, 'placeholder' => __('Enter terms and conditions...')]) }}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-0">
+                    {{ Form::label('terms_and_conditions', __('Terms and Conditions'), ['class' => 'form-label fw-semibold']) }}
+                    {{ Form::textarea('terms_and_conditions', $order->lc->terms_and_conditions ?? null, ['class' => 'form-control', 'rows' => 4, 'placeholder' => __('Enter terms and conditions...')]) }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-0">
+                    {{ Form::label('file', __('LC File Upload'), ['class' => 'form-label fw-semibold']) }}
+                    <input type="file" name="file" class="form-control">
+                    @if(isset($order->lc) && $order->lc->file_path)
+                        <div class="mt-2">
+                            <a href="{{ \App\Models\Utility::get_file($order->lc->file_path) }}" target="_blank" class="btn btn-sm btn-info text-white">
+                                <i class="ti ti-eye"></i> {{ __('View Uploaded LC Document') }}
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 </div>

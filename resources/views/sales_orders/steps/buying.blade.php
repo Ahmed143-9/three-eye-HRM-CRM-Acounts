@@ -27,6 +27,7 @@
                         <th>{{ __('Qty') }}</th>
                         <th>{{ __('Unit') }}</th>
                         <th>{{ __('Price') }}</th>
+                        <th>{{ __('Freight') }}</th>
                         <th>{{ __('Currency') }}</th>
                         <th>{{ __('Total') }}</th>
                         <th>{{ __('Action') }}</th>
@@ -48,6 +49,7 @@
                                 </select>
                             </td>
                             <td><input type="number" step="0.01" name="items[{{ $index }}][price]" class="form-control form-control-sm b-price" value="{{ $item->price }}" required></td>
+                            <td><input type="number" step="0.01" name="items[{{ $index }}][freight]" class="form-control form-control-sm b-freight" value="{{ $item->freight }}"></td>
                             <td>
                                 <select name="items[{{ $index }}][currency]" class="form-control form-control-sm curr-select" required>
                                     @foreach($currencies as $val => $label)
@@ -74,6 +76,7 @@
                                 </select>
                             </td>
                             <td><input type="number" step="0.01" name="items[0][price]" class="form-control form-control-sm b-price" required></td>
+                            <td><input type="number" step="0.01" name="items[0][freight]" class="form-control form-control-sm b-freight"></td>
                             <td>
                                 <select name="items[0][currency]" class="form-control form-control-sm curr-select" required>
                                     @foreach($currencies as $val => $label)
@@ -123,6 +126,7 @@
                     </select>
                 </td>
                 <td><input type="number" step="0.01" name="items[${index}][price]" class="form-control form-control-sm b-price" required></td>
+                <td><input type="number" step="0.01" name="items[${index}][freight]" class="form-control form-control-sm b-freight"></td>
                 <td>
                     <select name="items[${index}][currency]" class="form-control form-control-sm curr-select" required>
                         @foreach($currencies as $val => $label)<option value="{{ $val }}" {{ $val == 'D.' ? 'selected' : '' }}>{{ $label }}</option>@endforeach
@@ -142,11 +146,12 @@
         });
         
         // Calculate Row and Grand Total
-        $(document).on('keyup change', '.b-qty, .b-price', function() {
+        $(document).on('keyup change', '.b-qty, .b-price, .b-freight', function() {
             var tr = $(this).closest('tr');
             var qty = parseFloat(tr.find('.b-qty').val()) || 0;
             var price = parseFloat(tr.find('.b-price').val()) || 0;
-            var total = qty * price;
+            var freight = parseFloat(tr.find('.b-freight').val()) || 0;
+            var total = (price + freight) * qty;
             tr.find('.b-total').val(total.toFixed(2));
             calculateBuyingTotal();
         });
