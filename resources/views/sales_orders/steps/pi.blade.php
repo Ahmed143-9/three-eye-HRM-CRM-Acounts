@@ -70,7 +70,6 @@
             @endif
         </div>
     </div>
-    </div>
 @endif
 
 <h6 class="fw-bold mb-3">{{ __('Step 2: Proforma Invoice (PI)') }}</h6>
@@ -101,7 +100,6 @@
             {{ Form::label('validity', __('Validity (Days)'), ['class' => 'form-label']) }}
             {{ Form::number('validity', $order->pi->validity ?? null, ['class' => 'form-control']) }}
         </div>
-    </div>
     </div>
     <div class="col-md-4">
         <div class="form-group">
