@@ -371,6 +371,14 @@
                                     </li>
                                 @endcan
 
+                                @if(Gate::check('Manage Sales Orders') || \Auth::user()->type == 'company')
+                                    <li class="dash-item {{ Request::segment(1) == 'incoterm' ? 'active' : '' }}">
+                                        <a class="dash-link" href="{{ route('incoterm.index') }}">
+                                            <span class="dash-mtext">{{ __('Incoterms') }}</span>
+                                        </a>
+                                    </li>
+                                @endif
+
                                 @can('Manage Sales Orders')
                                     <li class="dash-item {{ Request::segment(1) == 'sales-orders' ? 'active' : '' }}">
                                         <a class="dash-link" href="{{ route('sales-orders.index') }}">
