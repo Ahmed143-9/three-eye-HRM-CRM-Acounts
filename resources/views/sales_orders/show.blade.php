@@ -96,6 +96,7 @@
             </div>
         </div>
     </div>
+</div>
 
     <!-- Finalize Modal -->
     <div class="modal fade" id="finalizeModal" tabindex="-1" aria-labelledby="finalizeModalLabel" aria-hidden="true">
@@ -307,5 +308,13 @@
             tr.find('.w-net').val(net.toFixed(3));
         });
     });
+
+    function switchWorkflowStep(tabId) {
+        var triggerEl = document.querySelector('#' + tabId);
+        if (triggerEl) {
+            var tab = new bootstrap.Tab(triggerEl);
+            tab.show();
+        }
+    }
 </script>
 @endpush
