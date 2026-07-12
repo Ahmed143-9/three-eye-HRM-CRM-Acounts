@@ -1090,6 +1090,7 @@ Route::group(['middleware' => ['verified']], function () {
 
     Route::resource('transfer', TransferController::class)->middleware(['auth', 'XSS']);
     Route::get('attendanceemployee/bulkattendance', [AttendanceEmployeeController::class, 'bulkAttendance'])->name('attendanceemployee.bulkattendance')->middleware(['auth', 'XSS']);
+    Route::get('attendanceemployee/bulkattendance/export', [AttendanceEmployeeController::class, 'exportBulkAttendance'])->name('attendanceemployee.bulkattendance.export')->middleware(['auth', 'XSS']);
     Route::post('attendanceemployee/bulkattendances', [AttendanceEmployeeController::class, 'bulkAttendanceData'])->name('attendanceemployee.bulkattendances')->middleware(['auth', 'XSS']);
     Route::post('attendanceemployee/attendance', [AttendanceEmployeeController::class, 'attendance'])->name('attendanceemployee.attendance')->middleware(['auth', 'XSS']);
     Route::get('attendance/late-log', [AttendanceEmployeeController::class, 'lateAttendanceLog'])->name('attendance.late.log')->middleware(['auth', 'XSS']);

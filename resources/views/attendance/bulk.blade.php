@@ -41,6 +41,9 @@
                             <i class="ti ti-adjustments-horizontal me-2"></i> {{ __('Sync Personnel') }}
                         </button>
                         @can('Manage Attendance')
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#exportBulkModal" class="btn btn-success px-4 py-2 rounded-pill text-white shadow-sm">
+                                <i class="ti ti-file-export me-1"></i> {{ __('Export Excel') }}
+                            </a>
                             <a href="#" data-size="md" data-bs-toggle="tooltip" title="{{ __('Import Attendance CSV/Excel') }}" data-url="{{ route('attendance.file.import') }}" data-ajax-popup="true" data-title="{{ __('Import Employee Attendance') }}" class="btn btn-indigo px-4 py-2 rounded-pill text-white shadow-sm" style="background:#4f46e5;">
                                 <i class="ti ti-file-import me-1"></i> {{ __('Upload Sheet') }}
                             </a>
@@ -51,6 +54,72 @@
             </div>
         </div>
     </div>
+
+    <!-- Export Modal -->
+    <div class="modal fade" id="exportBulkModal" tabindex="-1" aria-labelledby="exportBulkModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exportBulkModalLabel">{{ __('Export Bulk Attendance') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                {{ Form::open(['route' => ['attendanceemployee.bulkattendance.export'], 'method' => 'get', 'id' => 'exportBulkForm']) }}
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">{{ __('Start Date') }}</label>
+                        {{ Form::date('start_date', date('Y-m-01'), ['class' => 'form-control', 'id' => 'export_start_date', 'required' => 'required']) }}
+                    </div>
+                    <div class="form-group mt-3">
+                        <label class="form-label">{{ __('End Date') }}</label>
+                        {{ Form::date('end_date', date('Y-m-t'), ['class' => 'form-control', 'id' => 'export_end_date', 'required' => 'required']) }}
+                    </div>
+                    <div class="form-group mt-3">
+                        <label class="form-label">{{ __('Department') }} ({{ __('Optional') }})</label>
+                        {{ Form::select('department', $department, null, ['class' => 'form-control select2']) }}
+                    </div>
+                    <div class="text-danger mt-2 d-none" id="export_date_error">
+                        {{ __('Date range cannot exceed 1 month.') }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+                    <button type="submit" class="btn btn-primary" id="export_submit_btn">{{ __('Download') }}</button>
+                </div>
+                {{ Form::close() }}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('exportBulkForm');
+            const startInput = document.getElementById('export_start_date');
+            const endInput = document.getElementById('export_end_date');
+            const errorDiv = document.getElementById('export_date_error');
+            const submitBtn = document.getElementById('export_submit_btn');
+
+            function validateDates() {
+                const start = new Date(startInput.value);
+                const end = new Date(endInput.value);
+                
+                if (start && end) {
+                    const diffTime = Math.abs(end - start);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                    
+                    if (diffDays > 31 || start > end) {
+                        errorDiv.classList.remove('d-none');
+                        submitBtn.disabled = true;
+                    } else {
+                        errorDiv.classList.add('d-none');
+                        submitBtn.disabled = false;
+                    }
+                }
+            }
+
+            startInput.addEventListener('change', validateDates);
+            endInput.addEventListener('change', validateDates);
+        });
+    </script>
 
     <div class="row">
         <div class="col-12">

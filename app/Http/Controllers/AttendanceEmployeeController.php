@@ -585,6 +585,34 @@ class AttendanceEmployeeController extends Controller
         }
     }
 
+    public function exportBulkAttendance(Request $request)
+    {
+        if (\Auth::user()->can('Manage Attendance')) {
+            $start_date = $request->start_date;
+            $end_date = $request->end_date;
+            
+            if (!$start_date || !$end_date) {
+                return redirect()->back()->with('error', __('Start Date and End Date are required.'));
+            }
+
+            // Validate that the date range does not exceed 1 month
+            $start = \Carbon\Carbon::parse($start_date);
+            $end = \Carbon\Carbon::parse($end_date);
+            $diffInDays = $start->diffInDays($end);
+            
+            if ($diffInDays > 31) {
+                return redirect()->back()->with('error', __('Date range cannot exceed 1 month.'));
+            }
+            if ($start > $end) {
+                return redirect()->back()->with('error', __('Start Date cannot be greater than End Date.'));
+            }
+
+            return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\BulkAttendanceExport($start_date, $end_date, $request->department), 'bulk_attendance_'.$start_date.'_to_'.$end_date.'.xlsx');
+        } else {
+            return redirect()->back()->with('error', __('Permission denied.'));
+        }
+    }
+
     public function bulkAttendanceData(Request $request)
     {
         if (\Auth::user()->can('Manage Attendance')) {

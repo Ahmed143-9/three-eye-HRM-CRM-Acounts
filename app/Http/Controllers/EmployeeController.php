@@ -139,32 +139,24 @@ class EmployeeController extends Controller
 
             \Illuminate\Support\Facades\DB::beginTransaction();
             try {
-                if($total_employee < $plan->max_users || $plan->max_users == -1)
-                {
-                    $user = User::create(
-                        [
-                            'name' => $request['name'],
-                            'email' => $request['email'],
-                            'password' => Hash::make(!empty($request['password']) ? $request['password'] : \Str::random(16)),
-                            'type' => 'employee',
-                            'lang' => 'en',
-                            'created_by' => \Auth::user()->creatorId(),
-                        ]
-                    );
-                    if ($settings['email_verification'] == 'on') {
-                        $user->email_verified_at = null;
-                    } else {
-                        $user->email_verified_at = date('Y-m-d H:i:s');
-                    }
-                    $user->save();
-                    Utility::assignEmployeeRole($user);
+                // No limits applied
+                $user = User::create(
+                    [
+                        'name' => $request['name'],
+                        'email' => $request['email'],
+                        'password' => Hash::make(!empty($request['password']) ? $request['password'] : \Str::random(16)),
+                        'type' => 'employee',
+                        'lang' => 'en',
+                        'created_by' => \Auth::user()->creatorId(),
+                    ]
+                );
+                if ($settings['email_verification'] == 'on') {
+                    $user->email_verified_at = null;
+                } else {
+                    $user->email_verified_at = date('Y-m-d H:i:s');
                 }
-                else
-                {
-                    return redirect()->back()->with('error', __('Your employee limit is over, Please upgrade plan.'));
-                }
-
-
+                $user->save();
+                Utility::assignEmployeeRole($user);
             if(!empty($request->document) && !is_null($request->document))
             {
                 $document_implode = implode(',', array_keys($request->document));
