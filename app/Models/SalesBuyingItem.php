@@ -14,6 +14,7 @@ class SalesBuyingItem extends Model
         'unit',
         'price',
         'currency',
+        'freight',
         'total',
     ];
 

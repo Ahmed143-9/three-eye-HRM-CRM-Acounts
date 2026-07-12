@@ -9,6 +9,7 @@
 <hr>
 
 @if($order->buying)
+<div class="row">
     <div class="col-md-12 mb-3">
         <div class="card border">
             <div class="card-header bg-light py-2">
@@ -17,7 +18,7 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-bordered table-sm mb-0">
-                        <thead class="bg-light text-center">
+                        <thead class="text-center">
                             <tr>
                                 <th>{{ __('Item Name') }}</th>
                                 <th>{{ __('Description') }}</th>
@@ -70,6 +71,7 @@
             @endif
         </div>
     </div>
+</div>
 @endif
 
 <h6 class="fw-bold mb-3">{{ __('Step 2: Proforma Invoice (PI)') }}</h6>
