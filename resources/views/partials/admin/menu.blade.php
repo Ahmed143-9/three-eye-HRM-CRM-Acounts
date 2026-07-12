@@ -172,14 +172,6 @@
                                                     <a class="dash-link" href="{{ route('salary-management.approval-queue') }}">{{ __('Expense Approval Queue') }}</a>
                                                 </li>
                                             @endif
-                                            @if(\Auth::user()->type == 'company' || \Auth::user()->can('Manage Purchases & Suppliers'))
-                                                <li class="dash-item {{ Request::routeIs('salary-management.approved-bills') ? 'active' : '' }}">
-                                                    <a class="dash-link" href="{{ route('salary-management.approved-bills') }}">{{ __('Approved Bills') }}</a>
-                                                </li>
-                                            @endif
-                                            <li class="dash-item">
-                                                <a class="dash-link" href="#">{{ __('Payroll Reports') }}</a>
-                                            </li>
                                         </ul>
                                     </li>
                                 @endif
@@ -337,11 +329,7 @@
                                         <span class="dash-mtext">{{ __('Receivable') }}</span>
                                     </a>
                                 </li>
-                                <li class="dash-item {{ Request::routeIs('expense-bills.index') ? 'active' : '' }}">
-                                    <a class="dash-link" href="{{ route('expense-bills.index') }}">
-                                        <span class="dash-mtext">{{ __('Approved Bills') }}</span>
-                                    </a>
-                                </li>
+
                                 @if (Gate::check('ledger report') || \Auth::user()->type == 'company')
                                     <li class="dash-item {{ Request::routeIs('report.expense.summary') ? 'active' : '' }}">
                                         <a class="dash-link" href="{{ route('report.expense.summary') }}">
