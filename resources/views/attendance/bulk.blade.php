@@ -118,6 +118,9 @@
 
             startInput.addEventListener('change', validateDates);
             endInput.addEventListener('change', validateDates);
+
+            // Fix modal backdrop issue by moving it to body
+            document.body.appendChild(document.getElementById('exportBulkModal'));
         });
     </script>
 
