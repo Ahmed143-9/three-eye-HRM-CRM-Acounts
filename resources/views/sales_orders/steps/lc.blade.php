@@ -316,9 +316,9 @@
     <div class="card-body px-4 py-3">
         <div class="row">
             <div class="col-md-6">
-                <div class="form-group mb-0">
+                <div class="form-group mb-3">
                     {{ Form::label('terms_and_conditions', __('Terms and Conditions'), ['class' => 'form-label fw-semibold']) }}
-                    {{ Form::textarea('terms_and_conditions', $order->lc->terms_and_conditions ?? null, ['class' => 'form-control', 'rows' => 4, 'placeholder' => __('Enter terms and conditions...')]) }}
+                    {{ Form::textarea('terms_and_conditions', $order->lc->terms_and_conditions ?? $order->po->terms_and_conditions ?? $order->pi->terms_and_conditions ?? null, ['class' => 'form-control', 'rows' => 4, 'placeholder' => __('Enter terms and conditions...')]) }}
                 </div>
             </div>
             <div class="col-md-6">

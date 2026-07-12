@@ -224,9 +224,24 @@
 <div class="col-md-12 mt-4">
     <div class="form-group">
         {{ Form::label('terms_and_conditions', __('Terms and Conditions'), ['class' => 'form-label']) }}
-        {{ Form::textarea('terms_and_conditions', $order->po->terms_and_conditions ?? null, ['class' => 'form-control', 'rows' => 4, 'placeholder' => __('Enter terms and conditions...')]) }}
+        {{ Form::textarea('terms_and_conditions', $order->po->terms_and_conditions ?? $order->pi->terms_and_conditions ?? null, ['class' => 'form-control', 'rows' => 4, 'id' => 'main_terms_and_conditions', 'placeholder' => __('Enter terms and conditions...')]) }}
     </div>
 </div>
+<script>
+    // Sync the main form terms with the modal terms so they don't overwrite each other
+    document.addEventListener('DOMContentLoaded', function() {
+        var mainTerms = document.getElementById('main_terms_and_conditions');
+        var modalTerms = document.getElementById('modal_general_terms');
+        if (mainTerms && modalTerms) {
+            mainTerms.addEventListener('input', function() {
+                modalTerms.value = this.value;
+            });
+            modalTerms.addEventListener('input', function() {
+                mainTerms.value = this.value;
+            });
+        }
+    });
+</script>
 
 <div class="d-flex justify-content-between align-items-center mt-3">
     <div>
@@ -294,12 +309,19 @@
 
             <h6 class="mb-3 border-bottom pb-2 mt-2">{{ __('General Terms & Conditions') }}</h6>
             <div class="mb-3">
-                <textarea name="general_terms" class="form-control" rows="8">
-{{ $order->po->terms_and_conditions ?? "1. Any amendment to this Purchase Order shall be valid only when accepted by both parties in writing.
+                <textarea name="general_terms" id="modal_general_terms" class="form-control" rows="8">
+{{ $order->po->terms_and_conditions ?? $order->pi->terms_and_conditions ?? "1. Any amendment to this Purchase Order shall be valid only when accepted by both parties in writing.
 2. The supplier shall complete shipment of the ordered quantity within 30 (Thirty) days from the date of issuance of operative Letter of Credit (LC). Any anticipated delay in shipment must be communicated to the buyer in writing at least 7 (Seven) days prior to the scheduled shipment date.
 3. Any matter not specifically covered in this Purchase Order shall be settled through mutual discussion and agreement between the Buyer and Seller." }}
 </textarea>
             </div>
+            
+            <script>
+                // Sync the main form terms with the modal terms so they don't overwrite each other
+                document.getElementById('modal_general_terms').addEventListener('input', function() {
+                    document.getElementById('main_terms_and_conditions').value = this.value;
+                });
+            </script>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
