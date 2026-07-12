@@ -15,7 +15,7 @@
             <div class="card-header bg-light py-2">
                 <h6 class="mb-0 fw-bold">{{ __('Product Order Details (Read-only)') }}</h6>
             </div>
-            <div class="card-body p-0">
+            <div class="card-body p-3">
                 <div class="table-responsive">
                     <table class="table table-bordered table-sm mb-0">
                         <tbody>
