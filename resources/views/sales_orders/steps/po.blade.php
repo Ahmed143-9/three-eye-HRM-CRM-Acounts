@@ -80,7 +80,7 @@
     </div>
     <div class="col-md-3">
         <div class="form-group">
-            {{ Form::label('issued_by', __('Issued By'), ['class' => 'form-label']) }}
+            {{ Form::label('issued_by', __('Accepted By (Client)'), ['class' => 'form-label']) }}
             {{ Form::text('issued_by', $order->po->issued_by ?? '', ['class' => 'form-control']) }}
         </div>
     </div>
@@ -206,15 +206,23 @@
         </tbody>
         <tfoot>
             <tr>
+                @php
+                    $initial_grand_total = 0;
+                    if ($order->po) {
+                        $initial_grand_total = $order->po->grand_total;
+                    } elseif ($order->buying) {
+                        $initial_grand_total = $order->buying->items->sum('total');
+                    }
+                @endphp
                 <td colspan="7" class="text-end fw-bold align-middle">{{ __('Grand Total') }}:</td>
                 <td class="fw-bold align-middle"><span
-                        id="grand_total_display">{{ number_format($order->po->grand_total ?? 0, 2) }}</span></td>
+                        id="grand_total_display">{{ number_format($initial_grand_total, 2) }}</span></td>
                 <td class="text-center">
                     <button type="button" class="btn btn-sm add-item" title="{{ __('Add Row') }}"
                         style="background-color: #6fd943; border-color: #6fd943; color: white;">
                         <i class="ti ti-plus"></i>
                     </button>
-                    <input type="hidden" name="grand_total" id="grand_total" value="{{ $order->po->grand_total ?? 0 }}">
+                    <input type="hidden" name="grand_total" id="grand_total" value="{{ $initial_grand_total }}">
                 </td>
             </tr>
         </tfoot>
