@@ -18,19 +18,17 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-bordered table-sm mb-0">
-                        <thead class="text-center" style="background-color: #e9ecef; color: #000; font-weight: bold;">
-                            <tr>
-                                <th>{{ __('Item Name') }}</th>
-                                <th>{{ __('Description') }}</th>
-                                <th>{{ __('Qty') }}</th>
-                                <th>{{ __('Unit') }}</th>
-                                <th>{{ __('Price') }}</th>
-                                <th>{{ __('Freight') }}</th>
-                                <th>{{ __('Currency') }}</th>
-                                <th>{{ __('Total') }}</th>
-                            </tr>
-                        </thead>
                         <tbody>
+                            <tr class="text-center" style="background-color: #e9ecef; font-weight: bold; color: black; border-bottom: 2px solid #ccc;">
+                                <td style="padding: 8px;">{{ __('Item Name') }}</td>
+                                <td style="padding: 8px;">{{ __('Description') }}</td>
+                                <td style="padding: 8px;">{{ __('Qty') }}</td>
+                                <td style="padding: 8px;">{{ __('Unit') }}</td>
+                                <td style="padding: 8px;">{{ __('Price') }}</td>
+                                <td style="padding: 8px;">{{ __('Freight') }}</td>
+                                <td style="padding: 8px;">{{ __('Currency') }}</td>
+                                <td style="padding: 8px;">{{ __('Total') }}</td>
+                            </tr>
                             @if($order->buying && $order->buying->items)
                                 @foreach($order->buying->items as $item)
                                     <tr class="text-center">
