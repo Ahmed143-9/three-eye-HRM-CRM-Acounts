@@ -18,7 +18,7 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-bordered table-sm mb-0">
-                        <thead class="text-center">
+                        <thead class="text-center" style="background-color: #e9ecef; color: #000; font-weight: bold;">
                             <tr>
                                 <th>{{ __('Item Name') }}</th>
                                 <th>{{ __('Description') }}</th>
