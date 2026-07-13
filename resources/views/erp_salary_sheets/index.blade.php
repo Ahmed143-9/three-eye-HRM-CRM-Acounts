@@ -11,11 +11,11 @@
 
 @section('action-btn')
     <div class="float-end">
-        @can('create expense')
+        @if(Gate::check('Manage Payroll') || \Auth::user()->type == 'company')
             <a href="{{ route('salary-management.create') }}" class="btn btn-indigo px-4 py-2 rounded-pill text-white shadow-sm" style="background:#4f46e5;">
-                <i class="ti ti-plus me-1"></i> {{ __('Initialize New Batch') }}
+                <i class="ti ti-plus me-1"></i> {{ __('Generate Salary Sheet') }}
             </a>
-        @endcan
+        @endif
     </div>
 @endsection
 
