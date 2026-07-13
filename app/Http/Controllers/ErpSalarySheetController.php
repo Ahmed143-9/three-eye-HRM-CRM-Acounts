@@ -186,10 +186,14 @@ class ErpSalarySheetController extends Controller
     public function submitForApproval($id)
     {
         $batch = ErpPayrollBatch::findOrFail($id);
-        $batch->update(['status' => 'Pending Approval']);
+        $batch->update([
+            'status'      => 'Approved',
+            'approved_by' => Auth::id(),
+            'approved_at' => now(),
+        ]);
         
-        // Notify Admins
-        return redirect()->back()->with('success', __('Payroll batch submitted for approval.'));
+        // Bypassed Pending Approval queue as requested
+        return redirect()->back()->with('success', __('Payroll batch finalized and instantly approved.'));
     }
 
     public function approve($id)

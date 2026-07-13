@@ -599,11 +599,7 @@ class SalesOrderController extends Controller
                 'created_by' => \Auth::user()->creatorId(),
             ];
 
-            if ($request->filled('drum_buying_price')) {
-                $deliveryData['drum_buying_price'] = $request->drum_buying_price;
-                $deliveryData['drum_buying_total'] = $request->drum_buying_total ?? 0;
-            }
-            
+
             if ($request->filled('drum_selling_price')) {
                 $deliveryData['drum_selling_price'] = $request->drum_selling_price;
                 $deliveryData['drum_selling_total'] = $request->drum_selling_total ?? 0;
@@ -619,7 +615,6 @@ class SalesOrderController extends Controller
 
         // 5. Generate Billing for Drums if any
         if ($delivery->drum_qty > 0) {
-            $this->generateSalesPayable($order, $delivery, 'Drum Purchase', $ci_id);
             $this->generateSalesReceivable($order, $delivery, 'Drum Sale', $ci_id);
         }
 

@@ -98,13 +98,13 @@ class InventoryController extends Controller
             'purchase_date' => 'required|date',
             'quantity_purchased' => 'required|numeric|min:0.01',
             'unit_cost' => 'required|numeric|min:0',
-            'supplier_id' => 'nullable|exists:suppliers,id',
+            'supplier_id' => 'required|exists:suppliers,id',
         ]);
 
         $qty = $request->quantity_purchased;
         $cost = $request->unit_cost;
 
-        InventoryBatch::create([
+        $batch = InventoryBatch::create([
             'inventory_item_id' => $item->id,
             'supplier_id' => $request->supplier_id,
             'purchase_date' => $request->purchase_date,
@@ -115,7 +115,33 @@ class InventoryController extends Controller
             'created_by' => $creatorId,
         ]);
 
-        return redirect()->route('inventory.show', $item->id)->with('success', __('Purchase batch added successfully.'));
+        // Generate Accounts Payable Bill
+        $latest = \App\Models\Bill::where('created_by', '=', $creatorId)->latest('bill_id')->first();
+        $billNumber = $latest ? $latest->bill_id + 1 : 1;
+        $category = \App\Models\ProductServiceCategory::where('created_by', $creatorId)->where('type', 'expense')->first();
+
+        $bill = new \App\Models\Bill();
+        $bill->bill_id = $billNumber;
+        $bill->vender_id = $request->supplier_id;
+        $bill->bill_date = $request->purchase_date;
+        $bill->due_date = $request->purchase_date;
+        $bill->category_id = $category ? $category->id : 0;
+        $bill->order_number = 0;
+        $bill->status = 0;
+        $bill->created_by = $creatorId;
+        $bill->save();
+
+        \App\Models\BillProduct::create([
+            'bill_id' => $bill->id,
+            'product_id' => 0,
+            'quantity' => $qty,
+            'tax' => 0,
+            'discount' => 0,
+            'price' => $cost,
+            'description' => "Inventory Purchase: " . $item->name,
+        ]);
+
+        return redirect()->route('inventory.show', $item->id)->with('success', __('Purchase batch and Payable Bill created successfully.'));
     }
 
     public function getItemCost($id)

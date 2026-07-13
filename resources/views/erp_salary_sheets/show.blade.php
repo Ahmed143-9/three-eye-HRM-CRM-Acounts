@@ -30,7 +30,7 @@
                 <div class="d-flex align-items-center gap-3">
                     @if($batch->status == 'Draft' && \Auth::user()->can('Manage Employees'))
                         <a href="{{ route('salary-management.submit', $batch->id) }}" class="btn btn-warning px-4 py-2 rounded-pill fw-bold shadow-sm">
-                            <i class="ti ti-send me-1"></i> {{ __('Request Approval') }}
+                            <i class="ti ti-check me-1"></i> {{ __('Finalize & Approve') }}
                         </a>
                     @endif
 

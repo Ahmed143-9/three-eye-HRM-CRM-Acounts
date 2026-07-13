@@ -127,23 +127,7 @@
         </div>
         <hr>
         <div class="row">
-            <div class="col-md-6 border-end">
-                <h6 class="fw-bold text-primary mb-3">{{ __('Buying (Payable)') }}</h6>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            {{ Form::label('drum_buying_price', __('Buying Rate'), ['class' => 'form-label']) }}
-                            {{ Form::number('drum_buying_price', optional(optional($active_ci)->delivery)->drum_buying_price ?? 0, ['class' => 'form-control drum-calc', 'id' => 'drum_buying_price', 'step' => '0.01']) }}
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            {{ Form::label('drum_buying_total', __('Total Buying'), ['class' => 'form-label']) }}
-                            {{ Form::number('drum_buying_total', optional(optional($active_ci)->delivery)->drum_buying_total ?? 0, ['class' => 'form-control', 'id' => 'drum_buying_total', 'readonly']) }}
-                        </div>
-                    </div>
-                </div>
-            </div>
+
             <div class="col-md-6">
                 <h6 class="fw-bold text-success mb-3">{{ __('Selling (Receivable)') }}</h6>
                 <div class="row">
