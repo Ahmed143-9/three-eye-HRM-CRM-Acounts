@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 @section('page-title')
-    {{ __('Payroll Command Center') }}
+    {{ __('Salary Sheets') }}
 @endsection
 
 @section('breadcrumb')
@@ -43,10 +43,10 @@
                     </div>
 
                     <div class="mb-4">
-                        <div class="small fw-bold text-muted text-uppercase letter-spacing-1 mb-2">{{ __('Functional Scope') }}</div>
+                        <div class="small fw-bold text-muted text-uppercase letter-spacing-1 mb-2">{{ __('Department') }}</div>
                         <div class="d-flex align-items-center">
                             <div class="p-2 bg-light rounded-circle me-3"><i class="ti ti-building-community text-primary"></i></div>
-                            <div class="fw-bold text-dark">{{ $batch->department ? $batch->department->name : __('Global Operations') }}</div>
+                            <div class="fw-bold text-dark">{{ $batch->department ? $batch->department->name : __('All Departments') }}</div>
                         </div>
                     </div>
 
